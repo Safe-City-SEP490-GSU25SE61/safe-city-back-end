@@ -90,7 +90,6 @@ builder.Services.AddAuthentication(options =>
     });
 
 builder.Services.AddHttpContextAccessor();
-
 builder.Services.AddCors();
 
 builder.Services.AddEndpointsApiExplorer();
