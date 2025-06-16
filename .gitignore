@@ -15,13 +15,7 @@
 *.sln.docstates
 
 # Ignore build output directories
-bin/
-obj/
-**/bin/
-**/obj/
-**/out/
-**/Debug/
-**/Release/
+
 
 # Ignore user secrets and sensitive configuration files
 appsettings.json
@@ -33,7 +27,6 @@ secrets.json
 logs/
 coverage/
 TestResults/
-*.cache
 *.pdb
 *.mdb
 

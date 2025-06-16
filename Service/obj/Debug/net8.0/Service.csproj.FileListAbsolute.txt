@@ -1,0 +1,40 @@
+C:\Đồ án tốt nghiệp\safe-city-back-end\Service\obj\Debug\net8.0\Service.csproj.AssemblyReference.cache
+C:\Đồ án tốt nghiệp\safe-city-back-end\Service\obj\Debug\net8.0\Service.GeneratedMSBuildEditorConfig.editorconfig
+C:\Đồ án tốt nghiệp\safe-city-back-end\Service\obj\Debug\net8.0\Service.AssemblyInfoInputs.cache
+C:\Đồ án tốt nghiệp\safe-city-back-end\Service\obj\Debug\net8.0\Service.AssemblyInfo.cs
+C:\Đồ án tốt nghiệp\safe-city-back-end\Service\obj\Debug\net8.0\Service.csproj.CoreCompileInputs.cache
+C:\Đồ án tốt nghiệp\safe-city-back-end\Service\obj\Debug\net8.0\Service.sourcelink.json
+C:\Đồ án tốt nghiệp\safe-city-back-end\Service\bin\Debug\net8.0\Service.deps.json
+C:\Đồ án tốt nghiệp\safe-city-back-end\Service\bin\Debug\net8.0\Service.dll
+C:\Đồ án tốt nghiệp\safe-city-back-end\Service\bin\Debug\net8.0\Service.pdb
+C:\Đồ án tốt nghiệp\safe-city-back-end\Service\bin\Debug\net8.0\BusinessObject.dll
+C:\Đồ án tốt nghiệp\safe-city-back-end\Service\bin\Debug\net8.0\DataAccessLayer.dll
+C:\Đồ án tốt nghiệp\safe-city-back-end\Service\bin\Debug\net8.0\Repository.dll
+C:\Đồ án tốt nghiệp\safe-city-back-end\Service\bin\Debug\net8.0\Repository.pdb
+C:\Đồ án tốt nghiệp\safe-city-back-end\Service\bin\Debug\net8.0\BusinessObject.pdb
+C:\Đồ án tốt nghiệp\safe-city-back-end\Service\bin\Debug\net8.0\DataAccessLayer.pdb
+C:\Đồ án tốt nghiệp\safe-city-back-end\Service\obj\Debug\net8.0\Service.csproj.Up2Date
+C:\Đồ án tốt nghiệp\safe-city-back-end\Service\obj\Debug\net8.0\Service.dll
+C:\Đồ án tốt nghiệp\safe-city-back-end\Service\obj\Debug\net8.0\refint\Service.dll
+C:\Đồ án tốt nghiệp\safe-city-back-end\Service\obj\Debug\net8.0\Service.pdb
+C:\Đồ án tốt nghiệp\safe-city-back-end\Service\obj\Debug\net8.0\ref\Service.dll
+C:\Project-Capstone\safe-city-back-end\Service\bin\Debug\net8.0\Service.deps.json
+C:\Project-Capstone\safe-city-back-end\Service\bin\Debug\net8.0\Service.dll
+C:\Project-Capstone\safe-city-back-end\Service\bin\Debug\net8.0\Service.pdb
+C:\Project-Capstone\safe-city-back-end\Service\bin\Debug\net8.0\BusinessObject.dll
+C:\Project-Capstone\safe-city-back-end\Service\bin\Debug\net8.0\DataAccessLayer.dll
+C:\Project-Capstone\safe-city-back-end\Service\bin\Debug\net8.0\Repository.dll
+C:\Project-Capstone\safe-city-back-end\Service\bin\Debug\net8.0\Repository.pdb
+C:\Project-Capstone\safe-city-back-end\Service\bin\Debug\net8.0\BusinessObject.pdb
+C:\Project-Capstone\safe-city-back-end\Service\bin\Debug\net8.0\DataAccessLayer.pdb
+C:\Project-Capstone\safe-city-back-end\Service\obj\Debug\net8.0\Service.csproj.AssemblyReference.cache
+C:\Project-Capstone\safe-city-back-end\Service\obj\Debug\net8.0\Service.GeneratedMSBuildEditorConfig.editorconfig
+C:\Project-Capstone\safe-city-back-end\Service\obj\Debug\net8.0\Service.AssemblyInfoInputs.cache
+C:\Project-Capstone\safe-city-back-end\Service\obj\Debug\net8.0\Service.AssemblyInfo.cs
+C:\Project-Capstone\safe-city-back-end\Service\obj\Debug\net8.0\Service.csproj.CoreCompileInputs.cache
+C:\Project-Capstone\safe-city-back-end\Service\obj\Debug\net8.0\Service.sourcelink.json
+C:\Project-Capstone\safe-city-back-end\Service\obj\Debug\net8.0\Service.csproj.Up2Date
+C:\Project-Capstone\safe-city-back-end\Service\obj\Debug\net8.0\Service.dll
+C:\Project-Capstone\safe-city-back-end\Service\obj\Debug\net8.0\refint\Service.dll
+C:\Project-Capstone\safe-city-back-end\Service\obj\Debug\net8.0\Service.pdb
+C:\Project-Capstone\safe-city-back-end\Service\obj\Debug\net8.0\ref\Service.dll
