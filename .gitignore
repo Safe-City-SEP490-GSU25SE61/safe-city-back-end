@@ -15,7 +15,7 @@
 *.sln.docstates
 
 # Ignore build output directories
-
+bin/
 
 # Ignore user secrets and sensitive configuration files
 appsettings.json
