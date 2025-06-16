@@ -15,10 +15,6 @@
 *.sln.docstates
 
 # Ignore build output directories
-bin/
-obj/
-**/bin/
-**/obj/
 **/out/
 **/Debug/
 **/Release/
