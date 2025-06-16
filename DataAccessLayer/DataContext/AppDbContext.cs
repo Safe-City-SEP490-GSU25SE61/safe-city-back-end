@@ -1,10 +1,15 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using BusinessObject.Models;
+using Microsoft.Extensions.Configuration;
 
 namespace DataAccessLayer.DataContext
 {
     public class AppDbContext : DbContext
     {
+        public AppDbContext()
+        {
+        }
+
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
         }
@@ -20,6 +25,16 @@ namespace DataAccessLayer.DataContext
         public DbSet<Subscription> Subscriptions { get; set; }
         public DbSet<Ward> Wards { get; set; }
 
+        private static string? GetConnectionString()
+        {
+            IConfiguration configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", true, true).Build();
+            return configuration["ConnectionStrings:DefaultConnection"];
+        }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+            => optionsBuilder.UseNpgsql(GetConnectionString());
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -43,9 +58,9 @@ namespace DataAccessLayer.DataContext
                 .OnDelete(DeleteBehavior.SetNull);
 
             modelBuilder.Entity<CitizenIdentityCard>()
-                .HasOne(a => a.Account)
-                .WithOne(e => e.CitizenIdentityCard)
-                .HasForeignKey<Account>(e => e.Id)
+                .HasOne(c => c.Account)
+                .WithOne(a => a.CitizenIdentityCard)
+                .HasForeignKey<CitizenIdentityCard>(c => c.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Subscription>()
