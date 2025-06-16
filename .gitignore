@@ -27,7 +27,6 @@ secrets.json
 logs/
 coverage/
 TestResults/
-*.cache
 *.pdb
 *.mdb
 
