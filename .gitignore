@@ -1,4 +1,8 @@
-# Ignore environment variables
+# Ignore user secrets and sensitive configuration files
+appsettings.json
+appsettings.Development.json
+secrets.json
+
 .env
 .env.local
 .env.development
@@ -16,17 +20,19 @@
 
 # Ignore build output directories
 bin/
-
-# Ignore user secrets and sensitive configuration files
-appsettings.json
-appsettings.Development.json
-secrets.json
+obj/
+**/bin/
+**/obj/
+**/out/
+**/Debug/
+**/Release/
 
 # Ignore logs and generated files
 *.log
 logs/
 coverage/
 TestResults/
+*.cache
 *.pdb
 *.mdb
 
