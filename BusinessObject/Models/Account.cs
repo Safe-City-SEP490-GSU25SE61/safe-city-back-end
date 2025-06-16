@@ -8,9 +8,17 @@ namespace BusinessObject.Models
     public class Account
     {
         [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [Column("id")]
-        public Guid Id { get; set; } 
+        public Guid Id { get; set; }
+
+        [Column("full_name")]
+        public string FullName { get; set; }
+
+        [Column("date_of_birth")]
+        public DateTime DateOfBirth { get; set; }
+
+        [Column("gender")]
+        public bool Gender { get; set; }
 
         [Column("email")]
         public string Email { get; set; } 
@@ -28,13 +36,13 @@ namespace BusinessObject.Models
         public int RoleId { get; set; }     
 
         [Column("district_id")]
-        public int DistrictId { get; set; }  
+        public int? DistrictId { get; set; }  
 
         [Column("created_at")]
         public DateTime CreatedAt { get; set; }
 
         [Column("device_id")]
-        public string DeviceId { get; set; }  
+        public string? DeviceId { get; set; }  
 
         [Column("total_point")]
         public int TotalPoint { get; set; } 
@@ -42,24 +50,29 @@ namespace BusinessObject.Models
         [Column("achievement_id")]
         public int? AchievementId { get; set; } 
 
-        [Column("is_active")]
-        public bool IsActive { get; set; }  
+        [Column("is_logged_in")]
+        public bool IsLoggedIn { get; set; }
 
-        [Column("status")]
+        [Column("is_deleted")] 
+        public bool IsDeleted { get; set; }
+
+        [Column("account_status")]
         public string Status { get; set; } 
 
         [Column("refresh_token")]
         public string? RefreshToken { get; set; }  
 
         [Column("refresh_token_expiry")]
-        public DateTime? RefreshTokenExpiry { get; set; }  
+        public DateTime? RefreshTokenExpiry { get; set; }
 
+        [Column("activation_code")] 
+        public string? ActivationCode { get; set; }
 
 
         public Role Role { get; set; }
-        public District District { get; set; }
-        public Achievement Achievement { get; set; }
-        public CitizenIdentityCard CitizenIdentityCard { get; set; }
-        public ICollection<Subscription> Subscriptions { get; set; }
+        public District? District { get; set; }
+        public Achievement? Achievement { get; set; }
+        public CitizenIdentityCard? CitizenIdentityCard { get; set; }
+        public ICollection<Subscription>? Subscriptions { get; set; }
     }
 }

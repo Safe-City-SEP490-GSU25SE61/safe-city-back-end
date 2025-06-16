@@ -15,18 +15,6 @@ namespace BusinessObject.Models
         [Column("user_id")]
         public Guid UserId { get; set; }
 
-        [Column("full_name")]
-        public string FullName { get; set; }
-
-        [Column("date_of_birth")]
-        public DateTime DateOfBirth { get; set; }
-
-        [Column("gender")]
-        public string Gender { get; set; }
-
-        [Column("nationality")]
-        public string Nationality { get; set; }
-
         [Column("address")]
         public string Address { get; set; }
 
@@ -56,8 +44,6 @@ namespace BusinessObject.Models
 
         [Column("updated_at")]
         public DateTime UpdatedAt { get; set; }
-
-
 
         public Account Account { get; set; }
     }
