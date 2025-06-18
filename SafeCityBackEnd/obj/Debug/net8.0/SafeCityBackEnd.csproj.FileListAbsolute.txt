@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 C:\Project-Capstone\safe-city-back-end\SafeCityBackEnd\bin\Debug\net8.0\appsettings.Development.json
 C:\Project-Capstone\safe-city-back-end\SafeCityBackEnd\bin\Debug\net8.0\appsettings.json
 C:\Project-Capstone\safe-city-back-end\SafeCityBackEnd\bin\Debug\net8.0\firebase-service-account.json
@@ -148,3 +149,5 @@ C:\Project-Capstone\safe-city-back-end\SafeCityBackEnd\obj\Debug\net8.0\refint\S
 C:\Project-Capstone\safe-city-back-end\SafeCityBackEnd\obj\Debug\net8.0\SafeCityBackEnd.pdb
 C:\Project-Capstone\safe-city-back-end\SafeCityBackEnd\obj\Debug\net8.0\SafeCityBackEnd.genruntimeconfig.cache
 C:\Project-Capstone\safe-city-back-end\SafeCityBackEnd\obj\Debug\net8.0\ref\SafeCityBackEnd.dll
+=======
+>>>>>>> 216a5eac76124de3b88c2d5a4bf20facc3715817
