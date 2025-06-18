@@ -79,7 +79,7 @@ namespace DataAccessLayer.DataContext
                 .HasOne(w => w.District)  
                 .WithMany(d => d.Wards)   
                 .HasForeignKey(w => w.DistrictId)  
-                .OnDelete(DeleteBehavior.SetNull);  
+                .OnDelete(DeleteBehavior.Cascade);  
 
             base.OnModelCreating(modelBuilder);
         }

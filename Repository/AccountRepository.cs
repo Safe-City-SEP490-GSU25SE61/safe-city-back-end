@@ -61,6 +61,13 @@ namespace Repository.Repositories
                 .FirstOrDefaultAsync(x => x.Id == id);
         }
 
+        public async Task<Account> UpdateOfficerAsync(Account account)
+        {
+            _context.Accounts.Update(account);
+            await _context.SaveChangesAsync();
+            return account;
+        }
+
         public async Task<Account> UpdateAsync(Account account)
         {
             //var existingAccount = await _context.Accounts.FirstOrDefaultAsync(x => x.Id == account.Id);
@@ -100,5 +107,7 @@ namespace Repository.Repositories
             //await _context.SaveChangesAsync();
             return account;
         }
+
+
     }
 }

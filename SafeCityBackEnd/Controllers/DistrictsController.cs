@@ -1,75 +1,101 @@
-﻿using BusinessObject.DTOs;
-using Microsoft.AspNetCore.Http;
+﻿using SafeCityBackEnd.Helpers;
 using Microsoft.AspNetCore.Mvc;
+using BusinessObject.DTOs;
+using BusinessObject.DTOs.ResponseModels;
+using System.Net;
 using Service.Interfaces;
+using BusinessObject.DTOs.RequestModels;
 
-namespace SafeCityBackEnd.Controllers
+[Route("api/districts")]
+[ApiExplorerSettings(GroupName = "Districts")]
+[ApiController]
+public class DistrictsController : ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class DistrictsController : ControllerBase
+    private readonly IDistrictService _districtService;
+
+    public DistrictsController(IDistrictService districtService)
     {
-        private readonly IDistrictService _districtService;
+        _districtService = districtService;
+    }
+    
+    [HttpGet]
+    public async Task<IActionResult> GetAllDistricts()
+    {
+        var districts = await _districtService.GetAllAsync();
+        return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Get all districts successfully", districts);
+    }
 
-        public DistrictsController(IDistrictService districtService)
+    [HttpGet("{id:int}")]
+    public async Task<IActionResult> GetDistrictById(int id)
+    {
+        var district = await _districtService.GetByIdAsync(id);
+        if (district == null)
+            return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.NotFound, "District not found", null);
+
+        return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Get district successfully", district);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> CreateDistrict([FromBody] CreateDistrictDTO createDistrictDTO)
+    {
+        if (createDistrictDTO == null)
+            return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.BadRequest, "Invalid data", null);
+
+        var districtId = await _districtService.CreateAsync(createDistrictDTO);
+        var createdDistrict = await _districtService.GetByIdAsync(districtId);
+
+        return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.Created, "District created successfully", createdDistrict);
+    }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateDistrict(int id, [FromBody] CreateDistrictDTO districtDTO)
+    {
+        try
         {
-            _districtService = districtService;
+            // Cập nhật district
+            await _districtService.UpdateAsync(id, districtDTO);
+            return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "District updated successfully", districtDTO);
         }
-
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<DistrictDTO>>> GetAllDistricts()
+        catch (Exception ex)
         {
-            var districts = await _districtService.GetAllAsync();
-            return Ok(districts);
+            return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.BadRequest, ex.Message, null);
         }
+    }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<DistrictDTO>> GetDistrictById(int id)
+
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> DeleteDistrict(int id)
+    {
+        var existingDistrict = await _districtService.GetByIdAsync(id);
+        if (existingDistrict == null)
+            return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.NotFound, "District not found", null);
+
+        await _districtService.DeleteAsync(id);
+        return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "District deleted successfully", null);
+    }
+
+    [HttpGet("{name}")]
+    public async Task<IActionResult> GetDistrictByName(string name)
+    {
+        var district = await _districtService.GetByNameAsync(name);
+        if (district == null)
+            return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.NotFound, "District not found", null);
+
+        return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Get district by name successfully", district);
+    }
+
+    [HttpPatch("assign-to-officer")]
+    public async Task<IActionResult> AssignDistrictToOfficer([FromBody] AssignDistrictToOfficerDTO dto)
+    {
+        try
         {
-            var district = await _districtService.GetByIdAsync(id);
-            if (district == null)
-                return NotFound();
-            return Ok(district);
+            
+            var result = await _districtService.AssignDistrictToOfficerAsync(dto.AccountId, dto.DistrictId);
+            return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "District assigned to officer successfully", result);
         }
-
-        [HttpPost]
-        public async Task<ActionResult> CreateDistrict([FromBody] DistrictDTO districtDTO)
+        catch (Exception ex)
         {
-            if (districtDTO == null)
-                return BadRequest();
-
-            await _districtService.CreateAsync(districtDTO);
-            return CreatedAtAction(nameof(GetDistrictById), new { id = districtDTO.Id }, districtDTO);
-        }
-
-        [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateDistrict(int id, [FromBody] DistrictDTO districtDTO)
-        {
-            var existingDistrict = await _districtService.GetByIdAsync(id);
-            if (existingDistrict == null)
-                return NotFound();
-
-            await _districtService.UpdateAsync(districtDTO);
-            return NoContent();
-        }
-
-        [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteDistrict(int id)
-        {
-            var existingDistrict = await _districtService.GetByIdAsync(id);
-            if (existingDistrict == null)
-                return NotFound();
-
-            await _districtService.DeleteAsync(id);
-            return NoContent();
-        }
-        [HttpGet("name/{name}")]
-        public async Task<ActionResult<DistrictDTO>> GetDistrictByName(string name)
-        {
-            var district = await _districtService.GetByNameAsync(name);
-            if (district == null)
-                return NotFound();
-            return Ok(district);
+            return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.BadRequest, ex.Message, null);
         }
     }
 

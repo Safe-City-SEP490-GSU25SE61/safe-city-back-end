@@ -1,4 +1,6 @@
 ﻿using BusinessObject.DTOs;
+using BusinessObject.DTOs.RequestModels;
+using BusinessObject.DTOs.ResponseModels;
 using BusinessObject.Models;
 using System;
 using System.Collections.Generic;
@@ -12,8 +14,8 @@ namespace Service.Interfaces
     {
         Task<IEnumerable<WardDTO>> GetAllAsync();
         Task<WardDTO> GetByIdAsync(int id);
-        Task CreateAsync(WardDTO wardDTO);
-        Task UpdateAsync(WardDTO wardDTO);
+        Task<int> CreateAsync(CreateWardDTO wardDTO);
+        Task UpdateAsync(int id, CreateWardDTO wardDTO);
         Task DeleteAsync(int id);
         Task<WardDTO> GetByNameAsync(string name);
     }

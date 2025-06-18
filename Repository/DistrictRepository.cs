@@ -14,7 +14,6 @@ namespace Repository
         {
             _context = context;
         }
-
         public async Task<District> GetByNameAsync(string name)
         {
             return await _context.Districts.FirstOrDefaultAsync(d => d.Name == name);

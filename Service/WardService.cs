@@ -3,7 +3,8 @@ using Service.Interfaces;
 using Repository.Interfaces;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using BusinessObject.DTOs;
+using BusinessObject.DTOs.ResponseModels;
+using BusinessObject.DTOs.RequestModels;
 
 namespace Service
 {
@@ -48,35 +49,39 @@ namespace Service
             };
         }
 
-        public async Task CreateAsync(WardDTO wardDTO)
+        public async Task<int> CreateAsync(CreateWardDTO createWardDTO)
         {
             var ward = new Ward
             {
-                Name = wardDTO.Name,
-                TotalReportedIncidents = wardDTO.TotalReportedIncidents,
-                DangerLevel = wardDTO.DangerLevel,
-                Note = wardDTO.Note,
-                PolygonData = wardDTO.PolygonData,
-                DistrictId = wardDTO.DistrictId
+                Name = createWardDTO.Name,
+                TotalReportedIncidents = createWardDTO.TotalReportedIncidents,
+                DangerLevel = createWardDTO.DangerLevel,
+                Note = createWardDTO.Note,
+                PolygonData = createWardDTO.PolygonData,
+                DistrictId = createWardDTO.DistrictId
             };
 
             await _wardRepository.CreateAsync(ward);
+
+            return ward.Id;
         }
 
-        public async Task UpdateAsync(WardDTO wardDTO)
+        public async Task UpdateAsync(int id, CreateWardDTO wardDTO)
         {
-            var ward = await _wardRepository.GetByIdAsync(wardDTO.Id);
-            if (ward == null) return;
+           
+            var ward = await _wardRepository.GetByIdAsync(id);
+            if (ward == null)
+                throw new KeyNotFoundException("Ward not found.");
 
             ward.Name = wardDTO.Name;
             ward.TotalReportedIncidents = wardDTO.TotalReportedIncidents;
             ward.DangerLevel = wardDTO.DangerLevel;
             ward.Note = wardDTO.Note;
             ward.PolygonData = wardDTO.PolygonData;
-            ward.DistrictId = wardDTO.DistrictId;
 
             await _wardRepository.UpdateAsync(ward);
         }
+
 
         public async Task DeleteAsync(int id)
         {

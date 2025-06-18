@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace Repository.Interfaces
 {
-    public interface IDistrictRepository : IGenericRepository<District>
+    public interface IAchievementRepository : IGenericRepository<Achievement>
     {
-        Task<District> GetByNameAsync(string name); 
+        Task<Achievement?> GetByIdAsync(int id);  
+        Task<IEnumerable<Achievement>> GetAllAsync(); 
     }
-
 }

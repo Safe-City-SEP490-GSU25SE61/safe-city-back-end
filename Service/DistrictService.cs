@@ -3,18 +3,23 @@ using Service.Interfaces;
 using Repository.Interfaces;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using BusinessObject.DTOs.ResponseModels;
 using BusinessObject.DTOs;
+using Repository.Repositories;
 
 namespace Service
 {
     public class DistrictService : IDistrictService
     {
         private readonly IDistrictRepository _districtRepository;
+        private readonly IAccountRepository _accountRepository;
 
-        public DistrictService(IDistrictRepository districtRepository)
+        public DistrictService(IDistrictRepository districtRepository, IAccountRepository accountRepository)
         {
             _districtRepository = districtRepository;
+            _accountRepository = accountRepository;
         }
+
 
         public async Task<IEnumerable<DistrictDTO>> GetAllAsync()
         {
@@ -46,24 +51,27 @@ namespace Service
             };
         }
 
-        public async Task CreateAsync(DistrictDTO districtDTO)
+        public async Task<int> CreateAsync(CreateDistrictDTO createDistrictDTO)
         {
             var district = new District
             {
-                Name = districtDTO.Name,
-                TotalReportedIncidents = districtDTO.TotalReportedIncidents,
-                DangerLevel = districtDTO.DangerLevel,
-                Note = districtDTO.Note,
-                PolygonData = districtDTO.PolygonData
+                Name = createDistrictDTO.Name,
+                TotalReportedIncidents = createDistrictDTO.TotalReportedIncidents,
+                DangerLevel = createDistrictDTO.DangerLevel,
+                Note = createDistrictDTO.Note,
+                PolygonData = createDistrictDTO.PolygonData
             };
 
             await _districtRepository.CreateAsync(district);
+
+            return district.Id;
         }
 
-        public async Task UpdateAsync(DistrictDTO districtDTO)
+        public async Task UpdateAsync(int id, CreateDistrictDTO districtDTO)
         {
-            var district = await _districtRepository.GetByIdAsync(districtDTO.Id);
-            if (district == null) return;
+            var district = await _districtRepository.GetByIdAsync(id);
+            if (district == null)
+                throw new KeyNotFoundException("District not found.");
 
             district.Name = districtDTO.Name;
             district.TotalReportedIncidents = districtDTO.TotalReportedIncidents;
@@ -93,6 +101,28 @@ namespace Service
                 Note = district.Note,
                 PolygonData = district.PolygonData
             };
+        }
+        public async Task<bool> AssignDistrictToOfficerAsync(Guid accountId, int districtId)
+        {
+            
+            var district = await _districtRepository.GetByIdAsync(districtId);
+            if (district == null)
+            {
+                throw new KeyNotFoundException("District not found.");
+            }
+
+            
+            var account = await _accountRepository.GetByIdAsync(accountId);
+            if (account == null || account.RoleId != 2) 
+            {
+                throw new InvalidOperationException("Account not found or not an officer.");
+            }
+
+           
+            account.DistrictId = districtId;
+            await _accountRepository.UpdateAsync(account);
+
+            return true; 
         }
     }
 }

@@ -15,5 +15,6 @@ namespace Repository.Interfaces
         Task<Account> AddAsync(Account account);
         Task<Account> UpdateAsync(Account account);
         Task<Account> DeleteAsync(Guid id);
+        Task<Account> UpdateOfficerAsync(Account account);
     }
 }
