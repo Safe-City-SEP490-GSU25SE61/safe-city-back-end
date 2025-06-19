@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 using Service.Interfaces;
 using Service;
 using SafeCityBackEnd.Helpers;
+using BusinessObject.DTOs.ResponseModels;
 
 namespace SafeCityBackEnd.Controllers;
 
@@ -21,11 +22,13 @@ public class AuthController : Controller
     private readonly IAccountService _accountService;
 
     private readonly IConfiguration _configuration;
-    public AuthController(IAuthService service, IConfiguration configuration, IAccountService accountService)
+    private readonly IScanningCardService _scanningCardService;
+    public AuthController(IAuthService service, IConfiguration configuration, IAccountService accountService, IScanningCardService scanningCardService)
     {
         _authService = service;
         _configuration = configuration;
         _accountService = accountService;
+        _scanningCardService = scanningCardService;
     }
 
     [HttpGet("init-roles")]
@@ -37,12 +40,25 @@ public class AuthController : Controller
 
 
     [HttpPost("register")]
-    public async Task<IActionResult> Register(UserRegistrationRequestModel userDto)
+    public async Task<IActionResult> Register([FromForm]UserRegistrationRequestModel userDto)
     {
         await _authService.Register(userDto);
         return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.Accepted, "Successfully Register",
             "Please check your email for account verification.");
     }
+
+    [HttpPost("identity-card")]
+    public async Task<IActionResult> ScanIdCard(IFormFile file)
+    {
+        var parsedResult = await _scanningCardService.ParseVietnameseIdCardAsync(file);
+
+        if (parsedResult == null)
+            return BadRequest("Failed to scan or parse ID card.");
+
+        return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.Accepted, "Successfully scanned identity card", parsedResult);
+    }
+
+
 
     [HttpPost("verify-account")]
     public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpRequestModel request)
@@ -70,8 +86,8 @@ public class AuthController : Controller
 
             var responseObject = new
             {
-                access_token = authResponse.AccessToken,
-                refresh_token = authResponse.RefreshToken
+                accessToken = authResponse.AccessToken,
+                refreshToken = authResponse.RefreshToken
             };
 
             return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Login successful", responseObject);
@@ -90,8 +106,8 @@ public class AuthController : Controller
             var authResponse = await _authService.RefreshTokenAsync(request.RefreshToken);
             return Ok(new
             {
-                access_token = authResponse.AccessToken,
-                refresh_token = authResponse.RefreshToken
+                accessToken = authResponse.AccessToken,
+                refreshToken = authResponse.RefreshToken
             });
         } catch (UnauthorizedAccessException ex)
         {
