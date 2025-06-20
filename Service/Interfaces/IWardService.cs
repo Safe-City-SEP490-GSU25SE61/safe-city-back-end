@@ -17,7 +17,7 @@ namespace Service.Interfaces
         Task<int> CreateAsync(CreateWardDTO wardDTO);
         Task UpdateAsync(int id, CreateWardDTO wardDTO);
         Task DeleteAsync(int id);
-        Task<WardDTO> GetByNameAsync(string name);
+        Task<IEnumerable<WardDTO>> SearchAsync(string name, int? totalReportedIncidents, int? dangerLevel, string districtName);
     }
 
 }

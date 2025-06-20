@@ -16,7 +16,7 @@ namespace Service.Interfaces
         Task<int> CreateAsync(CreateDistrictDTO createDistrictDTO);
         Task UpdateAsync(int id, CreateDistrictDTO districtDTO);
         Task DeleteAsync(int id);
-        Task<DistrictDTO> GetByNameAsync(string name);
+        Task<IEnumerable<DistrictDTO>> SearchAsync(string? name, int? totalReportedIncidents, int? dangerLevel);
         Task<bool> AssignDistrictToOfficerAsync(Guid accountId, int districtId);
     }
 

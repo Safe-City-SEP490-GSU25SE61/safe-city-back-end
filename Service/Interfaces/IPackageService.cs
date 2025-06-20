@@ -1,4 +1,5 @@
 ﻿using BusinessObject.DTOs.RequestModels;
+using BusinessObject.DTOs.ResponseModels;
 using BusinessObject.Models;
 using System;
 using System.Collections.Generic;
@@ -10,10 +11,10 @@ namespace Service.Interfaces
 {
     public interface IPackageService
     {
-        Task<IEnumerable<Package>> GetAllPackagesAsync();
-        Task<Package> GetPackageByIdAsync(int packageId);
-        Task CreatePackageAsync(CreatePackageDTO dto);
-        Task UpdatePackageAsync(int packageId, UpdatePackageDTO dto);
+        Task<IEnumerable<PackageDTO>> GetAllPackagesAsync();  
+        Task<PackageDTO> GetPackageByIdAsync(int packageId);
+        Task<int> CreatePackageAsync(CreatePackageDTO dto); 
+        Task UpdatePackageAsync(int packageId, UpdatePackageDTO dto); 
         Task DeletePackageAsync(int packageId);
     }
 }

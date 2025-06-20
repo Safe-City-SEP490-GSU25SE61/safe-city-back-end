@@ -9,24 +9,18 @@ namespace BusinessObject.DTOs.RequestModels
 {
     public class CreateWardDTO
     {
-        [Required(ErrorMessage = "Name is required")]
-        [StringLength(100, ErrorMessage = "Name cannot be longer than 100 characters")]
+        [Required(ErrorMessage = "Tên là bắt buộc.")]
+        [StringLength(100, ErrorMessage = "Tên không được dài hơn 100 ký tự.")]
         public string Name { get; set; }
 
-        [Range(0, int.MaxValue, ErrorMessage = "TotalReportedIncidents must be a positive number")]
-        public int TotalReportedIncidents { get; set; }
-
-        [Range(0, 10, ErrorMessage = "DangerLevel must be between 0 and 10")]
-        public int DangerLevel { get; set; }
-
-        [StringLength(500, ErrorMessage = "Note cannot be longer than 500 characters")]
+        [StringLength(500, ErrorMessage = "Ghi chú không được dài hơn 500 ký tự.")]
         public string Note { get; set; }
 
-        [StringLength(1000, ErrorMessage = "PolygonData cannot be longer than 1000 characters")]
-        [RegularExpression(@"^\(\([0-9]+\.[0-9]+ [0-9]+\.[0-9]+(, [0-9]+\.[0-9]+ [0-9]+\.[0-9]+)*\)\)$", ErrorMessage = "PolygonData must be a valid polygon format.")]
+        [StringLength(1000, ErrorMessage = "Dữ liệu Polygon không được dài hơn 1000 ký tự.")]
+        [RegularExpression(@"^\(\([0-9]+\.[0-9]+ [0-9]+\.[0-9]+(, [0-9]+\.[0-9]+ [0-9]+\.[0-9]+)*\)\)$", ErrorMessage = "Dữ liệu Polygon phải theo định dạng hợp lệ.")]
         public string PolygonData { get; set; }
 
-        [Range(1, int.MaxValue, ErrorMessage = "DistrictId must be a positive number")]
+        [Range(1, int.MaxValue, ErrorMessage = "DistrictId phải là một số dương.")]
         public int DistrictId { get; set; }
     }
 }

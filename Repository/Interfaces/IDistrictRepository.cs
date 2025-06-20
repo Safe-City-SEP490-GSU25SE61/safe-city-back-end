@@ -9,7 +9,8 @@ namespace Repository.Interfaces
 {
     public interface IDistrictRepository : IGenericRepository<District>
     {
-        Task<District> GetByNameAsync(string name); 
+        Task<District> GetByNameAsync(string name);
+        Task<IEnumerable<District>> SearchAsync(string name, int? totalReportedIncidents, int? dangerLevel);
     }
 
 }

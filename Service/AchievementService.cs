@@ -33,10 +33,42 @@ namespace Service
                 Name = achievement.Name,
                 Description = achievement.Description,
                 MinPoint = achievement.MinPoint,
-                Benefit = achievement.Benefit
+                Benefit = achievement.Benefit,
+                CreateAt = achievement.CreateAt,
+                LastUpdated = achievement.LastUpdated
             };
         }
 
+        public async Task<int> CreateAchievementAsync(AchievementConfigDTO dto)
+        {
+            var achievement = new Achievement
+            {
+                Name = dto.Name,
+                Description = dto.Description,
+                MinPoint = dto.MinPoint,
+                Benefit = dto.Benefit,
+                CreateAt = DateTime.UtcNow,
+                LastUpdated = DateTime.UtcNow
+            };
+
+            await _achievementRepository.CreateAsync(achievement);
+
+            return achievement.Id;
+        }
+
+        public async Task UpdateAchievementAsync(int achievementId, AchievementConfigDTOForUpdate dto)
+        {
+            var achievement = await _achievementRepository.GetByIdAsync(achievementId);
+            if (achievement == null)
+                throw new KeyNotFoundException("Danh hiệu không tìm thấy.");
+
+            achievement.Description = dto.Description;
+            achievement.MinPoint = dto.MinPoint;
+            achievement.Benefit = dto.Benefit;
+            achievement.LastUpdated = DateTime.UtcNow;
+
+            await _achievementRepository.UpdateAsync(achievement);
+        }
 
         public async Task<IEnumerable<AchievementResponseDTO>> GetAllAchievementsAsync()
         {
@@ -47,36 +79,10 @@ namespace Service
                 Name = achievement.Name,
                 Description = achievement.Description,
                 MinPoint = achievement.MinPoint,
-                Benefit = achievement.Benefit
+                Benefit = achievement.Benefit,
+                CreateAt = achievement.CreateAt,
+                LastUpdated = achievement.LastUpdated
             }).ToList();
-        }
-
-        public async Task CreateAchievementAsync(AchievementConfigDTO dto)
-        {
-            var achievement = new Achievement
-            {
-                Name = dto.Name,
-                Description = dto.Description,
-                MinPoint = dto.MinPoint,
-                Benefit = dto.Benefit
-            };
-
-            await _achievementRepository.CreateAsync(achievement);
-        }
-
-        public async Task UpdateAchievementAsync(int achievementId, AchievementConfigDTOForUpdate dto)
-        {
-            var achievement = await _achievementRepository.GetByIdAsync(achievementId);
-            if (achievement == null)
-            {
-                throw new KeyNotFoundException("Achievement not found.");
-            }
-
-            achievement.Description = dto.Description;
-            achievement.MinPoint = dto.MinPoint;
-            achievement.Benefit = dto.Benefit;
-
-            await _achievementRepository.UpdateAsync(achievement);
         }
 
         public async Task DeleteAchievementAsync(int achievementId)
@@ -84,10 +90,11 @@ namespace Service
             var achievement = await _achievementRepository.GetByIdAsync(achievementId);
             if (achievement == null)
             {
-                throw new KeyNotFoundException("Achievement not found.");
+                throw new KeyNotFoundException("Danh hiệu không tìm thấy.");
             }
 
             await _achievementRepository.DeleteAsync(achievementId);
         }
+
     }
 }

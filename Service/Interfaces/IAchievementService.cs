@@ -12,8 +12,8 @@ namespace Service.Interfaces
     {
         Task<AchievementResponseDTO> GetAchievementByIdAsync(int achievementId);
         Task<IEnumerable<AchievementResponseDTO>> GetAllAchievementsAsync();
-        Task CreateAchievementAsync(AchievementConfigDTO dto); 
-        Task UpdateAchievementAsync(int achievementId, AchievementConfigDTOForUpdate dto); 
+        Task<int> CreateAchievementAsync(AchievementConfigDTO dto);  
+        Task UpdateAchievementAsync(int achievementId, AchievementConfigDTOForUpdate dto);  
         Task DeleteAchievementAsync(int achievementId); 
     }
 }

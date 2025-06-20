@@ -18,5 +18,29 @@ namespace Repository
         {
             return await _context.Districts.FirstOrDefaultAsync(d => d.Name == name);
         }
+        public async Task<IEnumerable<District>> SearchAsync(string name, int? totalReportedIncidents, int? dangerLevel)
+        {
+            var query = _context.Districts.AsQueryable();  
+
+
+            if (!string.IsNullOrEmpty(name))
+            {
+                query = query.Where(d => EF.Functions.Like(d.Name.ToLower(), $"%{name.ToLower()}%"));
+            }
+
+           
+            if (totalReportedIncidents.HasValue)
+            {
+                query = query.Where(d => d.TotalReportedIncidents == totalReportedIncidents.Value); 
+            }
+
+            
+            if (dangerLevel.HasValue)
+            {
+                query = query.Where(d => d.DangerLevel == dangerLevel.Value); 
+            }
+
+            return await query.ToListAsync(); 
+        }
     }
 }

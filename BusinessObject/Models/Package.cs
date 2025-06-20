@@ -25,6 +25,12 @@ namespace BusinessObject.Models
         [Column("duration_days")]
         public int DurationDays { get; set; }
 
+        [Column("create_at")]
+        public DateTime CreateAt { get; set; }
+
+        [Column("last_updated")]
+        public DateTime LastUpdated { get; set; }
+
         [Column("is_active")]
         public bool IsActive { get; set; }
 

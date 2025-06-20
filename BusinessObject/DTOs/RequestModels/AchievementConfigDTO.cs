@@ -9,19 +9,19 @@ namespace BusinessObject.DTOs.RequestModels
 {
     public class AchievementConfigDTO
     {
-        [Required(ErrorMessage = "Name is required.")]
-        [StringLength(100, ErrorMessage = "Name cannot be longer than 100 characters")]
+        [Required(ErrorMessage = "Tên là bắt buộc.")]
+        [StringLength(100, ErrorMessage = "Tên không được dài hơn 100 ký tự.")]
         public string Name { get; set; }
 
-        [Required(ErrorMessage = "Description is required.")]
-        [StringLength(500, ErrorMessage = "Description cannot be longer than 500 characters")]
+        [Required(ErrorMessage = "Mô tả là bắt buộc.")]
+        [StringLength(500, ErrorMessage = "Mô tả không được dài hơn 500 ký tự.")]
         public string Description { get; set; }
 
-        [Range(0, int.MaxValue, ErrorMessage = "MinPoint must be a positive number.")]
+        [Range(0, int.MaxValue, ErrorMessage = "Điểm tối thiểu phải là một số dương.")]
         public int MinPoint { get; set; }
 
-        [Required(ErrorMessage = "Benefit is required.")]
-        [StringLength(500, ErrorMessage = "Benefit cannot be longer than 500 characters")]
+        [Required(ErrorMessage = "Lợi ích là bắt buộc.")]
+        [StringLength(500, ErrorMessage = "Lợi ích không được dài hơn 500 ký tự.")]
         public string Benefit { get; set; }
     }
 }

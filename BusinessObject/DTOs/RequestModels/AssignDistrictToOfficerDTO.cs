@@ -9,10 +9,10 @@ namespace BusinessObject.DTOs.RequestModels
 {
     public class AssignDistrictToOfficerDTO
     {
-        [Required(ErrorMessage = "District ID is required.")]
+        [Required(ErrorMessage = "Quận ID là bắt buộc.")]
         public int DistrictId { get; set; }
 
-        [Required(ErrorMessage = "Account ID is required.")]
+        [Required(ErrorMessage = "Account ID là bắt buộc.")]
         public Guid AccountId { get; set; }
     }
 }

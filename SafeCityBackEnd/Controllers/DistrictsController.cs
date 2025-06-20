@@ -5,6 +5,7 @@ using BusinessObject.DTOs.ResponseModels;
 using System.Net;
 using Service.Interfaces;
 using BusinessObject.DTOs.RequestModels;
+using Microsoft.AspNetCore.Authorization;
 
 [Route("api/districts")]
 [ApiExplorerSettings(GroupName = "Districts")]
@@ -19,6 +20,7 @@ public class DistrictsController : ControllerBase
     }
     
     [HttpGet]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetAllDistricts()
     {
         var districts = await _districtService.GetAllAsync();
@@ -26,6 +28,7 @@ public class DistrictsController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetDistrictById(int id)
     {
         var district = await _districtService.GetByIdAsync(id);
@@ -36,6 +39,7 @@ public class DistrictsController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CreateDistrict([FromBody] CreateDistrictDTO createDistrictDTO)
     {
         if (createDistrictDTO == null)
@@ -48,6 +52,7 @@ public class DistrictsController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateDistrict(int id, [FromBody] CreateDistrictDTO districtDTO)
     {
         try
@@ -64,6 +69,7 @@ public class DistrictsController : ControllerBase
 
 
     [HttpDelete("{id:int}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteDistrict(int id)
     {
         var existingDistrict = await _districtService.GetByIdAsync(id);
@@ -74,17 +80,10 @@ public class DistrictsController : ControllerBase
         return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "District deleted successfully", null);
     }
 
-    [HttpGet("{name}")]
-    public async Task<IActionResult> GetDistrictByName(string name)
-    {
-        var district = await _districtService.GetByNameAsync(name);
-        if (district == null)
-            return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.NotFound, "District not found", null);
 
-        return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Get district by name successfully", district);
-    }
 
     [HttpPatch("assign-to-officer")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> AssignDistrictToOfficer([FromBody] AssignDistrictToOfficerDTO dto)
     {
         try
@@ -92,6 +91,21 @@ public class DistrictsController : ControllerBase
             
             var result = await _districtService.AssignDistrictToOfficerAsync(dto.AccountId, dto.DistrictId);
             return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "District assigned to officer successfully", result);
+        }
+        catch (Exception ex)
+        {
+            return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.BadRequest, ex.Message, null);
+        }
+    }
+    [HttpGet("search")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> SearchDistricts([FromQuery] string? name, [FromQuery] int? totalReportedIncidents, [FromQuery] int? dangerLevel)
+    {
+        try
+        {
+
+            var districts = await _districtService.SearchAsync(name, totalReportedIncidents, dangerLevel);
+            return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Search results", districts);
         }
         catch (Exception ex)
         {

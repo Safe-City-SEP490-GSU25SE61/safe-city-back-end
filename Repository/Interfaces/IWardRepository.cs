@@ -9,6 +9,7 @@ namespace Repository.Interfaces
 {
     public interface IWardRepository : IGenericRepository<Ward>
     {
-        Task<Ward> GetByNameAsync(string name); // Example: to fetch a ward by name
+        Task<Ward> GetByNameAsync(string name);
+        Task<IEnumerable<Ward>> SearchAsync(string? name, int? totalReportedIncidents, int? dangerLevel, string? districtName);
     }
 }

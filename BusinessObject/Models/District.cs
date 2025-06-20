@@ -22,6 +22,9 @@ namespace BusinessObject.Models
         [Column("danger_level")]
         public int DangerLevel { get; set; }
 
+        [Column("create_at")]
+        public DateTime CreateAt { get; set; }
+
         [Column("last_updated")]
         public DateTime LastUpdated { get; set; }
 
@@ -30,6 +33,9 @@ namespace BusinessObject.Models
 
         [Column("polygon_data")]
         public string PolygonData { get; set; }
+
+        [Column("is_active")]
+        public bool IsActive { get; set; }
 
         public ICollection<Account> Accounts { get; set; }
         public ICollection<Ward> Wards { get; set; }

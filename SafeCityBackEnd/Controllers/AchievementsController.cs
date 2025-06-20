@@ -1,7 +1,10 @@
-﻿using BusinessObject.DTOs.RequestModels;
+﻿using BusinessObject.DTOs;
+using BusinessObject.DTOs.RequestModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SafeCityBackEnd.Helpers;
+using Service;
 using Service.Interfaces;
 using System.Net;
 
@@ -19,6 +22,7 @@ namespace SafeCityBackEnd.Controllers
             _achievementService = achievementService;
         }
         [HttpGet("{achievement_id}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAchievementById(int achievement_id)
         {
             try
@@ -32,8 +36,9 @@ namespace SafeCityBackEnd.Controllers
             }
         }
 
-        // Lấy tất cả tiêu chí cấp bậc (GET)
+
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAllAchievements()
         {
             try
@@ -48,12 +53,15 @@ namespace SafeCityBackEnd.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateAchievement([FromBody] AchievementConfigDTO dto)
         {
             try
             {
-                await _achievementService.CreateAchievementAsync(dto);
-                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.Created, "Achievement created successfully.", null);
+                var achievementId = await _achievementService.CreateAchievementAsync(dto);
+                var createdAchievement = await _achievementService.GetAchievementByIdAsync(achievementId);
+
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.Created, "Achievement created successfully", createdAchievement);
             }
             catch (Exception ex)
             {
@@ -61,13 +69,18 @@ namespace SafeCityBackEnd.Controllers
             }
         }
 
-        [HttpPatch("{achievement_id}")]
-        public async Task<IActionResult> UpdateAchievement(int achievement_id, [FromBody] AchievementConfigDTOForUpdate dto)
+        [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UpdateAchievement(int id, [FromBody] AchievementConfigDTOForUpdate dto)
         {
             try
             {
-                await _achievementService.UpdateAchievementAsync(achievement_id, dto);
-                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Achievement updated successfully.", null);
+
+                await _achievementService.UpdateAchievementAsync(id, dto);
+
+                var updatedAchievement = await _achievementService.GetAchievementByIdAsync(id);
+
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Achievement updated successfully", updatedAchievement);
             }
             catch (Exception ex)
             {
@@ -75,7 +88,11 @@ namespace SafeCityBackEnd.Controllers
             }
         }
 
+
+
+
         [HttpDelete("{achievement_id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteAchievement(int achievement_id)
         {
             try

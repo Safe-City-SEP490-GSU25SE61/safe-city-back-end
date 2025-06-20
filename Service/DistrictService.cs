@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using BusinessObject.DTOs.ResponseModels;
 using BusinessObject.DTOs;
 using Repository.Repositories;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Service
 {
@@ -31,7 +32,10 @@ namespace Service
                 TotalReportedIncidents = d.TotalReportedIncidents,
                 DangerLevel = d.DangerLevel,
                 Note = d.Note,
-                PolygonData = d.PolygonData
+                PolygonData = d.PolygonData,
+                CreateAt = d.CreateAt,
+                LastUpdated = d.LastUpdated,
+                IsActive = d.IsActive
             }).ToList();
         }
 
@@ -47,7 +51,11 @@ namespace Service
                 TotalReportedIncidents = district.TotalReportedIncidents,
                 DangerLevel = district.DangerLevel,
                 Note = district.Note,
-                PolygonData = district.PolygonData
+                PolygonData = district.PolygonData,
+                CreateAt = district.CreateAt,
+                LastUpdated = district.LastUpdated,
+                IsActive = district.IsActive
+
             };
         }
 
@@ -56,10 +64,13 @@ namespace Service
             var district = new District
             {
                 Name = createDistrictDTO.Name,
-                TotalReportedIncidents = createDistrictDTO.TotalReportedIncidents,
-                DangerLevel = createDistrictDTO.DangerLevel,
+                TotalReportedIncidents = 0,  
+                DangerLevel = 0,  
                 Note = createDistrictDTO.Note,
-                PolygonData = createDistrictDTO.PolygonData
+                PolygonData = createDistrictDTO.PolygonData,
+                CreateAt = DateTime.UtcNow,  
+                LastUpdated = DateTime.UtcNow,  
+                IsActive = true  
             };
 
             await _districtRepository.CreateAsync(district);
@@ -71,37 +82,33 @@ namespace Service
         {
             var district = await _districtRepository.GetByIdAsync(id);
             if (district == null)
-                throw new KeyNotFoundException("District not found.");
-
+                throw new KeyNotFoundException("Quận không tồn tại");
+            if (!district.IsActive)
+                throw new InvalidOperationException("Quận không thể cập nhật khi đã vô hiệu hóa.");
+            
             district.Name = districtDTO.Name;
-            district.TotalReportedIncidents = districtDTO.TotalReportedIncidents;
-            district.DangerLevel = districtDTO.DangerLevel;
+            district.TotalReportedIncidents = 0;  
+            district.DangerLevel = 0;  
             district.Note = districtDTO.Note;
             district.PolygonData = districtDTO.PolygonData;
+            district.LastUpdated = DateTime.UtcNow;
 
             await _districtRepository.UpdateAsync(district);
         }
 
         public async Task DeleteAsync(int id)
         {
-            await _districtRepository.DeleteAsync(id);
+            var district = await _districtRepository.GetByIdAsync(id);
+            if (district == null)
+                throw new KeyNotFoundException("Quận không tồn tại");
+            if (!district.IsActive)
+                throw new InvalidOperationException("Quận đã xóa trước đó.");
+
+            district.IsActive = false;  
+            await _districtRepository.UpdateAsync(district);
         }
 
-        public async Task<DistrictDTO> GetByNameAsync(string name)
-        {
-            var district = await _districtRepository.GetByNameAsync(name);
-            if (district == null) return null;
 
-            return new DistrictDTO
-            {
-                Id = district.Id,
-                Name = district.Name,
-                TotalReportedIncidents = district.TotalReportedIncidents,
-                DangerLevel = district.DangerLevel,
-                Note = district.Note,
-                PolygonData = district.PolygonData
-            };
-        }
         public async Task<bool> AssignDistrictToOfficerAsync(Guid accountId, int districtId)
         {
             
@@ -113,7 +120,7 @@ namespace Service
 
             
             var account = await _accountRepository.GetByIdAsync(accountId);
-            if (account == null || account.RoleId != 2) 
+            if (account == null || account.RoleId != 3) 
             {
                 throw new InvalidOperationException("Account not found or not an officer.");
             }
@@ -123,6 +130,20 @@ namespace Service
             await _accountRepository.UpdateAsync(account);
 
             return true; 
+        }
+        public async Task<IEnumerable<DistrictDTO>> SearchAsync(string? name, int? totalReportedIncidents, int? dangerLevel)
+        {
+            var districts = await _districtRepository.SearchAsync(name, totalReportedIncidents, dangerLevel);
+
+            return districts.Select(d => new DistrictDTO
+            {
+                Id = d.Id,
+                Name = d.Name,
+                TotalReportedIncidents = d.TotalReportedIncidents,
+                DangerLevel = d.DangerLevel,
+                Note = d.Note,
+                PolygonData = d.PolygonData
+            }).ToList();
         }
     }
 }

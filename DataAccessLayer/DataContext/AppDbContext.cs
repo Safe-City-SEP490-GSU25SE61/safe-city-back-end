@@ -14,7 +14,7 @@ namespace DataAccessLayer.DataContext
         {
         }
 
-        // Các DbSet cho các bảng
+   
         public DbSet<Account> Accounts { get; set; }
         public DbSet<Achievement> Achievements { get; set; }
         public DbSet<CitizenIdentityCard> CitizenIdentityCards { get; set; }

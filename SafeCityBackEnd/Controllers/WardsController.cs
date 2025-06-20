@@ -5,6 +5,7 @@ using BusinessObject.DTOs;
 using System.Net;
 using BusinessObject.DTOs.RequestModels;
 using Service.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 
 [Route("api/wards")]
 [ApiExplorerSettings(GroupName = "Wards")]
@@ -19,6 +20,7 @@ public class WardsController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetAllWards()
     {
         var wards = await _wardService.GetAllAsync();
@@ -26,6 +28,7 @@ public class WardsController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetWardById(int id)
     {
         var ward = await _wardService.GetByIdAsync(id);
@@ -36,6 +39,7 @@ public class WardsController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CreateWard([FromBody] CreateWardDTO createWardDTO)
     {
         if (createWardDTO == null)
@@ -48,6 +52,7 @@ public class WardsController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateWard(int id, [FromBody] CreateWardDTO wardDTO)
     {
         try
@@ -62,6 +67,7 @@ public class WardsController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteWard(int id)
     {
         var existingWard = await _wardService.GetByIdAsync(id);
@@ -72,13 +78,18 @@ public class WardsController : ControllerBase
         return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Ward deleted successfully", null);
     }
 
-    [HttpGet("{name}")]
-    public async Task<IActionResult> GetWardByName(string name)
+    [HttpGet("search")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> SearchWards([FromQuery] string? name, [FromQuery] int? totalReportedIncidents, [FromQuery] int? dangerLevel, [FromQuery] string? districtName)
     {
-        var ward = await _wardService.GetByNameAsync(name);
-        if (ward == null)
-            return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.NotFound, "Ward not found", null);
-
-        return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Get ward by name successfully", ward);
+        try
+        {
+            var wards = await _wardService.SearchAsync(name, totalReportedIncidents, dangerLevel, districtName);
+            return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Search results", wards);
+        }
+        catch (Exception ex)
+        {
+            return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.BadRequest, ex.Message, null);
+        }
     }
 }

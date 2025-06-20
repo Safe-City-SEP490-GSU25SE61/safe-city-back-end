@@ -24,6 +24,11 @@ namespace BusinessObject.Models
         [Column("benefit")]
         public string Benefit { get; set; }
 
+        [Column("create_at")]
+        public DateTime CreateAt { get; set; }
+
+        [Column("last_updated")]
+        public DateTime LastUpdated { get; set; }
 
         public ICollection<Account> Accounts { get; set; }
     }

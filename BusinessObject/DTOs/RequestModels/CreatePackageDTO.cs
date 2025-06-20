@@ -9,20 +9,18 @@ namespace BusinessObject.DTOs.RequestModels
 {
     public class CreatePackageDTO
     {
-        [Required(ErrorMessage = "Name is required.")]
-        [StringLength(100, ErrorMessage = "Name cannot be longer than 100 characters.")]
+        [Required(ErrorMessage = "Tên là bắt buộc.")]
+        [StringLength(100, ErrorMessage = "Tên không được dài hơn 100 ký tự.")]
         public string Name { get; set; }
 
-        [Required(ErrorMessage = "Description is required.")]
-        [StringLength(500, ErrorMessage = "Description cannot be longer than 500 characters.")]
+        [Required(ErrorMessage = "Mô tả là bắt buộc.")]
+        [StringLength(500, ErrorMessage = "Mô tả không được dài hơn 500 ký tự.")]
         public string Description { get; set; }
 
-        [Range(0, double.MaxValue, ErrorMessage = "Price must be a positive number.")]
+        [Range(0, int.MaxValue, ErrorMessage = "Giá phải là số dương.")]
         public decimal Price { get; set; }
 
-        [Range(1, int.MaxValue, ErrorMessage = "Duration must be a positive number.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Thời gian gói dịch vụ phải là số dương.")]
         public int DurationDays { get; set; }
-
-        public bool IsActive { get; set; }
     }
 }

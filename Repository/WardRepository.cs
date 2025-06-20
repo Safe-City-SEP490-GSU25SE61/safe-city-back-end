@@ -19,5 +19,32 @@ namespace Repository
         {
             return await _context.Wards.FirstOrDefaultAsync(w => w.Name == name);
         }
+        public async Task<IEnumerable<Ward>> SearchAsync(string? name, int? totalReportedIncidents, int? dangerLevel, string? districtName)
+        {
+            var query = _context.Wards.AsQueryable(); 
+
+            if (!string.IsNullOrEmpty(name))
+            {
+                query = query.Where(w => EF.Functions.Like(w.Name.ToLower(), $"%{name.ToLower()}%")); 
+            }
+
+            if (totalReportedIncidents.HasValue)
+            {
+                query = query.Where(w => w.TotalReportedIncidents == totalReportedIncidents.Value);
+            }
+
+            if (dangerLevel.HasValue)
+            {
+                query = query.Where(w => w.DangerLevel == dangerLevel.Value);
+            }
+
+            if (!string.IsNullOrEmpty(districtName))
+            {
+                query = query.Where(w => EF.Functions.Like(w.District.Name.ToLower(), $"%{districtName.ToLower()}%"));
+            }
+
+            return await query.ToListAsync();  
+        }
     }
 }
+
