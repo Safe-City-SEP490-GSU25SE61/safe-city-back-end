@@ -9,8 +9,8 @@ public static class CustomSuccessHandler
     {
         var response = new Dictionary<string, object>
         {
-            { "http_status", statusCode },
-            { "time_stamp", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss") },
+            { "httpStatus", statusCode },
+            { "timeStamp", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss") },
             { "message", message },
             { "data", responseObject }
         };

@@ -17,9 +17,11 @@ public class AuthService : IAuthService
     private readonly IJwtService _jwtService;
     private readonly IConfiguration _configuration;
     private readonly string _emailSecureCharacters;
+    private readonly IFirebaseStorageService _firebaseStorageService;
+    private readonly IIdentityCardRepository _identityCardRepository;
 
     public AuthService(IUserRepository userRepository, IRoleRepository roleRepository, IMailService mailService,
-        IJwtService jwtService, IConfiguration configuration)
+        IJwtService jwtService, IConfiguration configuration, IFirebaseStorageService firebaseStorageService, IIdentityCardRepository identityCardRepository)
     {
         _userRepository = userRepository;
         _roleRepository = roleRepository;
@@ -27,6 +29,8 @@ public class AuthService : IAuthService
         _jwtService = jwtService;
         _configuration = configuration;
         _emailSecureCharacters = _configuration["MailSettings:SecureCharacters"] ?? "";
+        _firebaseStorageService = firebaseStorageService;
+        _identityCardRepository = identityCardRepository;
     }
 
     public async Task<string> SeedRolesAsync()
@@ -55,48 +59,70 @@ public class AuthService : IAuthService
 
     public async Task Register(UserRegistrationRequestModel userDto)
     {
-        var existingUser = await _userRepository.GetByEmailAsync(userDto.Email);
+        var existingUser = await _userRepository.GetByEmailAsync(userDto.email);
         if (existingUser != null)
-        {
             throw new Exception("Account already exists.");
-        }
 
         var customerRole = await _roleRepository.GetByNameAsync("Citizen");
-
         if (customerRole == null)
-        {
             throw new Exception("Citizen role does not exist. Please initialize roles first.");
-        }
 
         string verificationCode = GenerateActivationCode();
 
+        string frontImageUrl = userDto.frontImage != null
+            ? await _firebaseStorageService.UploadFileAsync(userDto.frontImage, "uploads")
+            : string.Empty;
+
+        string backImageUrl = userDto.backImage != null
+            ? await _firebaseStorageService.UploadFileAsync(userDto.backImage, "uploads")
+            : string.Empty;
+
+        var accountId = Guid.NewGuid();
         var account = new Account
         {
-            Id = Guid.NewGuid(),
-            Email = userDto.Email,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(userDto.Password),
-            FullName = userDto.FullName,
-            DateOfBirth = userDto.DateOfBirth.ToUniversalTime(),
-            Phone = userDto.Phone,
+            Id = accountId,
+            Email = userDto.email,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(userDto.password),
+            FullName = userDto.fullName,
+            DateOfBirth = userDto.dateOfBirth.ToUniversalTime(),
+            Phone = userDto.phone,
+            Gender = userDto.gender,
             TotalPoint = 0,
-            Gender = userDto.Gender,
             Status = "inactive",
             RoleId = customerRole.Id,
             ImageUrl = "",
             ActivationCode = verificationCode,
-            RefreshTokenExpiry = null,
             RefreshToken = null,
+            RefreshTokenExpiry = null,
             IsLoggedIn = false,
-            IsDeleted = false,
-            CreatedAt = DateTime.UtcNow,
+            IsBiometricEnabled = false,
+            CreatedAt = DateTime.UtcNow
         };
 
+        var identityCard = new CitizenIdentityCard
+        {
+            Id = Guid.NewGuid(),
+            UserId = accountId,
+            IdNumber = userDto.idNumber,
+            Address = userDto.address,
+            IssueDate = userDto.issueDate.ToUniversalTime(),
+            ExpiryDate = userDto.expiryDate.ToUniversalTime(),
+            PlaceOfIssue = userDto.placeOfIssue,
+            FrontImageUrl = frontImageUrl,
+            BackImageUrl = backImageUrl,
+            VerifiedAt = null,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
 
         await _userRepository.CreateAsync(account);
+        await _identityCardRepository.CreateAsync(identityCard);
+
         string subject = "Your Verification Code";
         string message = $"<h2>Welcome to Our Service</h2><p>Your verification code is: <b>{verificationCode}</b></p>";
-        await _mailService.SendEmailVerificationCode(userDto.Email, subject, message);
+        await _mailService.SendEmailVerificationCode(userDto.email, subject, message);
     }
+
 
     private string GenerateActivationCode()
     {

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -53,9 +54,6 @@ namespace BusinessObject.Models
         [Column("is_logged_in")]
         public bool IsLoggedIn { get; set; }
 
-        [Column("is_deleted")] 
-        public bool IsDeleted { get; set; }
-
         [Column("account_status")]
         public string Status { get; set; } 
 
@@ -65,8 +63,11 @@ namespace BusinessObject.Models
         [Column("refresh_token_expiry")]
         public DateTime? RefreshTokenExpiry { get; set; }
 
-        [Column("activation_code")] 
+        [Column("activation_code")]
         public string? ActivationCode { get; set; }
+
+        [Column("is_biometric_enabled")]
+        public bool IsBiometricEnabled { get; set; }
 
 
         public Role Role { get; set; }
