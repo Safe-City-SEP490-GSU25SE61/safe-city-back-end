@@ -66,6 +66,9 @@ namespace BusinessObject.Models
         [Column("activation_code")]
         public string? ActivationCode { get; set; }
 
+        [Column("code_expiry")]
+        public DateTime? CodeExpiry { get; set; }
+
         [Column("is_biometric_enabled")]
         public bool IsBiometricEnabled { get; set; }
 

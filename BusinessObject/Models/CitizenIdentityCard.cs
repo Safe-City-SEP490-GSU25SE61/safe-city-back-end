@@ -27,6 +27,9 @@ namespace BusinessObject.Models
         [Column("place_of_issue")]
         public string PlaceOfIssue { get; set; }
 
+        [Column("place_of_birth")]
+        public string PlaceOfBirth { get; set; }
+
         [Column("id_number")]
         public string IdNumber { get; set; }
 
@@ -35,9 +38,6 @@ namespace BusinessObject.Models
 
         [Column("back_image_url")]
         public string BackImageUrl { get; set; }
-
-        [Column("verified_at")]
-        public DateTime? VerifiedAt { get; set; }
 
         [Column("created_at")]
         public DateTime CreatedAt { get; set; }

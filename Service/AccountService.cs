@@ -2,6 +2,7 @@
 using BusinessObject.DTOs.ResponseModels;
 using Repository.Interfaces;
 using Service.Interfaces;
+using DataAccessLayer.Mappers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,31 +26,27 @@ namespace Service
                 throw new InvalidOperationException("Account email must be unique");
             }
             requestModel.Password = BCrypt.Net.BCrypt.HashPassword(requestModel.Password);
-            //var result = await _accountRepository.AddAsync(requestModel.ToAccount());
-            //return result.ToAccountResponseModel();
-            return null;
+            var result = await _accountRepository.AddAsync(requestModel.ToAccount());
+            return result.ToAccountResponseModel();
         }
 
         public async Task<AccountResponseModel> DeleteAsync(Guid id)
         {
             var result = await _accountRepository.DeleteAsync(id);
-            //return result.ToAccountResponseModel();
-            return null;
+            return result.ToAccountResponseModel();
         }
 
         public async Task<IEnumerable<AccountResponseModel>> GetAllAsync()
         {
             var result = await _accountRepository.GetAllAsync();
-            //return result.Select(x => x.ToAccountResponseModel());
-            return null;
+            return result.Select(x => x.ToAccountResponseModel());
         }
 
         public async Task<AccountResponseModel> GetByIdAsync(Guid id)
         {
             var result = await _accountRepository.GetByIdAsync(id);
             if (result == null) throw new KeyNotFoundException();
-            //return result.ToAccountResponseModel();
-            return null;
+            return result.ToAccountResponseModel();
         }
 
         public async Task<AccountResponseModel> UpdateAsync(Guid id, UpdateAccountRequestModel requestModel)
@@ -59,9 +56,8 @@ namespace Service
             {
                 throw new InvalidOperationException("Account email must be unique");
             }
-            //var result = await _accountRepository.UpdateAsync(requestModel.ToAccount(id));
-            //return result.ToAccountResponseModel();
-            return null;
+            var result = await _accountRepository.UpdateAsync(requestModel.ToAccount(id));
+            return result.ToAccountResponseModel();
         }
     }
 }

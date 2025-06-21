@@ -50,6 +50,9 @@ namespace BusinessObject.DTOs.ResponseModels
 
         [JsonPropertyName("issue_loc")]
         public string? PlaceOfIssue { get; set; }
+
+        [JsonPropertyName("pob")]
+        public string? PlaceOfBirth { get; set; }
     }
 
 
@@ -64,6 +67,7 @@ namespace BusinessObject.DTOs.ResponseModels
         public string? CardSideType { get; set; }
         public DateTime? IssueDate { get; set; }
         public string PlaceOfIssue { get; set; }
+        public string PlaceOfBirth { get; set;}
     }
 
 }

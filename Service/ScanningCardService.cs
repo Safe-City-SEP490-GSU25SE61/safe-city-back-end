@@ -57,23 +57,29 @@ namespace Service
             var issueDate = ParseDate(data.IssueDate);
             var expiryDate = ParseDate(data.ExpiryDate);
 
-            return new ParsedIdCardResult
+            var validTypes = new HashSet<string> { "cc_back", "cc_front", "chip_front", "chip_back" };
+            if (validTypes.Contains(data.CardSideType))
             {
-                FullName = data.FullName,
-                Gender = data.Gender?.ToLower() switch
+                return new ParsedIdCardResult
                 {
-                    "nam" => true,
-                    "nữ" => false,
-                    _ => null
-                },
-                DateOfBirth = dob,
-                IssueDate = issueDate,
-                ExpiryDate = expiryDate,
-                IdNumber = data.IdNumber,
-                Address = data.Address ?? data.Home,
-                PlaceOfIssue = data.PlaceOfIssue,
-                CardSideType = data.CardSideType
-            };
+                    FullName = data.FullName,
+                    Gender = data.Gender?.ToLower() switch
+                    {
+                        "nam" => true,
+                        "nữ" => false,
+                        _ => null
+                    },
+                    DateOfBirth = dob,
+                    IssueDate = issueDate,
+                    ExpiryDate = expiryDate,
+                    IdNumber = data.IdNumber,
+                    Address = data.Address ?? data.Home,
+                    PlaceOfIssue = data.PlaceOfIssue,
+                    CardSideType = data.CardSideType,
+                    PlaceOfBirth = data.PlaceOfBirth
+                };
+            }
+            throw new InvalidOperationException($"Invalid card type: {data.CardSideType}");
         }
 
         private DateTime? ParseDate(string? rawDate)
