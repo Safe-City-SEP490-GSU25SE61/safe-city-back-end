@@ -97,7 +97,6 @@ public class AuthController : Controller
         }
     }
 
-    [Authorize]
     [HttpPost("refresh-token")]
     public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequestModel request)
     {
@@ -106,8 +105,7 @@ public class AuthController : Controller
             var authResponse = await _authService.RefreshTokenAsync(request.RefreshToken);
             return Ok(new
             {
-                accessToken = authResponse.AccessToken,
-                refreshToken = authResponse.RefreshToken
+                accessToken = authResponse.AccessToken
             });
         } catch (UnauthorizedAccessException ex)
         {
@@ -119,7 +117,6 @@ public class AuthController : Controller
         }
     }
 
-    [Authorize]
     [HttpPost("logout")]
     public async Task<IActionResult> Logout([FromBody] RefreshTokenRequestModel request)
     {
