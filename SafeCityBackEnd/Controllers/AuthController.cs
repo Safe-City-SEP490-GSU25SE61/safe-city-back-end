@@ -134,42 +134,18 @@ public class AuthController : Controller
         }
     }
 
-    [HttpGet("get-user-info")]
-    public async Task<IActionResult> DecodeToken()
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequestModel model)
     {
-        try
-        {
-            var authHeader = HttpContext.Request.Headers["Authorization"].ToString();
-            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
-            {
-                return BadRequest(new { error = "Authorization header is missing or invalid" });
-            }
+        await _authService.RequestPasswordResetAsync(model);
+        return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Verification code sent to your email.", null);
+    }
 
-            var identity = HttpContext.User.Identity as ClaimsIdentity;
-
-            if (identity != null)
-            {
-                var claims = identity.Claims;
-                var email = claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
-                var role = claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
-                if (email != null && role != null)
-                {
-                    var accounts = await _accountService.GetAllAsync();
-                    var user = accounts.FirstOrDefault(x => x.Email.ToLower() == email.ToLower());
-                    if (user == null) throw new Exception("Invalid token");
-                    return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Get user information successful",
-                user); ;
-                } else
-                {
-                    return Unauthorized();
-                }
-            }
-
-            return Unauthorized();
-        } catch (Exception ex)
-        {
-            return BadRequest(new { error = ex.Message });
-        }
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequestModel model)
+    {
+        await _authService.ResetPasswordAsync(model);
+        return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Password has been reset successfully.", null);
     }
 
 }

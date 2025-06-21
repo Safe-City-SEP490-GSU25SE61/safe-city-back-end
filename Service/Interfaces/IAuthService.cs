@@ -12,4 +12,7 @@ public interface IAuthService
     Task LogoutAsync(string refreshToken);
     Task<UserAuthenticationResponse> LoginAsync(string email, string password);
     Task<UserAuthenticationResponse> RefreshTokenAsync(string refreshToken);
+    Task RequestPasswordResetAsync(ForgotPasswordRequestModel model);
+    Task ResetPasswordAsync(ResetPasswordRequestModel model);
+    Task SendProfileUpdateOtpAsync(string email);
 }

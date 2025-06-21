@@ -59,9 +59,9 @@ public class AuthService : IAuthService
 
     public async Task Register(UserRegistrationRequestModel userDto)
     {
-        var existingUser = await _userRepository.GetByEmailAsync(userDto.email);
-        if (existingUser != null)
-            throw new Exception("Account already exists.");
+        var duplicateField = await CheckDuplicateFieldsAsync(userDto);
+        if (duplicateField != null)
+            throw new Exception(duplicateField);
 
         var customerRole = await _roleRepository.GetByNameAsync("Citizen");
         if (customerRole == null)
@@ -108,9 +108,9 @@ public class AuthService : IAuthService
             IssueDate = userDto.issueDate.ToUniversalTime(),
             ExpiryDate = userDto.expiryDate.ToUniversalTime(),
             PlaceOfIssue = userDto.placeOfIssue,
+            PlaceOfBirth = userDto.placeOfBirth,
             FrontImageUrl = frontImageUrl,
             BackImageUrl = backImageUrl,
-            VerifiedAt = null,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -123,6 +123,19 @@ public class AuthService : IAuthService
         await _mailService.SendEmailVerificationCode(userDto.email, subject, message);
     }
 
+    private async Task<string?> CheckDuplicateFieldsAsync(UserRegistrationRequestModel userDto)
+    {
+        if (await _userRepository.GetByEmailAsync(userDto.email) != null)
+            return "Email already exists.";
+
+        if (await _userRepository.GetByPhoneAsync(userDto.phone) != null)
+            return "Phone number already exists.";
+
+        if (await _userRepository.GetByIdNumberAsync(userDto.idNumber) != null)
+            return "Cccd number already exists.";
+
+        return null;
+    }
 
     private string GenerateActivationCode()
     {
@@ -239,5 +252,55 @@ public class AuthService : IAuthService
         user.IsLoggedIn = false;
 
         await _userRepository.UpdateAsync(user);
+    }
+
+    public async Task RequestPasswordResetAsync(ForgotPasswordRequestModel model)
+    {
+        var account = await _userRepository.GetByEmailAsync(model.Email);
+        if (account == null)
+            throw new Exception("No account associated with this email.");
+
+        string code = GenerateActivationCode();
+        account.ActivationCode = code;
+        account.CodeExpiry = DateTime.UtcNow.AddMinutes(10);
+
+        await _userRepository.UpdateAsync(account);
+
+        string subject = "Reset Your Password";
+        string message = $"<p>Your password reset code is: <b>{code}</b></p>";
+        await _mailService.SendEmailVerificationCode(model.Email, subject, message);
+    }
+
+    public async Task ResetPasswordAsync(ResetPasswordRequestModel model)
+    {
+        var account = await _userRepository.GetByEmailAsync(model.Email);
+        if (account == null)
+            throw new Exception("Invalid request.");
+
+        if (account.ActivationCode != model.ActivationCode ||
+            (account.CodeExpiry != null && account.CodeExpiry < DateTime.UtcNow))
+            throw new Exception("Invalid or expired verification code.");
+
+        account.PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.NewPassword);
+        account.ActivationCode = null;
+        account.CodeExpiry = null;
+
+        await _userRepository.UpdateAsync(account);
+    }
+
+    public async Task SendProfileUpdateOtpAsync(string email)
+    {
+        var user = await _userRepository.GetByEmailAsync(email);
+        if (user == null)
+            throw new Exception("User not found");
+
+        var code = GenerateActivationCode();
+        user.ActivationCode = code;
+        user.CodeExpiry = DateTime.UtcNow.AddMinutes(10);
+        await _userRepository.UpdateAsync(user);
+
+        string subject = "Update Profile Verification";
+        string message = $"<p>Your update verification code is: <b>{code}</b></p>";
+        await _mailService.SendEmailVerificationCode(email, subject, message);
     }
 }

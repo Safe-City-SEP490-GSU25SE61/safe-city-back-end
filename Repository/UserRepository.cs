@@ -18,7 +18,20 @@ public class UserRepository : IUserRepository
     {
         return await _context.Accounts
             .Include(a => a.Role)
-            .FirstOrDefaultAsync(a => a.Email == email);
+            .FirstOrDefaultAsync(a => a.Email.ToLower().Equals(email.ToLower()));
+    }
+
+    public async Task<Account?> GetByPhoneAsync(string phone)
+    {
+        return await _context.Accounts
+            .FirstOrDefaultAsync(a => a.Phone.Equals(phone));
+    }
+
+    public async Task<Account?> GetByIdNumberAsync(string idNumber)
+    {
+        return await _context.Accounts
+            .Include(a => a.CitizenIdentityCard)
+            .FirstOrDefaultAsync(a => a.CitizenIdentityCard.IdNumber.Equals(idNumber));
     }
 
     public async Task<Account> CreateAsync(Account account)
@@ -56,6 +69,7 @@ public class UserRepository : IUserRepository
     {
         return await _context.Accounts
             .Include(a => a.Role)
+            .Include(a => a.CitizenIdentityCard)
             .FirstOrDefaultAsync(a => a.Id == id);
     }
 

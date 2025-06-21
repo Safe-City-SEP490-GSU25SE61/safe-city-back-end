@@ -56,6 +56,11 @@ public class UserRegistrationRequestModel
     [MinLength(2, ErrorMessage = "Place of issue must be at least 2 characters long")]
     public string placeOfIssue { get; set; } = string.Empty;
 
+    [JsonPropertyName("placeOfBirth")]
+    [Required(ErrorMessage = "Place of birth is required")]
+    [MinLength(2, ErrorMessage = "Place of birth must be at least 2 characters long")]
+    public string placeOfBirth { get; set; } = string.Empty;
+
     [JsonPropertyName("address")]
     [Required(ErrorMessage = "Address is required")]
     [MinLength(5, ErrorMessage = "Address must be at least 5 characters long")]
