@@ -15,5 +15,7 @@ public class UserProfileResponseModel
     public DateTime? ExpiryDate { get; set; }
     public string PlaceOfIssue { get; set; }
     public string PlaceOfBirth { get; set; }
-
+    public int TotalPoint { get; set; }
+    public CurrentSubscriptionResponseModel? CurrentSubscription { get; set; }
+    public string AchievementName { get; set; }
 }

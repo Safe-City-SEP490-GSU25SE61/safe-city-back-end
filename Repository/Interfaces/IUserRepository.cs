@@ -14,6 +14,7 @@ public interface IUserRepository
 
     Account GetAccountById(Guid id);
     Task<Account?> GetByIdAsync(Guid id);
+    Task<Account?> GetProfileByIdAsync(Guid id);
     Task<bool> ExistsAsync(Guid id);
 
     void AddAccount(Account account);

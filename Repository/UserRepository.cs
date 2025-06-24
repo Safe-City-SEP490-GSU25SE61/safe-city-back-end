@@ -68,8 +68,16 @@ public class UserRepository : IUserRepository
     public async Task<Account?> GetByIdAsync(Guid id)
     {
         return await _context.Accounts
-            .Include(a => a.Role)
             .Include(a => a.CitizenIdentityCard)
+            .FirstOrDefaultAsync(a => a.Id == id);
+    }
+
+    public async Task<Account?> GetProfileByIdAsync(Guid id)
+    {
+        return await _context.Accounts
+            .Include(a => a.CitizenIdentityCard)
+            .Include(a => a.Subscriptions).ThenInclude(s => s.Package)
+            .Include(a => a.Achievement)
             .FirstOrDefaultAsync(a => a.Id == id);
     }
 
