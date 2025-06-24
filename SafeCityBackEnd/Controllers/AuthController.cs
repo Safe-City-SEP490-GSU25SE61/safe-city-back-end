@@ -42,9 +42,16 @@ public class AuthController : Controller
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromForm]UserRegistrationRequestModel userDto)
     {
-        await _authService.Register(userDto);
-        return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.Accepted, "Successfully Register",
+        try
+        {
+            await _authService.Register(userDto);
+            return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.Accepted, "Successfully Register",
             "Please check your email for account verification.");
+        }
+        catch (Exception ex)
+        {
+            return CustomErrorHandler.SimpleError(ex.Message, 500);
+        }       
     }
 
     [HttpPost("identity-card")]
@@ -137,15 +144,29 @@ public class AuthController : Controller
     [HttpPost("forgot-password")]
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequestModel model)
     {
-        await _authService.RequestPasswordResetAsync(model);
-        return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Verification code sent to your email.", null);
+        try
+        {
+            await _authService.RequestPasswordResetAsync(model);
+            return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Verification code sent to your email.", null);
+        }
+        catch (Exception ex)
+        {
+            return CustomErrorHandler.SimpleError(ex.Message, 400);
+        }
     }
 
     [HttpPost("reset-password")]
     public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequestModel model)
     {
-        await _authService.ResetPasswordAsync(model);
-        return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Password has been reset successfully.", null);
+        try
+        {
+            await _authService.ResetPasswordAsync(model);
+            return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Password has been reset successfully.", null);
+        }
+        catch (Exception ex)
+        {
+            return CustomErrorHandler.SimpleError(ex.Message, 400);
+        }
     }
 
 }

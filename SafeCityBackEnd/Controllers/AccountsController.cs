@@ -7,6 +7,8 @@ using Service.Interfaces;
 using SafeCityBackEnd.Helpers;
 using Swashbuckle.AspNetCore.Annotations;
 using System.Net;
+using BusinessObject.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace SafeCityBackEnd.Controllers
 {
@@ -21,17 +23,24 @@ namespace SafeCityBackEnd.Controllers
             _accountService = accountService;
         }
 
-        [EnableQuery]
+        [Authorize]
         [HttpGet]
         [SwaggerOperation(Summary = "Get all accounts")]
         public async Task<IActionResult> GetAccounts()
-        {
-            var accounts = await _accountService.GetAllAsync();
-            return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Get accounts successfully",
-                accounts);
+        {           
+            try
+            {
+                var accounts = await _accountService.GetAllAsync();
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Get accounts successfully",
+                    accounts);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
-        [EnableQuery]
+        [Authorize]
         [HttpGet("{accountId:Guid}")]
         [SwaggerOperation(Summary = "Get account by ID")]
         public async Task<IActionResult> GetExpertise([FromRoute] Guid accountId)
@@ -48,39 +57,23 @@ namespace SafeCityBackEnd.Controllers
         }
 
         [HttpPost]
-        [SwaggerOperation(Summary = "Add a new account")]
-        public async Task<IActionResult> Create([FromBody] AddAccountRequestModel requestModel)
+        [Authorize]
+        [SwaggerOperation(Summary = "Add a new officer account")]
+        public async Task<IActionResult> Create([FromForm] AddAccountRequestModel requestModel)
         {
             try
             {
-                var account = await _accountService.AddAsync(requestModel);
+                await _accountService.AddAsync(requestModel);
                 return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.Created, "Add account successfully",
-                    account);
+                    "Please inform officer to check their email for account information.");
             } catch (InvalidOperationException ex)
             {
                 return BadRequest(new { message = ex.Message });
             }
         }
 
-        [HttpPut("{accountId:Guid}")]
-        [SwaggerOperation(Summary = "Update an account")]
-        public async Task<IActionResult> Update([FromBody] UpdateAccountRequestModel requestModel,
-            [FromRoute] Guid accountId)
-        {
-            try
-            {
-                var expertise = await _accountService.UpdateAsync(accountId, requestModel);
-                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Update account successfully",
-                    expertise);
-            } catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            } catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-        }
 
+        [Authorize]
         [HttpDelete("{accountId:Guid}")]
         [SwaggerOperation(Summary = "Delete an account")]
         public async Task<IActionResult> Delete([FromRoute] Guid accountId)

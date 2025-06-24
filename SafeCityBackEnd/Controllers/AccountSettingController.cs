@@ -7,6 +7,8 @@ using SafeCityBackEnd.Helpers;
 using Service;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.ComponentModel.DataAnnotations;
+using Repository.HandleException;
 
 namespace SafeCityBackEnd.Controllers;
 
@@ -54,7 +56,7 @@ public class AccountSettingController : Controller
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
         if (userIdClaim == null)
-            return Unauthorized("User ID claim not found.");
+            return CustomErrorHandler.SimpleError("User ID claim not found.", 401);
 
         var userId = Guid.Parse(userIdClaim.Value);
 
@@ -66,19 +68,58 @@ public class AccountSettingController : Controller
             return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK,
                 "Successfully updated account information.", null);
         }
+        catch (CustomValidationError ex)
+        {
+            return CustomErrorHandler.ValidationError(ex.Errors);
+        }
         catch (KeyNotFoundException ex)
         {
-            return NotFound(new { message = ex.Message });
+            return CustomErrorHandler.SimpleError(ex.Message, 404);
+        }
+        catch (Exception ex)
+        {
+            return CustomErrorHandler.SimpleError(ex.Message, 500);
         }
     }
-
 
     [Authorize]
     [HttpPost("request-profile-update-otp")]
     public async Task<IActionResult> RequestProfileUpdateOtp(string email)
     {
-        await _authService.SendProfileUpdateOtpAsync(email);
-        return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Verification code sent to your email.", null);
+        try
+        {
+            await _authService.SendProfileUpdateOtpAsync(email);
+            return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Verification code sent to your email.", null);
+        }
+        catch (Exception ex)
+        {
+            return CustomErrorHandler.SimpleError(ex.Message, 400);
+        }
+    }
+
+    [Authorize]
+    [HttpPut("change-password")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequestModel model)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null)
+            return Unauthorized("User ID claim not found.");
+
+        var userId = Guid.Parse(userIdClaim.Value);
+
+        try
+        {
+            await _userService.ChangePasswordAsync(userId, model.OldPassword, model.NewPassword);
+            return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Password changed successfully.", null);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return CustomErrorHandler.SimpleError(ex.Message, 400);
+        }
     }
 
 

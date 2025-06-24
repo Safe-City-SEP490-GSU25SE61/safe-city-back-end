@@ -48,6 +48,7 @@ public class UserRegistrationRequestModel
     public DateTime issueDate { get; set; }
 
     [JsonPropertyName("expiryDate")]
+    [Required(ErrorMessage = "Expiry date is required")]
     [DataType(DataType.Date)]
     public DateTime expiryDate { get; set; }
 
@@ -67,8 +68,10 @@ public class UserRegistrationRequestModel
     public string address { get; set; } = string.Empty;
 
     [JsonPropertyName("frontImage")]
+    [Required(ErrorMessage = "Front image is required")]
     public IFormFile frontImage { get; set; }
 
     [JsonPropertyName("backImage")]
+    [Required(ErrorMessage = "Back image is required")]
     public IFormFile backImage { get; set; }
 }

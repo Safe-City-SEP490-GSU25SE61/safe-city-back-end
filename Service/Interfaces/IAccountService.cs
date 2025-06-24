@@ -1,5 +1,6 @@
 ﻿using BusinessObject.DTOs.RequestModels;
 using BusinessObject.DTOs.ResponseModels;
+using BusinessObject.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +13,7 @@ namespace Service.Interfaces
     {
         Task<IEnumerable<AccountResponseModel>> GetAllAsync();
         Task<AccountResponseModel> GetByIdAsync(Guid id);
-        Task<AccountResponseModel> AddAsync(AddAccountRequestModel requestModel);
+        Task AddAsync(AddAccountRequestModel requestModel);
         Task<AccountResponseModel> UpdateAsync(Guid id, UpdateAccountRequestModel requestModel);
         Task<AccountResponseModel> DeleteAsync(Guid id);
     }
