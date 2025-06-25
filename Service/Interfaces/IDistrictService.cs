@@ -18,6 +18,9 @@ namespace Service.Interfaces
         Task DeleteAsync(int id);
         Task<IEnumerable<DistrictDTO>> SearchAsync(string? name, int? totalReportedIncidents, int? dangerLevel);
         Task<bool> AssignDistrictToOfficerAsync(Guid accountId, int districtId);
+        Task<IEnumerable<GroupedAssignOfficerChangeDTO>> GetHistoryByAccountIdAsync(Guid accountId);
+
+
     }
 
 }

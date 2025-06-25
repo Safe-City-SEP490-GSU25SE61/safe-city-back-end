@@ -1,6 +1,7 @@
 ﻿using BusinessObject.DTOs.RequestModels;
 using BusinessObject.DTOs.ResponseModels;
 using BusinessObject.Models;
+using Repository;
 using Repository.Interfaces;
 using Service.Interfaces;
 using System;
@@ -16,11 +17,13 @@ namespace Service
     {
         private readonly IPackageRepository _packageRepository;
         private readonly IChangeHistoryService _changeHistoryService;
+        private readonly IPackageChangeHistoryRepository _changeHistoryRepository;
 
-        public PackageService(IPackageRepository packageRepository, IChangeHistoryService changeHistoryService)
+        public PackageService(IPackageRepository packageRepository, IChangeHistoryService changeHistoryService, IPackageChangeHistoryRepository changeHistoryRepository)
         {
             _packageRepository = packageRepository;
             _changeHistoryService = changeHistoryService;
+            _changeHistoryRepository = changeHistoryRepository;
         }
 
         public async Task<IEnumerable<PackageDTO>> GetAllPackagesAsync()
@@ -33,6 +36,7 @@ namespace Service
                 Description = p.Description,
                 Price = p.Price,
                 DurationDays = p.DurationDays,
+                Color = p.Color,
                 CreateAt = p.CreateAt,
                 LastUpdated = p.LastUpdated,
                 IsActive = p.IsActive
@@ -55,6 +59,7 @@ namespace Service
                 Description = package.Description,
                 Price = package.Price,
                 DurationDays = package.DurationDays,
+                Color = package.Color,
                 CreateAt = package.CreateAt,
                 LastUpdated = package.LastUpdated,
                 IsActive = package.IsActive
@@ -70,6 +75,7 @@ namespace Service
                 Description = dto.Description,
                 Price = dto.Price,
                 DurationDays = dto.DurationDays,
+                Color = dto.Color,
                 CreateAt = DateTime.UtcNow,
                 LastUpdated = DateTime.UtcNow,
                 IsActive = true
@@ -87,24 +93,53 @@ namespace Service
             if (package == null)
                 throw new KeyNotFoundException("Gói không tìm thấy.");
 
+            var changedAt = DateTime.UtcNow;
+            var logs = new List<PackageChangeHistory>();
+
             if (package.Description != dto.Description)
             {
-                await _changeHistoryService.LogChangeAsync("Package", package.Id.ToString(), "Description", package.Description, dto.Description);
+                logs.Add(new PackageChangeHistory
+                {
+                    PackageId = package.Id,
+                    FieldName = "Description",
+                    OldValue = package.Description,
+                    NewValue = dto.Description,
+                    ChangedAt = changedAt
+                });
                 package.Description = dto.Description;
             }
 
             if (package.Price != dto.Price)
             {
-                await _changeHistoryService.LogChangeAsync("Package", package.Id.ToString(), "Price", package.Price.ToString(), dto.Price.ToString());
+                logs.Add(new PackageChangeHistory
+                {
+                    PackageId = package.Id,
+                    FieldName = "Price",
+                    OldValue = package.Price.ToString(),
+                    NewValue = dto.Price.ToString(),
+                    ChangedAt = changedAt
+                });
                 package.Price = dto.Price;
             }
 
             if (package.DurationDays != dto.DurationDays)
             {
-                await _changeHistoryService.LogChangeAsync("Package", package.Id.ToString(), "DurationDays", package.DurationDays.ToString(), dto.DurationDays.ToString());
+                logs.Add(new PackageChangeHistory
+                {
+                    PackageId = package.Id,
+                    FieldName = "DurationDays",
+                    OldValue = package.DurationDays.ToString(),
+                    NewValue = dto.DurationDays.ToString(),
+                    ChangedAt = changedAt
+                });
                 package.DurationDays = dto.DurationDays;
             }
-            package.LastUpdated= DateTime.UtcNow;
+
+            package.Color = dto.Color;
+            package.LastUpdated = changedAt;
+
+            if (logs.Any())
+                await _changeHistoryRepository.AddManyAsync(logs);
 
             await _packageRepository.UpdateAsync(package);
         }
@@ -123,6 +158,26 @@ namespace Service
 
             await _packageRepository.UpdateAsync(package);
         }
+        public async Task<IEnumerable<GroupedPackageChangeDTO>> GetHistoryByIdAsync(int packageId)
+        {
+            var history = await _changeHistoryRepository.GetByPackageIdAsync(packageId);
+
+            return history
+                .GroupBy(h => h.ChangedAt)
+                .Select(g => new GroupedPackageChangeDTO
+                {
+                    ChangedAt = g.Key,
+                    Changes = g.Select(c => new PackageChangeDetailDTO
+                    {
+                        FieldName = c.FieldName,
+                        OldValue = c.OldValue,
+                        NewValue = c.NewValue
+                    }).ToList()
+                })
+                .OrderByDescending(x => x.ChangedAt)
+                .ToList();
+        }
+
     }
 }
 

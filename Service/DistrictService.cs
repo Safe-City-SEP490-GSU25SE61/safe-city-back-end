@@ -7,6 +7,7 @@ using BusinessObject.DTOs.ResponseModels;
 using BusinessObject.DTOs;
 using Repository.Repositories;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Repository;
 
 namespace Service
 {
@@ -16,13 +17,15 @@ namespace Service
         private readonly IAccountRepository _accountRepository;
         private readonly IWardRepository _wardRepository;
         private readonly IChangeHistoryService _changeHistoryService;
+        private readonly IAssignOfficerHistoryRepository _assignOfficerHistoryRepository;
 
-        public DistrictService(IDistrictRepository districtRepository, IAccountRepository accountRepository, IWardRepository wardRepository, IChangeHistoryService changeHistoryService)
+        public DistrictService(IDistrictRepository districtRepository, IAccountRepository accountRepository, IWardRepository wardRepository, IChangeHistoryService changeHistoryService, IAssignOfficerHistoryRepository assignOfficerHistoryRepository)
         {
             _districtRepository = districtRepository;
             _accountRepository = accountRepository;
             _wardRepository = wardRepository;
             _changeHistoryService = changeHistoryService;
+            _assignOfficerHistoryRepository = assignOfficerHistoryRepository;
         }
 
 
@@ -165,16 +168,20 @@ namespace Service
 
             var oldDistrictId = account.DistrictId;
 
-            
+
             if (oldDistrictId != districtId)
             {
-                await _changeHistoryService.LogChangeAsync(
-                    "Officer",                        
-                    account.Id.ToString(),           
-                    "DistrictId",                    
-                    oldDistrictId?.ToString() ?? "null", 
-                    districtId.ToString()            
-                );
+                var changedAt = DateTime.UtcNow;
+
+                var log = new AssignOfficerHistory
+                {
+                    AccountId = account.Id,
+                    OldDistrictId = oldDistrictId,
+                    NewDistrictId = districtId,
+                    ChangedAt = changedAt
+                };
+
+                await _assignOfficerHistoryRepository.CreateAsync(log);
             }
 
             account.DistrictId = districtId;
@@ -196,5 +203,24 @@ namespace Service
                 PolygonData = d.PolygonData
             }).ToList();
         }
+        public async Task<IEnumerable<GroupedAssignOfficerChangeDTO>> GetHistoryByAccountIdAsync(Guid accountId)
+        {
+            var history = await _assignOfficerHistoryRepository.GetByAccountIdAsync(accountId);
+
+            return history
+                .GroupBy(h => h.ChangedAt)
+                .Select(g => new GroupedAssignOfficerChangeDTO
+                {
+                    ChangedAt = g.Key,
+                    Changes = g.Select(h => new AssignOfficerChangeDTO
+                    {
+                        OldDistrictId = h.OldDistrictId,
+                        NewDistrictId = h.NewDistrictId
+                    }).ToList()
+                })
+                .OrderByDescending(x => x.ChangedAt)
+                .ToList();
+        }
+
     }
 }

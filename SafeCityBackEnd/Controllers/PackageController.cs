@@ -105,6 +105,14 @@ namespace SafeCityBackEnd.Controllers
                 return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.BadRequest, ex.Message, null);
             }
         }
+        [HttpGet("{packageId}/history")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetPackageChangeHistory(int packageId)
+        {
+            var history = await _packageService.GetHistoryByIdAsync(packageId);
+            return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Lịch sử thay đổi gói", history);
+        }
+
     }
 
 }
