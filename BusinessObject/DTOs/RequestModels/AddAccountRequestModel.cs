@@ -6,42 +6,72 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using System.Text.Json.Serialization;
 
 namespace BusinessObject.DTOs.RequestModels
 {
     public class AddAccountRequestModel
     {
-        [Required(ErrorMessage = "Full Name is required.")]
-        [StringLength(100, ErrorMessage = "Full Name cannot exceed 100 characters.")]
-        public string FullName { get; set; } = "";
+        [JsonPropertyName("fullName")]
+        [Required(ErrorMessage = "Full name is mandatory")]
+        [MinLength(2, ErrorMessage = "Full name must be at least 2 characters long")]
+        public string fullName { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Email is required.")]
-        [EmailAddress(ErrorMessage = "Invalid email format.")]
-        public string Email { get; set; } = "";
+        [JsonPropertyName("email")]
+        [Required(ErrorMessage = "Email cannot be blank")]
+        [EmailAddress(ErrorMessage = "Invalid email format")]
+        public string email { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Password is required.")]
-        [StringLength(100, MinimumLength = 6, ErrorMessage = "Password must be at least 6 characters long.")]
-        public string Password { get; set; } = "";
+        [JsonPropertyName("password")]
+        [Required(ErrorMessage = "Password cannot be blank")]
+        [RegularExpression(@"^(?=.*[A-Z])(?=.*\d).{8,16}$",
+            ErrorMessage = "Minimum 8 characters, at least one uppercase letter and one number")]
+        public string password { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Date of Birth is required.")]
+        [JsonPropertyName("dateOfBirth")]
+        [Required(ErrorMessage = "Date of birth is required")]
         [DataType(DataType.Date)]
-        public DateTime DateOfBirth { get; set; }
+        public DateTime dateOfBirth { get; set; }
 
-        public string? ImageUrl { get; set; }
+        [JsonPropertyName("phone")]
+        [Required(ErrorMessage = "Phone cannot be blank")]
+        [RegularExpression(@"(84|0[3|5|7|8|9])+([0-9]{8})\b",
+            ErrorMessage = "Please enter a valid (+84) phone number")]
+        public string phone { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Gender is required.")]
-        public bool Gender { get; set; }
+        [JsonPropertyName("gender")]
+        [Required(ErrorMessage = "Gender is required")]
+        public bool gender { get; set; }
 
-        [Required(ErrorMessage = "Phone number is required.")]
-        [Phone(ErrorMessage = "Invalid phone number format.")]
-        public string Phone { get; set; } = "";
+        [JsonPropertyName("idNumber")]
+        [Required(ErrorMessage = "ID number is required")]
+        [RegularExpression(@"^[0-9]{9,12}$", ErrorMessage = "ID number must be 9 to 12 digits")]
+        public string idNumber { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Role ID is required.")]
-        [Range(1, int.MaxValue, ErrorMessage = "Role ID must be a positive integer.")]
-        public int RoleId { get; set; }
+        [JsonPropertyName("issueDate")]
+        [Required(ErrorMessage = "Issue date is required")]
+        [DataType(DataType.Date)]
+        public DateTime issueDate { get; set; }
 
-        [Required(ErrorMessage = "Status is required.")]
-        [StringLength(50, ErrorMessage = "Status cannot exceed 50 characters.")]
-        public string Status { get; set; } = "";
+        [JsonPropertyName("expiryDate")]
+        [Required(ErrorMessage = "Expiry date is required")]
+        [DataType(DataType.Date)]
+        public DateTime expiryDate { get; set; }
+
+        [JsonPropertyName("placeOfIssue")]
+        [Required(ErrorMessage = "Place of issue is required")]
+        [MinLength(2, ErrorMessage = "Place of issue must be at least 2 characters long")]
+        public string placeOfIssue { get; set; } = string.Empty;
+
+        [JsonPropertyName("placeOfBirth")]
+        [Required(ErrorMessage = "Place of birth is required")]
+        [MinLength(2, ErrorMessage = "Place of birth must be at least 2 characters long")]
+        public string placeOfBirth { get; set; } = string.Empty;
+
+        [JsonPropertyName("address")]
+        [Required(ErrorMessage = "Address is required")]
+        [MinLength(5, ErrorMessage = "Address must be at least 5 characters long")]
+        public string address { get; set; } = string.Empty;
     }
 }

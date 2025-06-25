@@ -29,22 +29,22 @@ namespace DataAccessLayer.Mappers
             };
         }
 
-        public static Account ToAccount(this AddAccountRequestModel requestModel)
-        {
-            return new Account
-            {
-                Status = requestModel.Status,
-                RoleId = requestModel.RoleId,
-                Phone = requestModel.Phone,
-                PasswordHash = requestModel.Password,
-                DateOfBirth = requestModel.DateOfBirth,
-                IsLoggedIn = false,
-                Email = requestModel.Email,
-                FullName = requestModel.FullName,
-                Gender = requestModel.Gender,
-                ImageUrl = requestModel.ImageUrl
-            };
-        }
+        //public static Account ToAccount(this AddAccountRequestModel requestModel)
+        //{
+        //    return new Account
+        //    {
+        //        Status = requestModel.Status,
+        //        RoleId = requestModel.RoleId,
+        //        Phone = requestModel.Phone,
+        //        PasswordHash = requestModel.Password,
+        //        DateOfBirth = requestModel.DateOfBirth,
+        //        IsLoggedIn = false,
+        //        Email = requestModel.Email,
+        //        FullName = requestModel.FullName,
+        //        Gender = requestModel.Gender,
+        //        ImageUrl = requestModel.ImageUrl
+        //    };
+        //}
         public static Account ToAccount(this UpdateAccountRequestModel requestModel, Guid id)
         {
             return new Account

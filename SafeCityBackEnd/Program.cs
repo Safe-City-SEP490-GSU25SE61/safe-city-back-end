@@ -29,6 +29,7 @@ builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<IIdentityCardRepository, IdentityCardRepository>();
+builder.Services.AddScoped<ISubcriptionRepository, SubcriptionRepository>();
 builder.Services.AddScoped<IDistrictService, DistrictService>();
 builder.Services.AddScoped<IWardService, WardService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
