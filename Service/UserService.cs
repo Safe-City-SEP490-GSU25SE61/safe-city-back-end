@@ -151,7 +151,8 @@ public class UserService : IUserService
             identityCard.PlaceOfIssue = backCardInfo.PlaceOfIssue;
             identityCard.PlaceOfBirth = backCardInfo.PlaceOfBirth;
             identityCard.IssueDate = backCardInfo.IssueDate.Value.ToUniversalTime();
-            identityCard.ExpiryDate = frontCardInfo.ExpiryDate.Value.ToUniversalTime();
+            identityCard.ExpiryDate = frontCardInfo.ExpiryDate != null ? frontCardInfo.ExpiryDate.Value.ToUniversalTime()
+                : backCardInfo.ExpiryDate.Value.ToUniversalTime();
             identityCard.FrontImageUrl = frontImageUrl;
             identityCard.BackImageUrl = backImageUrl;
             identityCard.UpdatedAt = DateTime.UtcNow;
