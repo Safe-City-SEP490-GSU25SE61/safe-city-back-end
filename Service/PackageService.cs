@@ -16,13 +16,11 @@ namespace Service
     public class PackageService : IPackageService
     {
         private readonly IPackageRepository _packageRepository;
-        private readonly IChangeHistoryService _changeHistoryService;
         private readonly IPackageChangeHistoryRepository _changeHistoryRepository;
 
-        public PackageService(IPackageRepository packageRepository, IChangeHistoryService changeHistoryService, IPackageChangeHistoryRepository changeHistoryRepository)
+        public PackageService(IPackageRepository packageRepository, IPackageChangeHistoryRepository changeHistoryRepository)
         {
             _packageRepository = packageRepository;
-            _changeHistoryService = changeHistoryService;
             _changeHistoryRepository = changeHistoryRepository;
         }
 
@@ -162,21 +160,35 @@ namespace Service
         {
             var history = await _changeHistoryRepository.GetByPackageIdAsync(packageId);
 
-            return history
+            var grouped = history
                 .GroupBy(h => h.ChangedAt)
-                .Select(g => new GroupedPackageChangeDTO
+                .OrderBy(g => g.Key) 
+                .ToList();
+
+            var result = new List<GroupedPackageChangeDTO>();
+
+            for (int i = 0; i < grouped.Count; i++)
+            {
+                var current = grouped[i];
+                var next = i < grouped.Count - 1 ? grouped[i + 1].Key : (DateTime?)null;
+
+                result.Add(new GroupedPackageChangeDTO
                 {
-                    ChangedAt = g.Key,
-                    Changes = g.Select(c => new PackageChangeDetailDTO
+                    ChangedAt = current.Key,
+                    EffectiveStart = current.Key,
+                    EffectiveEnd = next,
+                    Changes = current.Select(c => new PackageChangeDetailDTO
                     {
                         FieldName = c.FieldName,
                         OldValue = c.OldValue,
                         NewValue = c.NewValue
                     }).ToList()
-                })
-                .OrderByDescending(x => x.ChangedAt)
-                .ToList();
+                });
+            }
+
+            return result.OrderByDescending(r => r.ChangedAt);
         }
+
 
     }
 }

@@ -24,7 +24,6 @@ namespace DataAccessLayer.DataContext
         public DbSet<ReputationEvent> ReputationEvents { get; set; }
         public DbSet<Subscription> Subscriptions { get; set; }
         public DbSet<Ward> Wards { get; set; }
-        public DbSet<ChangeHistory> ChangeHistories { get; set; }
         public DbSet<PackageChangeHistory> PackageChanges { get; set; }
         public DbSet<AssignOfficerHistory> AssignOffers { get; set; }
 

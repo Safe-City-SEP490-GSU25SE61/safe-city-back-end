@@ -42,8 +42,6 @@ builder.Services.AddScoped<IAchievementService, AchievementService>();
 builder.Services.AddScoped<IAchievementRepository, AchievementRepository>();
 builder.Services.AddScoped<IPackageService, PackageService>();
 builder.Services.AddScoped<IPackageRepository, PackageRepository>();
-builder.Services.AddScoped<IChangeHistoryRepository, ChangeHistoryRepository>();
-builder.Services.AddScoped<IChangeHistoryService, ChangeHistoryService>();
 builder.Services.AddScoped<IAssignOfficerHistoryRepository, AssignOfficerHistoryRepository>();
 builder.Services.AddScoped<IPackageChangeHistoryRepository, PackageChangeHistoryRepository>();
 

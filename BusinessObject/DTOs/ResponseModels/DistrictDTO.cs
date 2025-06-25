@@ -33,8 +33,11 @@ namespace BusinessObject.DTOs.ResponseModels
         public DateTime LastUpdated { get; set; }
 
         public bool IsActive { get; set; }
+        public List<string> WardNames { get; set; } 
+        public int TotalAssignedOfficers { get; set; } 
 
-        public List<WardDTO> Wards { get; set; }
+
+        //public List<WardDTO> Wards { get; set; }
     }
 }
 

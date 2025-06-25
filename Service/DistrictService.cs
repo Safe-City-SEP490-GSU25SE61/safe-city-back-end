@@ -16,15 +16,13 @@ namespace Service
         private readonly IDistrictRepository _districtRepository;
         private readonly IAccountRepository _accountRepository;
         private readonly IWardRepository _wardRepository;
-        private readonly IChangeHistoryService _changeHistoryService;
         private readonly IAssignOfficerHistoryRepository _assignOfficerHistoryRepository;
 
-        public DistrictService(IDistrictRepository districtRepository, IAccountRepository accountRepository, IWardRepository wardRepository, IChangeHistoryService changeHistoryService, IAssignOfficerHistoryRepository assignOfficerHistoryRepository)
+        public DistrictService(IDistrictRepository districtRepository, IAccountRepository accountRepository, IWardRepository wardRepository, IAssignOfficerHistoryRepository assignOfficerHistoryRepository)
         {
             _districtRepository = districtRepository;
             _accountRepository = accountRepository;
             _wardRepository = wardRepository;
-            _changeHistoryService = changeHistoryService;
             _assignOfficerHistoryRepository = assignOfficerHistoryRepository;
         }
 
@@ -32,8 +30,8 @@ namespace Service
         public async Task<IEnumerable<DistrictDTO>> GetAllAsync()
         {
             var districts = await _districtRepository.GetAllAsync();
-            var allWards = await _wardRepository.GetAllAsync(); 
-
+            var allWards = await _wardRepository.GetAllAsync();
+            var allAccounts = await _accountRepository.GetAllAsync();
             return districts.Select(d => new DistrictDTO
             {
                 Id = d.Id,
@@ -45,21 +43,12 @@ namespace Service
                 CreateAt = d.CreateAt,
                 LastUpdated = d.LastUpdated,
                 IsActive = d.IsActive,
-                Wards = allWards
+                WardNames = allWards
                     .Where(w => w.DistrictId == d.Id && w.IsActive)
-                    .Select(w => new WardDTO
-                    {
-                        Id = w.Id,
-                        Name = w.Name,
-                        TotalReportedIncidents = w.TotalReportedIncidents,
-                        DangerLevel = w.DangerLevel,
-                        Note = w.Note,
-                        PolygonData = w.PolygonData,
-                        DistrictId = w.DistrictId,
-                        CreateAt = w.CreateAt,
-                        LastUpdated = w.LastUpdated,
-                        IsActive = w.IsActive
-                    }).ToList()
+                    .Select(w => w.Name)
+                    .ToList(),  
+                TotalAssignedOfficers = allAccounts
+            .Count(a => a.DistrictId == d.Id && a.RoleId == 3 && a.Status == "active")
             }).ToList();
         }
 
@@ -68,22 +57,16 @@ namespace Service
             var district = await _districtRepository.GetByIdAsync(id);
             if (district == null) return null;
 
-            var relatedWards = await _wardRepository.GetAllAsync();
-            var wards = relatedWards
+            var allWards = await _wardRepository.GetAllAsync();
+            var allAccounts = await _accountRepository.GetAllAsync();
+
+            var wardNames = allWards
                 .Where(w => w.DistrictId == district.Id && w.IsActive)
-                .Select(w => new WardDTO
-                {
-                    Id = w.Id,
-                    Name = w.Name,
-                    TotalReportedIncidents = w.TotalReportedIncidents,
-                    DangerLevel = w.DangerLevel,
-                    Note = w.Note,
-                    PolygonData = w.PolygonData,
-                    DistrictId = w.DistrictId,
-                    CreateAt = w.CreateAt,
-                    LastUpdated = w.LastUpdated,
-                    IsActive = w.IsActive
-                }).ToList();
+                .Select(w => w.Name)
+                .ToList();
+
+            var totalOfficers = allAccounts
+                .Count(a => a.DistrictId == district.Id && a.RoleId == 3 && a.Status == "active");
 
             return new DistrictDTO
             {
@@ -96,9 +79,12 @@ namespace Service
                 CreateAt = district.CreateAt,
                 LastUpdated = district.LastUpdated,
                 IsActive = district.IsActive,
-                Wards = wards
+
+                WardNames = wardNames,
+                TotalAssignedOfficers = totalOfficers
             };
         }
+
 
         public async Task<int> CreateAsync(CreateDistrictDTO createDistrictDTO)
         {
