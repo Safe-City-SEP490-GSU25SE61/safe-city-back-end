@@ -16,5 +16,7 @@ namespace Service.Interfaces
         Task<int> CreatePackageAsync(CreatePackageDTO dto); 
         Task UpdatePackageAsync(int packageId, UpdatePackageDTO dto); 
         Task DeletePackageAsync(int packageId);
+        Task<IEnumerable<GroupedPackageChangeDTO>> GetHistoryByIdAsync(int packageId);
+
     }
 }

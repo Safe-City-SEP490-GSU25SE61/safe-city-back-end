@@ -22,7 +22,7 @@ namespace Service
 
         public async Task<IEnumerable<WardDTO>> GetAllAsync()
         {
-            var wards = await _wardRepository.GetAllAsync();
+            var wards = await _wardRepository.GetAllWithDistrictAsync();
             return wards.Select(w => new WardDTO
             {
                 Id = w.Id,
@@ -32,15 +32,17 @@ namespace Service
                 Note = w.Note,
                 PolygonData = w.PolygonData,
                 DistrictId = w.DistrictId,
+                DistrictName = w.District?.Name, 
                 CreateAt = w.CreateAt,
                 LastUpdated = w.LastUpdated,
                 IsActive = w.IsActive
             }).ToList();
         }
 
+
         public async Task<WardDTO> GetByIdAsync(int id)
         {
-            var ward = await _wardRepository.GetByIdAsync(id);
+            var ward = await _wardRepository.GetByIdWithDistrictAsync(id);
             if (ward == null) return null;
 
             return new WardDTO
@@ -52,11 +54,13 @@ namespace Service
                 Note = ward.Note,
                 PolygonData = ward.PolygonData,
                 DistrictId = ward.DistrictId,
+                DistrictName = ward.District?.Name, 
                 CreateAt = ward.CreateAt,
                 LastUpdated = ward.LastUpdated,
                 IsActive = ward.IsActive
             };
         }
+
 
         public async Task<int> CreateAsync(CreateWardDTO createWardDTO)
         {

@@ -3,6 +3,7 @@ using System;
 using DataAccessLayer.DataContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DataAccessLayer.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250623112600_UpdateChangeHistory")]
+    partial class UpdateChangeHistory
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -164,36 +167,6 @@ namespace DataAccessLayer.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("achievement");
-                });
-
-            modelBuilder.Entity("BusinessObject.Models.AssignOfficerHistory", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<Guid>("AccountId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("account_id");
-
-                    b.Property<DateTime>("ChangedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("changed_at");
-
-                    b.Property<int>("NewDistrictId")
-                        .HasColumnType("integer")
-                        .HasColumnName("new_district_id");
-
-                    b.Property<int?>("OldDistrictId")
-                        .HasColumnType("integer")
-                        .HasColumnName("old_district_id");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("assign_officer_history");
                 });
 
             modelBuilder.Entity("BusinessObject.Models.ChangeHistory", b =>
@@ -362,11 +335,6 @@ namespace DataAccessLayer.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Color")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("color");
-
                     b.Property<DateTime>("CreateAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("create_at");
@@ -400,43 +368,6 @@ namespace DataAccessLayer.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("package");
-                });
-
-            modelBuilder.Entity("BusinessObject.Models.PackageChangeHistory", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("ChangedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("changed_at");
-
-                    b.Property<string>("FieldName")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("field_name");
-
-                    b.Property<string>("NewValue")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("new_value");
-
-                    b.Property<string>("OldValue")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("old_value");
-
-                    b.Property<int>("PackageId")
-                        .HasColumnType("integer")
-                        .HasColumnName("package_id");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("package_change_history");
                 });
 
             modelBuilder.Entity("BusinessObject.Models.ReputationEvent", b =>

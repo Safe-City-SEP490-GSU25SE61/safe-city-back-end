@@ -25,6 +25,9 @@ namespace BusinessObject.Models
         [Column("duration_days")]
         public int DurationDays { get; set; }
 
+        [Column("color")]
+        public string Color { get; set; }
+
         [Column("create_at")]
         public DateTime CreateAt { get; set; }
 

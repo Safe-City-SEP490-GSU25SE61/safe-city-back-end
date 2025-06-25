@@ -11,5 +11,8 @@ namespace Repository.Interfaces
     {
         Task<Ward> GetByNameAsync(string name);
         Task<IEnumerable<Ward>> SearchAsync(string? name, int? totalReportedIncidents, int? dangerLevel, string? districtName);
+        Task<IEnumerable<Ward>> GetAllWithDistrictAsync();
+        Task<Ward> GetByIdWithDistrictAsync(int id);
+
     }
 }

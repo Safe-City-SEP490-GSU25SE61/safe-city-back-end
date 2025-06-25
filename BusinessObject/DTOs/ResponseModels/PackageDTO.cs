@@ -13,6 +13,7 @@ namespace BusinessObject.DTOs.ResponseModels
         public string Description { get; set; }
         public decimal Price { get; set; }
         public int DurationDays { get; set; }
+        public string Color { get; set; }
         public DateTime CreateAt { get; set; }
         public DateTime LastUpdated { get; set; }
         public bool IsActive { get; set; }

@@ -22,5 +22,9 @@ namespace BusinessObject.DTOs.RequestModels
 
         [Range(1, int.MaxValue, ErrorMessage = "Thời gian gói dịch vụ phải là số dương.")]
         public int DurationDays { get; set; }
+
+        [StringLength(50, ErrorMessage = "Màu không được dài hơn 50 ký tự.")]
+        public string Color { get; set; }
+
     }
 }

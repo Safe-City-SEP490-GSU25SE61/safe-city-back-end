@@ -28,6 +28,8 @@ namespace BusinessObject.DTOs.ResponseModels
 
         [Range(1, int.MaxValue, ErrorMessage = "DistrictId phải là một số dương.")]
         public int DistrictId { get; set; }
+        public string DistrictName { get; set; }
+
         public DateTime CreateAt { get; set; }
 
         public DateTime LastUpdated { get; set; }
