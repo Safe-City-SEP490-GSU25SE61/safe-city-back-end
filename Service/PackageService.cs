@@ -15,10 +15,12 @@ namespace Service
     public class PackageService : IPackageService
     {
         private readonly IPackageRepository _packageRepository;
+        private readonly IChangeHistoryService _changeHistoryService;
 
-        public PackageService(IPackageRepository packageRepository)
+        public PackageService(IPackageRepository packageRepository, IChangeHistoryService changeHistoryService)
         {
             _packageRepository = packageRepository;
+            _changeHistoryService = changeHistoryService;
         }
 
         public async Task<IEnumerable<PackageDTO>> GetAllPackagesAsync()
@@ -85,9 +87,23 @@ namespace Service
             if (package == null)
                 throw new KeyNotFoundException("Gói không tìm thấy.");
 
-            package.Description = dto.Description;
-            package.Price = dto.Price;
-            package.DurationDays = dto.DurationDays;
+            if (package.Description != dto.Description)
+            {
+                await _changeHistoryService.LogChangeAsync("Package", package.Id.ToString(), "Description", package.Description, dto.Description);
+                package.Description = dto.Description;
+            }
+
+            if (package.Price != dto.Price)
+            {
+                await _changeHistoryService.LogChangeAsync("Package", package.Id.ToString(), "Price", package.Price.ToString(), dto.Price.ToString());
+                package.Price = dto.Price;
+            }
+
+            if (package.DurationDays != dto.DurationDays)
+            {
+                await _changeHistoryService.LogChangeAsync("Package", package.Id.ToString(), "DurationDays", package.DurationDays.ToString(), dto.DurationDays.ToString());
+                package.DurationDays = dto.DurationDays;
+            }
             package.LastUpdated= DateTime.UtcNow;
 
             await _packageRepository.UpdateAsync(package);

@@ -34,6 +34,7 @@ namespace BusinessObject.DTOs.ResponseModels
 
         public bool IsActive { get; set; }
 
+        public List<WardDTO> Wards { get; set; }
     }
 }
 

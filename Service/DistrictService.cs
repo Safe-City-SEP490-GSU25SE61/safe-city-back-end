@@ -14,17 +14,23 @@ namespace Service
     {
         private readonly IDistrictRepository _districtRepository;
         private readonly IAccountRepository _accountRepository;
+        private readonly IWardRepository _wardRepository;
+        private readonly IChangeHistoryService _changeHistoryService;
 
-        public DistrictService(IDistrictRepository districtRepository, IAccountRepository accountRepository)
+        public DistrictService(IDistrictRepository districtRepository, IAccountRepository accountRepository, IWardRepository wardRepository, IChangeHistoryService changeHistoryService)
         {
             _districtRepository = districtRepository;
             _accountRepository = accountRepository;
+            _wardRepository = wardRepository;
+            _changeHistoryService = changeHistoryService;
         }
 
 
         public async Task<IEnumerable<DistrictDTO>> GetAllAsync()
         {
             var districts = await _districtRepository.GetAllAsync();
+            var allWards = await _wardRepository.GetAllAsync(); 
+
             return districts.Select(d => new DistrictDTO
             {
                 Id = d.Id,
@@ -35,7 +41,22 @@ namespace Service
                 PolygonData = d.PolygonData,
                 CreateAt = d.CreateAt,
                 LastUpdated = d.LastUpdated,
-                IsActive = d.IsActive
+                IsActive = d.IsActive,
+                Wards = allWards
+                    .Where(w => w.DistrictId == d.Id && w.IsActive)
+                    .Select(w => new WardDTO
+                    {
+                        Id = w.Id,
+                        Name = w.Name,
+                        TotalReportedIncidents = w.TotalReportedIncidents,
+                        DangerLevel = w.DangerLevel,
+                        Note = w.Note,
+                        PolygonData = w.PolygonData,
+                        DistrictId = w.DistrictId,
+                        CreateAt = w.CreateAt,
+                        LastUpdated = w.LastUpdated,
+                        IsActive = w.IsActive
+                    }).ToList()
             }).ToList();
         }
 
@@ -43,6 +64,23 @@ namespace Service
         {
             var district = await _districtRepository.GetByIdAsync(id);
             if (district == null) return null;
+
+            var relatedWards = await _wardRepository.GetAllAsync();
+            var wards = relatedWards
+                .Where(w => w.DistrictId == district.Id && w.IsActive)
+                .Select(w => new WardDTO
+                {
+                    Id = w.Id,
+                    Name = w.Name,
+                    TotalReportedIncidents = w.TotalReportedIncidents,
+                    DangerLevel = w.DangerLevel,
+                    Note = w.Note,
+                    PolygonData = w.PolygonData,
+                    DistrictId = w.DistrictId,
+                    CreateAt = w.CreateAt,
+                    LastUpdated = w.LastUpdated,
+                    IsActive = w.IsActive
+                }).ToList();
 
             return new DistrictDTO
             {
@@ -54,8 +92,8 @@ namespace Service
                 PolygonData = district.PolygonData,
                 CreateAt = district.CreateAt,
                 LastUpdated = district.LastUpdated,
-                IsActive = district.IsActive
-
+                IsActive = district.IsActive,
+                Wards = wards
             };
         }
 
@@ -113,21 +151,34 @@ namespace Service
         {
             
             var district = await _districtRepository.GetByIdAsync(districtId);
-            if (district == null)
+            if (district == null || !district.IsActive)
             {
-                throw new KeyNotFoundException("District not found.");
+                throw new KeyNotFoundException("Quận không tìm thấy hoặc đã bị vô hiệu hóa.");
             }
 
             
             var account = await _accountRepository.GetByIdAsync(accountId);
             if (account == null || account.RoleId != 3) 
             {
-                throw new InvalidOperationException("Account not found or not an officer.");
+                throw new InvalidOperationException("Tài khoản không tìm thấy hoặc không phải là officer.");
             }
 
-           
+            var oldDistrictId = account.DistrictId;
+
+            
+            if (oldDistrictId != districtId)
+            {
+                await _changeHistoryService.LogChangeAsync(
+                    "Officer",                        
+                    account.Id.ToString(),           
+                    "DistrictId",                    
+                    oldDistrictId?.ToString() ?? "null", 
+                    districtId.ToString()            
+                );
+            }
+
             account.DistrictId = districtId;
-            await _accountRepository.UpdateAsync(account);
+            await _accountRepository.UpdateOfficerAsync(account);
 
             return true; 
         }
