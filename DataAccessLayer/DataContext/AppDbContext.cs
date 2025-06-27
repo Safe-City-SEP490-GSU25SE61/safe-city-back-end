@@ -24,6 +24,9 @@ namespace DataAccessLayer.DataContext
         public DbSet<ReputationEvent> ReputationEvents { get; set; }
         public DbSet<Subscription> Subscriptions { get; set; }
         public DbSet<Ward> Wards { get; set; }
+        public DbSet<Payment> Payments { get; set; }
+        public DbSet<PayosTransaction> PayosTransactions { get; set; }
+
 
         private static string? GetConnectionString()
         {
@@ -79,7 +82,39 @@ namespace DataAccessLayer.DataContext
                 .HasOne(w => w.District)  
                 .WithMany(d => d.Wards)   
                 .HasForeignKey(w => w.DistrictId)  
-                .OnDelete(DeleteBehavior.Cascade);  
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Payment>()
+                .HasOne(p => p.User)
+                .WithMany(a => a.Payments)
+                .HasForeignKey(p => p.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Subscription>()
+                .HasOne(s => s.Payment)
+                .WithOne(p => p.Subscription)
+                .HasForeignKey<Payment>(p => p.SubscriptionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+
+            modelBuilder.Entity<Payment>()
+                .HasOne(p => p.PayosTransaction)
+                .WithOne(pt => pt.Payment)
+                .HasForeignKey<PayosTransaction>(pt => pt.PaymentId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<PayosTransaction>()
+                .HasIndex(p => p.OrderCode)
+                .IsUnique();
+
+            modelBuilder.Entity<PayosTransaction>()
+                .Property(p => p.CreatedAt)
+                .HasDefaultValueSql("NOW()");
+
+            modelBuilder.Entity<PayosTransaction>()
+                .Property(p => p.UpdatedAt)
+                .HasDefaultValueSql("NOW()");
+
 
             base.OnModelCreating(modelBuilder);
         }

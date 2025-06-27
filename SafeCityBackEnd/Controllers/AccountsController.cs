@@ -71,25 +71,5 @@ namespace SafeCityBackEnd.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
-
-
-        [Authorize]
-        [HttpDelete("{accountId:Guid}")]
-        [SwaggerOperation(Summary = "Delete an account")]
-        public async Task<IActionResult> Delete([FromRoute] Guid accountId)
-        {
-            try
-            {
-                var expertise = await _accountService.DeleteAsync(accountId);
-                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Delete account successfully",
-                    expertise);
-            } catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            } catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-        }
     }
 }

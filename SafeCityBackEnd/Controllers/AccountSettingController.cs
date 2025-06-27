@@ -123,32 +123,51 @@ public class AccountSettingController : Controller
     }
 
 
-    //[Authorize]
-    //[HttpPost("account/upload-image/{id}")]
-    //public async Task<IActionResult> UploadUserImage(int id, IFormFile file)
-    //{
-    //    if (file == null || file.Length == 0)
-    //        return BadRequest("No file uploaded.");
+    [Authorize]
+    [HttpPost("profile/avatar")]
+    public async Task<IActionResult> UploadUserImage(IFormFile file)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null)
+            return Unauthorized("User ID claim not found.");
 
-    //    try
-    //    {
-    //        var result = await _uploadImageService.UploadImageAsync(file);
-    //        if (result.Error != null)
-    //            return BadRequest(new { message = result.Error.Message });
+        var userId = Guid.Parse(userIdClaim.Value);
 
-    //        string imageUrl = result.SecureUrl.ToString();
-    //        bool updated = await _userService.UpdateUserImageAsync(id, imageUrl);
+        try
+        {
+            var imageUrl = await _userService.UploadAvatarAsync(file);
+            bool updated = await _userService.UpdateUserImageAsync(userId, imageUrl);
 
-    //        if (!updated) return NotFound("User not found.");
+            if (!updated) return BadRequest("Failed to update.");
 
-    //        return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK,
-    //            "Successfully uploaded and updated profile image",
-    //            new { imageUrl });
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //        return StatusCode(500, new { message = "An error occurred", error = ex.Message });
-    //    }
-    //}
+            return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK,
+                "Successfully uploaded and updated profile image", null);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(400, new { message = "An error occurred", error = ex.Message });
+        }
+    }
 
+    [Authorize]
+    [HttpPut("biometric")]
+    public async Task<IActionResult> UpdateBiometricSetting([FromBody] BiometricActivationRequest dto)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null)
+            return Unauthorized("User ID claim not found.");
+
+        var userId = Guid.Parse(userIdClaim.Value);
+        try
+        {
+            var result = await _userService.UpdateBiometricSettingAsync(userId, dto);
+
+            return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK,
+                "Successfully activate biometric option.", result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(400, new { message = "An error occurred", error = ex.Message });
+        }
+    }
 }

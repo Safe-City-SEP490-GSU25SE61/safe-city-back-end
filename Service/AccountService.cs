@@ -21,17 +21,14 @@ namespace Service
         private readonly IUserRepository _userRepository;
         private readonly IIdentityCardRepository _identityCardRepository;
         private readonly IMailService _mailService;
-        private readonly IScanningCardService _scanningCardService;
         private readonly IRoleRepository _roleRepository;
         public AccountService(IAccountRepository accountRepository, IUserRepository userRepository, 
-            IMailService mailService, IRoleRepository roleRepository,IIdentityCardRepository identityCardRepository,
-            IScanningCardService scanningCardService)
+            IMailService mailService, IRoleRepository roleRepository,IIdentityCardRepository identityCardRepository)
         {
             _accountRepository = accountRepository;
             _userRepository = userRepository;
             _mailService = mailService;
             _identityCardRepository = identityCardRepository;
-            _scanningCardService = scanningCardService;
             _roleRepository = roleRepository;
         }
         public async Task AddAsync(AddAccountRequestModel userDto)

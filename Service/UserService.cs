@@ -1,9 +1,12 @@
 ﻿using BusinessObject.DTOs.RequestModels;
 using BusinessObject.DTOs.ResponseModels;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.EntityFrameworkCore;
 using Repository.HandleException;
 using Repository.Interfaces;
 using Service.Interfaces;
+using static Google.Apis.Requests.BatchRequest;
 
 namespace Service;
 
@@ -219,5 +222,31 @@ public class UserService : IUserService
         await _userRepository.UpdateAsync(user);
 
         return true;
+    }
+
+    public async Task<string> UploadAvatarAsync(IFormFile avatarFile)
+    {
+        const long maxSizeInBytes = 8 * 1024 * 1024;
+
+        if (avatarFile == null || avatarFile.Length == 0)
+            throw new Exception("Avatar file is required.");
+
+        if (avatarFile.Length > maxSizeInBytes)
+            throw new Exception("Avatar file exceeds the 8MB size limit.");
+
+        return await _firebaseStorageService.UploadFileAsync(avatarFile, "uploads");
+    }
+
+    public async Task<string> UpdateBiometricSettingAsync(Guid id, BiometricActivationRequest dto)
+    {
+        var user = await _userRepository.GetByIdAsync(id);
+        if (user == null)
+            throw new KeyNotFoundException("User not found.");
+
+        user.DeviceId = BCrypt.Net.BCrypt.HashPassword(dto.DeviceId);
+        user.IsBiometricEnabled = dto.IsBiometricEnabled;
+
+        await _userRepository.UpdateAsync(user);
+        return "Biometric activation successfully";
     }
 }
