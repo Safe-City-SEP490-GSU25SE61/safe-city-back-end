@@ -41,7 +41,10 @@ builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IAchievementService, AchievementService>(); 
 builder.Services.AddScoped<IAchievementRepository, AchievementRepository>();
 builder.Services.AddScoped<IPackageService, PackageService>();
-builder.Services.AddScoped<IPackageRepository, PackageRepository>(); 
+builder.Services.AddScoped<IPackageRepository, PackageRepository>();
+builder.Services.AddScoped<IAssignOfficerHistoryRepository, AssignOfficerHistoryRepository>();
+builder.Services.AddScoped<IPackageChangeHistoryRepository, PackageChangeHistoryRepository>();
+
 
 builder.Services.AddScoped<IScanningCardService, ScanningCardService>();
 

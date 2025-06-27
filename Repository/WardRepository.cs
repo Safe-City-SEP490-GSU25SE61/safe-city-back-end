@@ -45,6 +45,21 @@ namespace Repository
 
             return await query.ToListAsync();  
         }
+        public async Task<IEnumerable<Ward>> GetAllWithDistrictAsync()
+        {
+            return await _context.Wards
+                .Include(w => w.District)
+                .ToListAsync();
+        }
+
+        public async Task<Ward> GetByIdWithDistrictAsync(int id)
+        {
+            return await _context.Wards
+                .Include(w => w.District)
+                .FirstOrDefaultAsync(w => w.Id == id);
+        }
+
+
     }
 }
 

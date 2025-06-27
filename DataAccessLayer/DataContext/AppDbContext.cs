@@ -26,6 +26,8 @@ namespace DataAccessLayer.DataContext
         public DbSet<Ward> Wards { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<PayosTransaction> PayosTransactions { get; set; }
+        public DbSet<PackageChangeHistory> PackageChanges { get; set; }
+        public DbSet<AssignOfficerHistory> AssignOffers { get; set; }
 
 
         private static string? GetConnectionString()

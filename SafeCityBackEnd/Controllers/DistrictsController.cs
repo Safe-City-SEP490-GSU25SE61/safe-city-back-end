@@ -112,5 +112,13 @@ public class DistrictsController : ControllerBase
             return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.BadRequest, ex.Message, null);
         }
     }
+    [HttpGet("officer/{accountId}/history")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetAssignHistory(Guid accountId)
+    {
+        var history = await _districtService.GetHistoryByAccountIdAsync(accountId);
+        return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Lịch sử phân công officer", history);
+    }
+
 
 }
