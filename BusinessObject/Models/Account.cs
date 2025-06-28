@@ -78,5 +78,6 @@ namespace BusinessObject.Models
         public Achievement? Achievement { get; set; }
         public CitizenIdentityCard? CitizenIdentityCard { get; set; }
         public ICollection<Subscription>? Subscriptions { get; set; }
+        public ICollection<Payment>? Payments { get; set; }
     }
 }

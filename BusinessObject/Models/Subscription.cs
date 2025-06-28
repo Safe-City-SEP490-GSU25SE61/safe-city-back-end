@@ -29,5 +29,7 @@ namespace BusinessObject.Models
 
         public Account Account { get; set; }
         public Package Package { get; set; }
+        public Payment? Payment { get; set; }
+
     }
 }
