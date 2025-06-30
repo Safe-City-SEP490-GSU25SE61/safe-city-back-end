@@ -9,6 +9,7 @@ using Swashbuckle.AspNetCore.Annotations;
 using System.Net;
 using BusinessObject.Models;
 using Microsoft.AspNetCore.Authorization;
+using System.ComponentModel.DataAnnotations;
 
 namespace SafeCityBackEnd.Controllers
 {
@@ -71,5 +72,29 @@ namespace SafeCityBackEnd.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+        [Authorize(Roles = "Admin")]
+        [HttpPatch("{accountId:Guid}/status")]
+        [SwaggerOperation(Summary = "Update account status to 'active' or 'inactive'")]
+        public async Task<IActionResult> UpdateStatus([FromRoute] Guid accountId, [FromBody] UpdateAccountStatusRequestModel requestModel)
+        {
+            try
+            {
+                var updated = await _accountService.UpdateStatusAsync(accountId, requestModel);
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Account status updated successfully", updated);
+            }
+            catch (ValidationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
     }
 }

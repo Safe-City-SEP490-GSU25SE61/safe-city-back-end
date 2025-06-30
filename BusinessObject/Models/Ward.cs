@@ -40,5 +40,7 @@ namespace BusinessObject.Models
         public bool IsActive { get; set; }
 
         public District District { get; set; }
+        public ICollection<IncidentReport> IncidentReports { get; set; }
+
     }
 }
