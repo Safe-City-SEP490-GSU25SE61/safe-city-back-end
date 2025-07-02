@@ -1,10 +1,12 @@
-﻿using System.Security.Cryptography;
+﻿using System.Globalization;
+using System.Security.Cryptography;
 using System.Text;
 using BusinessObject.DTOs.RequestModels;
 using BusinessObject.DTOs.ResponseModels;
 using BusinessObject.Models;
 using Microsoft.Extensions.Configuration;
 using Repository.Interfaces;
+using Service.Helpers;
 using Service.Interfaces;
 
 namespace Service;
@@ -193,6 +195,45 @@ public class AuthService : IAuthService
             throw new UnauthorizedAccessException("Incorrect email/password please try again.");
         }
         
+        if (user.Status.ToLower() == "inactive" && !string.IsNullOrEmpty(user.ActivationCode))
+        {
+            throw new UnauthorizedAccessException("Your account is not verified.");
+        }
+
+        var accessToken = _jwtService.GenerateAccessToken(user);
+        var refreshToken = _jwtService.GenerateRefreshToken();
+        var refreshTokenExpiry = DateTime.UtcNow.AddDays(1);
+
+        user.RefreshToken = refreshToken;
+        user.RefreshTokenExpiry = refreshTokenExpiry;
+        user.IsLoggedIn = true;
+        await _userRepository.UpdateAsync(user);
+
+        return new UserAuthenticationResponse
+        {
+            AccessToken = accessToken,
+            RefreshToken = refreshToken
+        };
+    }
+
+    public async Task<UserAuthenticationResponse> BiometricLoginAsync(string email, string password, string deviceId)
+    {
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+            throw new Exception("Email and password cannot be empty.");
+
+        var user = await _userRepository.GetByEmailAsync(email);
+        if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+        {
+            throw new UnauthorizedAccessException("Incorrect email/password please try again.");
+        }
+
+        var hashedDeviceId = HashHelper.ComputeSha256Hash(deviceId);
+
+        if (!user.DeviceId.Equals(hashedDeviceId))
+        {
+            throw new UnauthorizedAccessException("You haven't enabled biometrics on this device yet.");
+        }
+
         if (user.Status.ToLower() == "inactive" && !string.IsNullOrEmpty(user.ActivationCode))
         {
             throw new UnauthorizedAccessException("Your account is not verified.");

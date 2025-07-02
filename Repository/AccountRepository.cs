@@ -51,6 +51,20 @@ namespace Repository.Repositories
         {
             return await _context.Accounts
                 .Include(x => x.Role)
+                .Include(x => x.CitizenIdentityCard)
+                .Include(a => a.Subscriptions).ThenInclude(s => s.Package)
+                .Include(x => x.Achievement)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Account>> GetAllOfficerAsync()
+        {
+            return await _context.Accounts
+                .Include(x => x.Role)
+                .Include(x => x.CitizenIdentityCard)
+                .Include(a => a.Subscriptions).ThenInclude(s => s.Package)
+                .Include(x => x.Achievement)
+                .Where(x => x.Role.Name == "Officer")
                 .ToListAsync();
         }
 

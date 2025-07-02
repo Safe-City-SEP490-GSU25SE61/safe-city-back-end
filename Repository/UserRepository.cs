@@ -2,6 +2,7 @@
 using DataAccessLayer.DataContext;
 using Microsoft.EntityFrameworkCore;
 using Repository.Interfaces;
+using System.Linq.Expressions;
 
 namespace Repository.Repositories;
 
@@ -90,5 +91,10 @@ public class UserRepository : IUserRepository
     {
         _context.Accounts.Add(account);
         _context.SaveChanges();
+    }
+
+    public async Task<bool> ExistsAsync(Expression<Func<Account, bool>> predicate)
+    {
+        return await _context.Accounts.AnyAsync(predicate);
     }
 }

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using Repository.HandleException;
 using Repository.Interfaces;
+using Service.Helpers;
 using Service.Interfaces;
 using static Google.Apis.Requests.BatchRequest;
 
@@ -15,15 +16,15 @@ public class UserService : IUserService
     private readonly IUserRepository _userRepository;
     private readonly IFirebaseStorageService _firebaseStorageService;
     private readonly IScanningCardService _scanningCardService;
-    private readonly ISubcriptionRepository _subcriptionRepository;
+    private readonly ISubscriptionRepository _subscriptionRepository;
 
     public UserService(IUserRepository userRepository, IFirebaseStorageService firebaseStorageService,
-        IScanningCardService scanningCardService, ISubcriptionRepository subcriptionRepository)
+        IScanningCardService scanningCardService, ISubscriptionRepository subcriptionRepository)
     {
         _userRepository = userRepository;
         _firebaseStorageService = firebaseStorageService;
         _scanningCardService = scanningCardService;
-        _subcriptionRepository = subcriptionRepository;
+        _subscriptionRepository = subcriptionRepository;
     }
 
     public async Task<UserProfileResponseModel?> GetUserByIdAsync(Guid id)
@@ -52,12 +53,12 @@ public class UserService : IUserService
             PlaceOfIssue = user.CitizenIdentityCard.PlaceOfIssue,
             PlaceOfBirth = user.CitizenIdentityCard.PlaceOfBirth,
             TotalPoint = user.TotalPoint,
-            CurrentSubscription = await _subcriptionRepository.GetCurrentSubscriptionAsync(user),
+            CurrentSubscription = await _subscriptionRepository.GetCurrentSubscriptionAsync(user),
             AchievementName = user.Achievement != null ? user.Achievement.Name : "Unrank"
         };
     }
 
-    public async Task<bool> UpdateUserAsync(Guid id, UpdateUserRequestModel userDto, string otp)
+    public async Task<bool> UpdateUserUsingOtpAsync(Guid id, UpdateUserRequestUsingOtpModel userDto, string otp)
     {
         var errors = new Dictionary<string, string>();
         var user = await _userRepository.GetByIdAsync(id);
@@ -124,7 +125,13 @@ public class UserService : IUserService
 
             if (frontCardInfo != null)
             {
-                var duplicateField = await CheckDuplicateFieldsAsync(userDto, id, frontCardInfo.IdNumber);
+                var duplicateField = await CheckDuplicateFieldsAsync(new UserBasicInfo
+                {
+                    UserId = id,
+                    Email = userDto.email,
+                    Phone = userDto.phone,
+                    IdNumber = frontCardInfo.IdNumber
+                });
                 if (duplicateField != null)
                 {
                     errors["duplicateField"] = duplicateField;
@@ -168,7 +175,151 @@ public class UserService : IUserService
         }
         else
         {
-            var duplicateField = await CheckDuplicateFieldsAsync(userDto, id, "N/A id number");
+            var duplicateField = await CheckDuplicateFieldsAsync(new UserBasicInfo
+            {
+                UserId = id,
+                Email = userDto.email,
+                Phone = userDto.phone,
+                IdNumber = "N/A id number"
+            });
+            if (duplicateField != null)
+            {
+                errors["duplicateField"] = duplicateField;
+            }
+            if (errors.Any())
+                throw new CustomValidationError(errors);
+
+            user.Email = userDto.email;
+            user.Phone = userDto.phone;
+
+            await _userRepository.UpdateAsync(user);
+            return true;
+        }
+    }
+
+    public async Task<bool> UpdateUserUsingBiometricOptionAsync(Guid id, UpdateUserRequestUsingBiometricOptionModel userDto)
+    {
+        var errors = new Dictionary<string, string>();
+        var user = await _userRepository.GetByIdAsync(id);
+        if (user == null)
+            throw new KeyNotFoundException("User not found.");
+
+        var hashedDeviceId = HashHelper.ComputeSha256Hash(userDto.deviceId);
+
+        if (!user.IsBiometricEnabled || user.DeviceId != hashedDeviceId)
+        {
+            errors["biometric"] = "Biometric verification failed. Device not recognized.";
+            throw new CustomValidationError(errors);
+        }
+
+        if (userDto.frontImage != null || userDto.backImage != null)
+        {
+            ParsedIdCardResult? frontCardInfo = null;
+            ParsedIdCardResult? backCardInfo = null;
+
+            if (userDto.frontImage != null)
+            {
+                frontCardInfo = await _scanningCardService.ParseVietnameseIdCardAsync(userDto.frontImage);
+                if (frontCardInfo == null)
+                {
+                    errors["frontImage"] = "Invalid front image uploaded or not a supported card side.";
+                }
+                else if (frontCardInfo.CardSideType != "cc_front" && frontCardInfo.CardSideType != "chip_front")
+                {
+                    errors["frontImage"] = "Front image must be of type 'cc_front' or 'chip_front'.";
+                }
+            }
+            else
+            {
+                errors["frontImage"] = "Front image is required.";
+            }
+
+            if (userDto.backImage != null)
+            {
+                backCardInfo = await _scanningCardService.ParseVietnameseIdCardAsync(userDto.backImage);
+                if (backCardInfo == null)
+                {
+                    errors["backImage"] = "Invalid back image uploaded or not a supported card side.";
+                }
+                else if (backCardInfo.CardSideType != "cc_back" && backCardInfo.CardSideType != "chip_back")
+                {
+                    errors["backImage"] = "Back image must be of type 'cc_back' or 'chip_back'.";
+                }
+            }
+            else
+            {
+                errors["backImage"] = "Back image is required.";
+            }
+
+            if (frontCardInfo != null && backCardInfo != null)
+            {
+                var frontTypePrefix = frontCardInfo.CardSideType!.Split('_')[0];
+                var backTypePrefix = backCardInfo.CardSideType!.Split('_')[0];
+                if (frontTypePrefix != backTypePrefix)
+                {
+                    errors["identityCard"] = "Front and back image types must match: both 'chip' or both 'cc'.";
+                }
+            }
+
+            if (frontCardInfo != null)
+            {
+                var duplicateField = await CheckDuplicateFieldsAsync(new UserBasicInfo
+                {
+                    UserId = id,
+                    Email = userDto.email,
+                    Phone = userDto.phone,
+                    IdNumber = frontCardInfo.IdNumber
+                });
+                if (duplicateField != null)
+                {
+                    errors["duplicateField"] = duplicateField;
+                }
+            }
+
+            var identityCard = user.CitizenIdentityCard;
+            if (identityCard == null)
+            {
+                errors["identityCard"] = "User has no identity card record to update.";
+            }
+
+            if (errors.Any())
+                throw new CustomValidationError(errors);
+
+            string frontImageUrl = await _firebaseStorageService.UploadFileAsync(userDto.frontImage!, "uploads");
+            string backImageUrl = await _firebaseStorageService.UploadFileAsync(userDto.backImage!, "uploads");
+
+            user.Email = userDto.email;
+            user.Phone = userDto.phone;
+            user.FullName = frontCardInfo.FullName;
+            user.DateOfBirth = frontCardInfo.DateOfBirth.Value.ToUniversalTime();
+            user.Gender = frontCardInfo.Gender ?? user.Gender;
+
+            identityCard.IdNumber = frontCardInfo.IdNumber;
+            identityCard.Address = backCardInfo!.Address ?? frontCardInfo.Address;
+            identityCard.PlaceOfIssue = backCardInfo.PlaceOfIssue;
+            identityCard.PlaceOfBirth = backCardInfo.PlaceOfBirth;
+            identityCard.IssueDate = backCardInfo.IssueDate.Value.ToUniversalTime();
+            identityCard.ExpiryDate = frontCardInfo.ExpiryDate != null ? frontCardInfo.ExpiryDate.Value.ToUniversalTime()
+                : backCardInfo.ExpiryDate.Value.ToUniversalTime();
+            identityCard.FrontImageUrl = frontImageUrl;
+            identityCard.BackImageUrl = backImageUrl;
+            identityCard.UpdatedAt = DateTime.UtcNow;
+
+            user.ActivationCode = null;
+            user.CodeExpiry = null;
+
+            await _userRepository.UpdateAsync(user);
+            return true;
+        }
+        else
+        {
+            var duplicateField = await CheckDuplicateFieldsAsync(new UserBasicInfo
+            {
+                UserId = id,
+                Email = userDto.email,
+                Phone = userDto.phone,
+                IdNumber = "N/A id number"
+            });
             if (duplicateField != null)
             {
                 errors["duplicateField"] = duplicateField;
@@ -185,17 +336,23 @@ public class UserService : IUserService
     }
 
 
-    private async Task<string?> CheckDuplicateFieldsAsync(UpdateUserRequestModel userDto, Guid id, string idNumber)
+    private async Task<string?> CheckDuplicateFieldsAsync(UserBasicInfo userInfo)
     {
-        var user = await _userRepository.GetByEmailAsync(userDto.email);
-        if (user != null && !user.Id.Equals(id))
+        var user = await _userRepository.GetByEmailAsync(userInfo.Email);
+        if (user != null && user.Id != userInfo.UserId)
             return "Email already exists.";
-        user = await _userRepository.GetByPhoneAsync(userDto.phone);
-        if (user != null && !user.Id.Equals(id))
+
+        user = await _userRepository.GetByPhoneAsync(userInfo.Phone);
+        if (user != null && user.Id != userInfo.UserId)
             return "Phone number already exists.";
-        user = await _userRepository.GetByIdNumberAsync(idNumber);
-        if (user != null && !user.Id.Equals(id))
-            return "Cccd number already exists.";
+
+        if (!string.IsNullOrWhiteSpace(userInfo.IdNumber))
+        {
+            user = await _userRepository.GetByIdNumberAsync(userInfo.IdNumber);
+            if (user != null && user.Id != userInfo.UserId)
+                return "Cccd number already exists.";
+        }
+
         return null;
     }
 
@@ -243,7 +400,17 @@ public class UserService : IUserService
         if (user == null)
             throw new KeyNotFoundException("User not found.");
 
-        user.DeviceId = BCrypt.Net.BCrypt.HashPassword(dto.DeviceId);
+        var hashedDeviceId = HashHelper.ComputeSha256Hash(dto.DeviceId);    
+
+        var exists = await _userRepository.ExistsAsync(u =>
+            u.Id != id &&
+            u.DeviceId == hashedDeviceId
+        );
+
+        if (exists)
+            throw new InvalidOperationException("This device is already activated by another account.");
+
+        user.DeviceId = hashedDeviceId;
         user.IsBiometricEnabled = dto.IsBiometricEnabled;
 
         await _userRepository.UpdateAsync(user);

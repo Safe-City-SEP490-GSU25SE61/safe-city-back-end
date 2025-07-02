@@ -12,7 +12,7 @@ namespace DataAccessLayer.Mappers
 {
     public static class AccountMapper
     {
-        public static AccountResponseModel ToAccountResponseModel(this Account model)
+        public static AccountResponseModel ToAccountResponseModel(this Account model, CurrentSubscriptionResponseModel? subscription)
         {
             return new AccountResponseModel
             {
@@ -25,7 +25,12 @@ namespace DataAccessLayer.Mappers
                 Id = model.Id,
                 ImageUrl = model.ImageUrl,
                 RoleName = model.Role.Name,
-                Status = model.Status
+                Status = model.Status,
+                TotalPoint = model.TotalPoint,
+                AchievementName = model.Achievement != null ? model.Achievement.Name : "Unrank",
+                CurrentSubscription = subscription,
+                IsSubscription = !subscription.PackageName.Equals("No Subcription"),
+                Address = model.CitizenIdentityCard != null ? model.CitizenIdentityCard.Address : "N/A",
             };
         }
 
