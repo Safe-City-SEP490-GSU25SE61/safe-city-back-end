@@ -173,9 +173,11 @@ namespace Service
             if (account == null)
                 throw new KeyNotFoundException("Account not found.");
 
-            account.Status = requestModel.Status.ToLower(); 
+            account.Status = requestModel.Status.ToLower();
             var updated = await _accountRepository.UpdateOfficerAsync(account);
-            return updated.ToAccountResponseModel();
+            var subscription = await _subscriptionRepository.GetCurrentSubscriptionAsync(updated);
+            return updated.ToAccountResponseModel(subscription);
+
         }
 
     }
