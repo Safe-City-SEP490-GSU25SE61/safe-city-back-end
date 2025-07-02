@@ -113,15 +113,12 @@ namespace Service
             if (receivedSignature != computedSignature)
                 throw new Exception("Invalid signature");
 
-            // 🔍 Check dummy test webhook from PayOS
             if (webhookBody.data.description == "VQRIO123")
             {
-                // Just return OK — don’t process further
                 Console.WriteLine("Received test webhook from PayOS, skipping real logic.");
                 return;
             }
 
-            // ✅ Process real payment below...
             var payment = await _paymentRepo.GetByOrderCodeAsync(webhookBody.data.orderCode.ToString());
             if (payment == null)
                 throw new Exception("Order not found");
