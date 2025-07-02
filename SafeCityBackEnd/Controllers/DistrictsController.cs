@@ -97,6 +97,21 @@ public class DistrictsController : ControllerBase
             return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.BadRequest, ex.Message, null);
         }
     }
+    [HttpPatch("unassign-from-officer/{accountId}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> UnassignDistrictFromOfficer(Guid accountId)
+    {
+        try
+        {
+            var result = await _districtService.UnassignDistrictFromOfficerAsync(accountId);
+            return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Officer đã được gỡ phân công quận", result);
+        }
+        catch (Exception ex)
+        {
+            return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.BadRequest, ex.Message, null);
+        }
+    }
+
     [HttpGet("search")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> SearchDistricts([FromQuery] string? name, [FromQuery] int? totalReportedIncidents, [FromQuery] int? dangerLevel)
