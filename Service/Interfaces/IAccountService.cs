@@ -12,6 +12,7 @@ namespace Service.Interfaces
     public interface IAccountService
     {
         Task<IEnumerable<AccountResponseModel>> GetAllAsync();
+        Task<IEnumerable<AccountResponseModel>> GetAllOfficerAsync();
         Task<AccountResponseModel> GetByIdAsync(Guid id);
         Task AddAsync(AddAccountRequestModel requestModel);
         Task<AccountResponseModel> UpdateAsync(Guid id, UpdateAccountRequestModel requestModel);

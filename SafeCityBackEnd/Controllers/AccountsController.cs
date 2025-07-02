@@ -9,6 +9,7 @@ using Swashbuckle.AspNetCore.Annotations;
 using System.Net;
 using BusinessObject.Models;
 using Microsoft.AspNetCore.Authorization;
+using Repository.HandleException;
 using System.ComponentModel.DataAnnotations;
 
 namespace SafeCityBackEnd.Controllers
@@ -33,6 +34,23 @@ namespace SafeCityBackEnd.Controllers
             {
                 var accounts = await _accountService.GetAllAsync();
                 return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Get accounts successfully",
+                    accounts);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [Authorize]
+        [HttpGet("officer")]
+        [SwaggerOperation(Summary = "Get all Officer accounts")]
+        public async Task<IActionResult> GetOfficers()
+        {
+            try
+            {
+                var accounts = await _accountService.GetAllOfficerAsync();
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Get Officer accounts successfully",
                     accounts);
             }
             catch (Exception ex)
@@ -67,7 +85,12 @@ namespace SafeCityBackEnd.Controllers
                 await _accountService.AddAsync(requestModel);
                 return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.Created, "Add account successfully",
                     "Please inform officer to check their email for account information.");
-            } catch (InvalidOperationException ex)
+            }
+            catch (CustomValidationError ex)
+            {
+                return CustomErrorHandler.ValidationError(ex.Errors);
+            }
+            catch (Exception ex)
             {
                 return BadRequest(new { message = ex.Message });
             }

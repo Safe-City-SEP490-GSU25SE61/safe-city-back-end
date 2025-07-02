@@ -11,6 +11,7 @@ public interface IAuthService
     Task VerifyOtp(string email, string otp);
     Task LogoutAsync(string refreshToken);
     Task<UserAuthenticationResponse> LoginAsync(string email, string password);
+    Task<UserAuthenticationResponse> BiometricLoginAsync(string email, string password, string deviceId);
     Task<UserAuthenticationResponse> RefreshTokenAsync(string refreshToken);
     Task RequestPasswordResetAsync(ForgotPasswordRequestModel model);
     Task ResetPasswordAsync(ResetPasswordRequestModel model);
