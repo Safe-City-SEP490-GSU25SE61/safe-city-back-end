@@ -1,4 +1,5 @@
 ﻿using BusinessObject.Models;
+using System.Linq.Expressions;
 
 namespace Repository.Interfaces;
 
@@ -11,7 +12,7 @@ public interface IUserRepository
     Task UpdateAsync(Account account);
     Task<Account> GetByRefreshTokenAsync(string refreshToken);
     List<Account> GetAll();
-
+    Task<bool> ExistsAsync(Expression<Func<Account, bool>> predicate);
     Account GetAccountById(Guid id);
     Task<Account?> GetByIdAsync(Guid id);
     Task<Account?> GetProfileByIdAsync(Guid id);

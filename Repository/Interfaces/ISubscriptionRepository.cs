@@ -8,8 +8,12 @@ using System.Threading.Tasks;
 
 namespace Repository.Interfaces
 {
-    public interface ISubcriptionRepository
+    public interface ISubscriptionRepository
     {
+        Task<Subscription?> GetActiveByUserIdAsync(Guid userId);
+        Task AddAsync(Subscription subscription);
         Task<CurrentSubscriptionResponseModel?> GetCurrentSubscriptionAsync(Account user);
+        Task UpdateAsync(Subscription subscription);
     }
+
 }

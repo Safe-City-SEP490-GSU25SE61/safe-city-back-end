@@ -30,6 +30,7 @@ public class JwtService : IJwtService
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Email, user.Email),
+            new Claim("name", user.FullName),
             new Claim("role", user.Role.Name),
             new Claim("typ", "Bearer")
         };

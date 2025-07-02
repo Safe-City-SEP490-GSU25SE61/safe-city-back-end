@@ -22,14 +22,17 @@ namespace Service
         private readonly IIdentityCardRepository _identityCardRepository;
         private readonly IMailService _mailService;
         private readonly IRoleRepository _roleRepository;
+        private readonly ISubscriptionRepository _subscriptionRepository;
         public AccountService(IAccountRepository accountRepository, IUserRepository userRepository, 
-            IMailService mailService, IRoleRepository roleRepository,IIdentityCardRepository identityCardRepository)
+            IMailService mailService, IRoleRepository roleRepository,IIdentityCardRepository identityCardRepository,
+            ISubscriptionRepository subscriptionRepository)
         {
             _accountRepository = accountRepository;
             _userRepository = userRepository;
             _mailService = mailService;
             _identityCardRepository = identityCardRepository;
             _roleRepository = roleRepository;
+            _subscriptionRepository = subscriptionRepository;
         }
         public async Task AddAsync(AddAccountRequestModel userDto)
         {
@@ -122,20 +125,30 @@ namespace Service
         public async Task<AccountResponseModel> DeleteAsync(Guid id)
         {
             var result = await _accountRepository.DeleteAsync(id);
-            return result.ToAccountResponseModel();
+            return result.ToAccountResponseModel(await _subscriptionRepository.GetCurrentSubscriptionAsync(result));
         }
 
         public async Task<IEnumerable<AccountResponseModel>> GetAllAsync()
         {
             var result = await _accountRepository.GetAllAsync();
-            return result.Select(x => x.ToAccountResponseModel());
+            var responseModels = await Task.WhenAll(result.Select(async x =>
+                x.ToAccountResponseModel(await _subscriptionRepository.GetCurrentSubscriptionAsync(x))));
+            return responseModels;
+        }
+
+        public async Task<IEnumerable<AccountResponseModel>> GetAllOfficerAsync()
+        {
+            var result = await _accountRepository.GetAllOfficerAsync();
+            var responseModels = await Task.WhenAll(result.Select(async x =>
+               x.ToAccountResponseModel(await _subscriptionRepository.GetCurrentSubscriptionAsync(x))));
+            return responseModels;
         }
 
         public async Task<AccountResponseModel> GetByIdAsync(Guid id)
         {
             var result = await _accountRepository.GetByIdAsync(id);
             if (result == null) throw new KeyNotFoundException();
-            return result.ToAccountResponseModel();
+            return result.ToAccountResponseModel(await _subscriptionRepository.GetCurrentSubscriptionAsync(result));
         }
 
         public async Task<AccountResponseModel> UpdateAsync(Guid id, UpdateAccountRequestModel requestModel)
@@ -146,7 +159,7 @@ namespace Service
                 throw new InvalidOperationException("Account email must be unique");
             }
             var result = await _accountRepository.UpdateAsync(requestModel.ToAccount(id));
-            return result.ToAccountResponseModel();
+            return result.ToAccountResponseModel(await _subscriptionRepository.GetCurrentSubscriptionAsync(result));
         }
     }
 }

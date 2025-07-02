@@ -11,11 +11,11 @@ using System.Threading.Tasks;
 
 namespace Repository
 {
-    public class SubcriptionRepository : ISubcriptionRepository
+    public class SubscriptionRepository : ISubscriptionRepository
     {
         private readonly AppDbContext _context;
 
-        public SubcriptionRepository(AppDbContext context)
+        public SubscriptionRepository(AppDbContext context)
         {
             _context = context;
         }
@@ -23,7 +23,7 @@ namespace Repository
         public async Task<CurrentSubscriptionResponseModel?> GetCurrentSubscriptionAsync(Account user)
         {
             if (user.Subscriptions == null)
-                return new CurrentSubscriptionResponseModel 
+                return new CurrentSubscriptionResponseModel
                 {
                     PackageName = "No Subcription",
                     RemainingTime = "0d 0h 0m"
@@ -60,6 +60,24 @@ namespace Repository
                 RemainingTime = remainingTime
             };
         }
+
+        public async Task<Subscription?> GetActiveByUserIdAsync(Guid userId)
+        {
+            return await _context.Subscriptions
+                .Include(s => s.Package)
+                .FirstOrDefaultAsync(s => s.UserId == userId && s.IsActive);
+        }
+
+        public async Task AddAsync(Subscription subscription)
+        {
+            await _context.Subscriptions.AddAsync(subscription);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task UpdateAsync(Subscription subscription)
+        {
+            _context.Subscriptions.Update(subscription);
+            await _context.SaveChangesAsync();
+        }
     }
 }
-
