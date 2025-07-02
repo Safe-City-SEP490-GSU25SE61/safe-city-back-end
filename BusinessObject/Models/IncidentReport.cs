@@ -8,29 +8,33 @@ namespace BusinessObject.Models
     public class IncidentReport
     {
         [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        [DatabaseGenerated(DatabaseGeneratedOption.None)]
         [Column("id")]
-        public int Id { get; set; }
+        public Guid Id { get; set; } = Guid.NewGuid();
 
         [Column("user_id")]
         public Guid UserId { get; set; }
 
         [Column("district_id")]
-        public int DistrictId { get; set; }
+        public int? DistrictId { get; set; }
 
         [Column("ward_id")]
-        public int WardId { get; set; }
+        public int? WardId { get; set; }
 
         [Column("type")]
         public string Type { get; set; }  
+
         [Column("description")]
         public string Description { get; set; }
 
+        [Column("address")]
+        public string Address { get; set; }
+
         [Column("lat")]
-        public decimal Lat { get; set; }
+        public decimal? Lat { get; set; }
 
         [Column("lng")]
-        public decimal Lng { get; set; }
+        public decimal? Lng { get; set; }
 
         [Column("is_anonymous")]
         public bool IsAnonymous { get; set; }
@@ -43,6 +47,9 @@ namespace BusinessObject.Models
 
         [Column("verified_by")]
         public Guid? VerifiedBy { get; set; }
+
+        [Column("image_urls")]
+        public string? ImageUrls { get; set; } 
 
 
         public Account User { get; set; }

@@ -13,7 +13,7 @@ namespace BusinessObject.Models
         public int Id { get; set; }
 
         [Column("report_id")]
-        public int ReportId { get; set; }
+        public Guid ReportId { get; set; }
 
         [Column("officer_id")]
         public Guid OfficerId { get; set; }
