@@ -30,12 +30,16 @@ namespace Service
             List<string> uploadedImageUrls = new();
             if (model.Images != null && model.Images.Any())
             {
+                if (model.Images.Count > 3)
+                    throw new InvalidOperationException("Chỉ được phép tải lên tối đa 3 hình ảnh.");
+
                 foreach (var image in model.Images)
                 {
                     var url = await _storageService.UploadFileAsync(image, "incident-report");
                     uploadedImageUrls.Add(url);
                 }
             }
+
 
             var report = new IncidentReport
             {

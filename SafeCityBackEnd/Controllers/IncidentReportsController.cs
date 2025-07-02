@@ -28,11 +28,22 @@ namespace SafeCityBackEnd.Controllers
             if (!ModelState.IsValid)
                 return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.BadRequest, "Invalid report data", null);
 
-            var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-            var createdReport = await _reportService.CreateAsync(model, userId);
-
-            return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.Created, "Report created successfully", createdReport);
+            try
+            {
+                var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+                var createdReport = await _reportService.CreateAsync(model, userId);
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.Created, "Report created successfully", createdReport);
+            }
+            catch (InvalidOperationException ex)
+            {   
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.BadRequest, ex.Message, null);
+            }
+            catch (Exception ex)
+            {
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.InternalServerError, "Lỗi hệ thống", null);
+            }
         }
+
 
 
 
