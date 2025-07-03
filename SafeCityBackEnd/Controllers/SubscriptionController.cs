@@ -69,7 +69,7 @@ namespace SafeCityBackEnd.Controllers
                 await _paymentService.ConfirmWebhookAsync(webhookUrl);
                 return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Confirmed.", null);
             }
-            catch (System.Exception exception)
+            catch (Exception exception)
             {
                 Console.WriteLine(exception);
                 return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.InternalServerError, "Failed.", null);
@@ -94,6 +94,26 @@ namespace SafeCityBackEnd.Controllers
             {
                 Console.WriteLine("Transaction error: " + ex.Message);
                 return StatusCode(500, CustomErrorHandler.SimpleError(ex.Message, 500));
+            }
+        }
+
+        [HttpGet("history")]
+        [Authorize]
+        public async Task<IActionResult> GetPaymentHistory()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+                return CustomErrorHandler.SimpleError("User ID claim not found.", 401);
+
+            var userId = Guid.Parse(userIdClaim.Value);
+            try
+            {
+                var result = await _paymentService.GetUserPaymentHistoryAsync(userId);
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Fetched payment history.", result);
+            }
+            catch (Exception exception)
+            {
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.InternalServerError, "Failed fetch payment history.", exception.Message);
             }
         }
 

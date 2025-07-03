@@ -34,5 +34,15 @@ namespace Repository
             _context.Set<Payment>().Update(payment);
             await _context.SaveChangesAsync();
         }
+
+        public async Task<IEnumerable<Payment>> GetByUserIdAsync(Guid userId)
+        {
+            return await _context.Payments
+                .Include(p => p.Subscription)
+                    .ThenInclude(s => s.Package)
+                .Where(p => p.UserId == userId)
+                .OrderByDescending(p => p.PaidAt)
+                .ToListAsync();
+        }
     }
 }
