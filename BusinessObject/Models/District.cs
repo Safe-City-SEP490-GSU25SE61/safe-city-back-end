@@ -39,5 +39,7 @@ namespace BusinessObject.Models
 
         public ICollection<Account> Accounts { get; set; }
         public ICollection<Ward> Wards { get; set; }
+        public ICollection<IncidentReport> IncidentReports { get; set; }
+
     }
 }
