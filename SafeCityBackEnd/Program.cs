@@ -47,6 +47,10 @@ builder.Services.AddScoped<IPackageService, PackageService>();
 builder.Services.AddScoped<IPackageRepository, PackageRepository>();
 builder.Services.AddScoped<IAssignOfficerHistoryRepository, AssignOfficerHistoryRepository>();
 builder.Services.AddScoped<IPackageChangeHistoryRepository, PackageChangeHistoryRepository>();
+builder.Services.AddScoped<IIncidentReportService, IncidentReportService>();
+builder.Services.AddScoped<IIncidentReportRepository, IncidentReportRepository>();
+builder.Services.AddScoped<INoteRepository, NoteRepository>();
+
 
 
 builder.Services.AddScoped<IScanningCardService, ScanningCardService>();
