@@ -16,15 +16,12 @@ namespace BusinessObject.Models
         [Column("name")]
         public string Name { get; set; }
 
-        [Display(Name = "Mô tả")]
         [Column("description")]
         public string Description { get; set; }
 
-        [Display(Name = "Giá")]
         [Column("price")]
         public decimal Price { get; set; }
 
-        [Display(Name = "Số ngày sử dụng")]
         [Column("duration_days")]
         public int DurationDays { get; set; }
 

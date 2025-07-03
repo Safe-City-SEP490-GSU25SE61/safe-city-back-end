@@ -79,9 +79,5 @@ namespace BusinessObject.Models
         public CitizenIdentityCard? CitizenIdentityCard { get; set; }
         public ICollection<Subscription>? Subscriptions { get; set; }
         public ICollection<Payment>? Payments { get; set; }
-        public ICollection<IncidentReport> IncidentReports { get; set; }
-        public ICollection<IncidentReport> VerifiedIncidentReports { get; set; }
-        public ICollection<Note> Notes { get; set; }
-
     }
 }

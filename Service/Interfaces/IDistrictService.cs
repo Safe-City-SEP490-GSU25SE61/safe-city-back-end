@@ -19,7 +19,6 @@ namespace Service.Interfaces
         Task<IEnumerable<DistrictDTO>> SearchAsync(string? name, int? totalReportedIncidents, int? dangerLevel);
         Task<bool> AssignDistrictToOfficerAsync(Guid accountId, int districtId);
         Task<IEnumerable<GroupedAssignOfficerChangeDTO>> GetHistoryByAccountIdAsync(Guid accountId);
-        Task<bool> UnassignDistrictFromOfficerAsync(Guid accountId);
 
 
     }

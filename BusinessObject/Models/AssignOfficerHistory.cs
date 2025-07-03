@@ -19,7 +19,7 @@ namespace BusinessObject.Models
         public int? OldDistrictId { get; set; }
 
         [Column("new_district_id")]
-        public int? NewDistrictId { get; set; }
+        public int NewDistrictId { get; set; }
 
         [Column("changed_at")]
         public DateTime ChangedAt { get; set; }
