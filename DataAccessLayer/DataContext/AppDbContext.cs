@@ -28,8 +28,6 @@ namespace DataAccessLayer.DataContext
         public DbSet<PayosTransaction> PayosTransactions { get; set; }
         public DbSet<PackageChangeHistory> PackageChanges { get; set; }
         public DbSet<AssignOfficerHistory> AssignOffers { get; set; }
-        public DbSet<IncidentReport> IncidentReports { get; set; }
-        public DbSet<Note> Notes { get; set; }
 
 
         private static string? GetConnectionString()
@@ -118,48 +116,6 @@ namespace DataAccessLayer.DataContext
             modelBuilder.Entity<PayosTransaction>()
                 .Property(p => p.UpdatedAt)
                 .HasDefaultValueSql("NOW()");
-
-           
-            modelBuilder.Entity<IncidentReport>()
-                .HasOne(ir => ir.User)
-                .WithMany(a => a.IncidentReports)
-                .HasForeignKey(ir => ir.UserId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            
-            modelBuilder.Entity<IncidentReport>()
-                .HasOne(ir => ir.Verifier)
-                .WithMany(a => a.VerifiedIncidentReports)
-                .HasForeignKey(ir => ir.VerifiedBy)
-                .OnDelete(DeleteBehavior.SetNull);
-
-            
-            modelBuilder.Entity<IncidentReport>()
-                .HasOne(ir => ir.District)
-                .WithMany(d => d.IncidentReports)
-                .HasForeignKey(ir => ir.DistrictId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            
-            modelBuilder.Entity<IncidentReport>()
-                .HasOne(ir => ir.Ward)
-                .WithMany(w => w.IncidentReports)
-                .HasForeignKey(ir => ir.WardId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-
-            modelBuilder.Entity<Note>()
-                .HasOne(n => n.Report)
-                .WithMany(r => r.Notes)
-                .HasForeignKey(n => n.ReportId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-
-            modelBuilder.Entity<Note>()
-                .HasOne(n => n.Officer)
-                .WithMany(a => a.Notes)
-                .HasForeignKey(n => n.OfficerId)
-                .OnDelete(DeleteBehavior.Restrict);
 
 
             base.OnModelCreating(modelBuilder);

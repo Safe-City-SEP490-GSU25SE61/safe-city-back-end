@@ -10,7 +10,7 @@ namespace BusinessObject.DTOs.ResponseModels
     {
         public Guid AccountId { get; set; }
         public int? OldDistrictId { get; set; }
-        public int? NewDistrictId { get; set; }
+        public int NewDistrictId { get; set; }
         public DateTime ChangedAt { get; set; }
     }
 }

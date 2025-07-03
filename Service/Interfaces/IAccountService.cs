@@ -17,7 +17,5 @@ namespace Service.Interfaces
         Task AddAsync(AddAccountRequestModel requestModel);
         Task<AccountResponseModel> UpdateAsync(Guid id, UpdateAccountRequestModel requestModel);
         Task<AccountResponseModel> DeleteAsync(Guid id);
-        Task<AccountResponseModel> UpdateStatusAsync(Guid id, UpdateAccountStatusRequestModel requestModel);
-
     }
 }

@@ -183,7 +183,7 @@ namespace DataAccessLayer.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("changed_at");
 
-                    b.Property<int?>("NewDistrictId")
+                    b.Property<int>("NewDistrictId")
                         .HasColumnType("integer")
                         .HasColumnName("new_district_id");
 
@@ -308,116 +308,6 @@ namespace DataAccessLayer.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("district");
-                });
-
-            modelBuilder.Entity("BusinessObject.Models.IncidentReport", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<string>("Address")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("address");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("description");
-
-                    b.Property<int?>("DistrictId")
-                        .HasColumnType("integer")
-                        .HasColumnName("district_id");
-
-                    b.Property<string>("ImageUrls")
-                        .HasColumnType("text")
-                        .HasColumnName("image_urls");
-
-                    b.Property<bool>("IsAnonymous")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_anonymous");
-
-                    b.Property<decimal?>("Lat")
-                        .HasColumnType("numeric")
-                        .HasColumnName("lat");
-
-                    b.Property<decimal?>("Lng")
-                        .HasColumnType("numeric")
-                        .HasColumnName("lng");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("status");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("type");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("user_id");
-
-                    b.Property<Guid?>("VerifiedBy")
-                        .HasColumnType("uuid")
-                        .HasColumnName("verified_by");
-
-                    b.Property<int?>("WardId")
-                        .HasColumnType("integer")
-                        .HasColumnName("ward_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DistrictId");
-
-                    b.HasIndex("UserId");
-
-                    b.HasIndex("VerifiedBy");
-
-                    b.HasIndex("WardId");
-
-                    b.ToTable("incident_report");
-                });
-
-            modelBuilder.Entity("BusinessObject.Models.Note", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("content");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<Guid>("OfficerId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("officer_id");
-
-                    b.Property<Guid>("ReportId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("report_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("OfficerId");
-
-                    b.HasIndex("ReportId");
-
-                    b.ToTable("note");
                 });
 
             modelBuilder.Entity("BusinessObject.Models.Package", b =>
@@ -801,57 +691,6 @@ namespace DataAccessLayer.Migrations
                     b.Navigation("Account");
                 });
 
-            modelBuilder.Entity("BusinessObject.Models.IncidentReport", b =>
-                {
-                    b.HasOne("BusinessObject.Models.District", "District")
-                        .WithMany("IncidentReports")
-                        .HasForeignKey("DistrictId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("BusinessObject.Models.Account", "User")
-                        .WithMany("IncidentReports")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("BusinessObject.Models.Account", "Verifier")
-                        .WithMany("VerifiedIncidentReports")
-                        .HasForeignKey("VerifiedBy")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("BusinessObject.Models.Ward", "Ward")
-                        .WithMany("IncidentReports")
-                        .HasForeignKey("WardId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("District");
-
-                    b.Navigation("User");
-
-                    b.Navigation("Verifier");
-
-                    b.Navigation("Ward");
-                });
-
-            modelBuilder.Entity("BusinessObject.Models.Note", b =>
-                {
-                    b.HasOne("BusinessObject.Models.Account", "Officer")
-                        .WithMany("Notes")
-                        .HasForeignKey("OfficerId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("BusinessObject.Models.IncidentReport", "Report")
-                        .WithMany("Notes")
-                        .HasForeignKey("ReportId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Officer");
-
-                    b.Navigation("Report");
-                });
-
             modelBuilder.Entity("BusinessObject.Models.Payment", b =>
                 {
                     b.HasOne("BusinessObject.Models.Subscription", "Subscription")
@@ -916,15 +755,9 @@ namespace DataAccessLayer.Migrations
                 {
                     b.Navigation("CitizenIdentityCard");
 
-                    b.Navigation("IncidentReports");
-
-                    b.Navigation("Notes");
-
                     b.Navigation("Payments");
 
                     b.Navigation("Subscriptions");
-
-                    b.Navigation("VerifiedIncidentReports");
                 });
 
             modelBuilder.Entity("BusinessObject.Models.Achievement", b =>
@@ -936,14 +769,7 @@ namespace DataAccessLayer.Migrations
                 {
                     b.Navigation("Accounts");
 
-                    b.Navigation("IncidentReports");
-
                     b.Navigation("Wards");
-                });
-
-            modelBuilder.Entity("BusinessObject.Models.IncidentReport", b =>
-                {
-                    b.Navigation("Notes");
                 });
 
             modelBuilder.Entity("BusinessObject.Models.Package", b =>
@@ -965,11 +791,6 @@ namespace DataAccessLayer.Migrations
             modelBuilder.Entity("BusinessObject.Models.Subscription", b =>
                 {
                     b.Navigation("Payment");
-                });
-
-            modelBuilder.Entity("BusinessObject.Models.Ward", b =>
-                {
-                    b.Navigation("IncidentReports");
                 });
 #pragma warning restore 612, 618
         }
