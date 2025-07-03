@@ -1,6 +1,7 @@
 ﻿using BusinessObject.DTOs.RequestModels;
 using BusinessObject.DTOs.ResponseModels;
 using BusinessObject.Models;
+using Microsoft.Extensions.Configuration;
 using Repository.Interfaces;
 using Service.Interfaces;
 using System;
@@ -17,12 +18,19 @@ namespace Service
         private readonly IIncidentReportRepository _reportRepo;
         private readonly INoteRepository _noteRepo;
         private readonly IFirebaseStorageService _storageService;
+        private readonly IAccountRepository _accountRepo;
+        private readonly IAchievementRepository _achievementRepo;
+        private readonly IConfiguration _configuration;
 
-        public IncidentReportService(IIncidentReportRepository reportRepo, INoteRepository noteRepo, IFirebaseStorageService storageService)
+
+        public IncidentReportService(IIncidentReportRepository reportRepo, INoteRepository noteRepo, IFirebaseStorageService storageService, IAccountRepository accountRepo, IAchievementRepository achievementRepo, IConfiguration configuration)
         {
             _reportRepo = reportRepo;
             _noteRepo = noteRepo;
             _storageService = storageService;
+            _accountRepo = accountRepo;
+            _achievementRepo = achievementRepo;
+            _configuration = configuration;
         }
 
         public async Task<ReportResponseModel> CreateAsync(CreateReportRequestModel model, Guid userId)
@@ -77,10 +85,47 @@ namespace Service
 
         public async Task<ReportResponseModel> UpdateStatusAsync(Guid id, UpdateReportStatusRequestModel model, Guid officerId)
         {
+            var report = await _reportRepo.GetByIdAsync(id);
+            if (report == null) throw new KeyNotFoundException("Report not found");
+       
+            var allowedStatuses = new[] { "verified", "rejected" };
+            if (!allowedStatuses.Contains(model.Status.ToLower()))
+                throw new InvalidOperationException("Invalid status. Only 'verified' or 'rejected' are allowed.");
+       
+            if (report.Status != "pending")
+                throw new InvalidOperationException("Status can only be changed if current status is 'pending'.");
+ 
             await _reportRepo.UpdateStatusAsync(id, model.Status, officerId);
+
+            
+            if (model.Status == "verified")
+            {
+                var account = await _accountRepo.GetByIdAsync(report.UserId);
+                if (account != null)
+                {
+                    int rewardPoint = _configuration.GetValue<int>("Reward:VerifiedReportPoint", 10);
+                    account.TotalPoint += rewardPoint;
+
+                    var allAchievements = await _achievementRepo.GetAllAsync();
+                    var matched = allAchievements
+                        .Where(a => a.MinPoint <= account.TotalPoint)
+                        .OrderByDescending(a => a.MinPoint)
+                        .FirstOrDefault();
+
+                    if (matched != null && account.AchievementId != matched.Id)
+                    {
+                        account.AchievementId = matched.Id;
+                    }
+
+                    await _accountRepo.UpdateOfficerAsync(account);
+                }
+            }
+
             var updated = await _reportRepo.GetByIdAsync(id);
-            return ToResponseModel(updated);
+            return ToResponseModel(updated!);
         }
+
+
 
         public async Task<ReportResponseModel> AddNoteAsync(Guid id, AddInternalNoteRequestModel model, Guid officerId)
         {
