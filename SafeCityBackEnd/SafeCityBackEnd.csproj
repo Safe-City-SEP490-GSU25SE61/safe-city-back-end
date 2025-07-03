@@ -30,4 +30,10 @@
     <Folder Include="appsettings\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include=".well-known\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

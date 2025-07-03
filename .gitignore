@@ -58,3 +58,6 @@ project.assets.json
 *.swo
 *.DS_Store
 Thumbs.db
+
+# Ignore assetlinks.json but allow it for build
+.well-known/assetlinks.json
