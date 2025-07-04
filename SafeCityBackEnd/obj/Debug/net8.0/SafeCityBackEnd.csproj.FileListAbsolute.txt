@@ -298,3 +298,4 @@ C:\SafeCity\SafeCityBackEnd\obj\Debug\net8.0\refint\SafeCityBackEnd.dll
 C:\SafeCity\SafeCityBackEnd\obj\Debug\net8.0\SafeCityBackEnd.pdb
 C:\SafeCity\SafeCityBackEnd\obj\Debug\net8.0\SafeCityBackEnd.genruntimeconfig.cache
 C:\SafeCity\SafeCityBackEnd\obj\Debug\net8.0\ref\SafeCityBackEnd.dll
+C:\SafeCity\SafeCityBackEnd\obj\Debug\net8.0\SafeCityBackEnd.MvcApplicationPartsAssemblyInfo.cs

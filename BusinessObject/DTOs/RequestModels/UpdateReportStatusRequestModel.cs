@@ -10,7 +10,7 @@ namespace BusinessObject.DTOs.RequestModels
     public class UpdateReportStatusRequestModel
     {
         [Required]
-        [RegularExpression("^(pending|verified|rejected)$", ErrorMessage = "Status must be pending, verified or rejected.")]
+        [RegularExpression("^(verified|rejected)$", ErrorMessage = "Status must be verified or rejected.")]
         public string Status { get; set; }
 
     }
