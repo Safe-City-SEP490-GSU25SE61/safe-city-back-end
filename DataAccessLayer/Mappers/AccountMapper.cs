@@ -34,6 +34,25 @@ namespace DataAccessLayer.Mappers
             };
         }
 
+        public static OfficerResponseModel ToOfficerResponseModel(this Account model, CurrentSubscriptionResponseModel? subscription)
+        {
+            return new OfficerResponseModel
+            {
+                DateOfBirth = model.DateOfBirth,
+                Email = model.Email,
+                FullName = model.FullName,
+                Gender = model.Gender,
+                Phone = model.Phone,
+                DistrictName = model.District != null ? model.District.Name : "N/A",
+                Id = model.Id,
+                ImageUrl = model.ImageUrl,
+                RoleName = model.Role.Name,
+                Status = model.Status,
+                TotalPoint = model.TotalPoint,
+                Address = model.CitizenIdentityCard != null ? model.CitizenIdentityCard.Address : "N/A",
+            };
+        }
+
         //public static Account ToAccount(this AddAccountRequestModel requestModel)
         //{
         //    return new Account
