@@ -33,4 +33,5 @@ RUN dotnet publish --no-restore -c $BUILD_CONFIGURATION -o /app/publish /p:UseAp
 FROM base AS final
 WORKDIR /app
 COPY --from=build /app/publish .
+COPY SafeCityBackEnd/app/.well-known /app/.well-known
 ENTRYPOINT ["dotnet", "SafeCityBackEnd.dll"]

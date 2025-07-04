@@ -27,7 +27,22 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="appsettings\" />
+    <Content Include=".well-known\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="appsettings\**" />
+    <Content Remove="appsettings\**" />
+    <EmbeddedResource Remove="appsettings\**" />
+    <None Remove="appsettings\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="appsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

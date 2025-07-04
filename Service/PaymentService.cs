@@ -23,6 +23,7 @@ namespace Service
         private readonly IPayosTransactionRepository _payosTransactionRepo;
         private readonly ISubscriptionRepository _subscriptionRepo;
         private readonly IPackageRepository _packageRepo;
+        private readonly IConfiguration _configuration;
         public PaymentService(
             IConfiguration configuration,
             IPaymentRepository paymentRepo,
@@ -43,6 +44,7 @@ namespace Service
             _payosTransactionRepo = payosTransactionRepo;
             _subscriptionRepo = subscriptionRepo;
             _packageRepo = packageRepo;
+            _configuration = configuration;
         }
 
         public async Task<CreatePaymentResult> CreatePaymentAsync(Guid userId, int packageId, string returnUrl, string cancelUrl)
@@ -105,6 +107,8 @@ namespace Service
 
         public async Task HandleWebhookAsync(WebhookType webhookBody)
         {
+            //string checksumKey = _configuration["Environment:PAYOS_CHECKSUM_KEY"]
+            //        ?? throw new Exception("Missing PAYOS_CHECKSUM_KEY");
             string checksumKey = "2ea763b4ccb883a3247711b3d5e977ffb4d454b94986ec664840a0160f524031";
             string receivedSignature = webhookBody.signature;
             string rawData = BuildSignatureDataString(webhookBody.data);
@@ -190,5 +194,27 @@ namespace Service
         {
             await _payOS.confirmWebhook(webhookUrl);
         }
+
+        public async Task<IEnumerable<PaymentHistoryResponseModel>> GetUserPaymentHistoryAsync(Guid userId)
+        {
+            var payments = await _paymentRepo.GetByUserIdAsync(userId);
+
+            var vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+
+            return payments.Select(payment => new PaymentHistoryResponseModel
+            {
+                OrderCode = payment.TransactionCode,
+                Amount = payment.Amount,
+                Quantity = 1,
+                PaymentMethod = payment.PaymentMethod,
+                Status = payment.Status,
+                PaidAt = payment.PaidAt.HasValue
+                    ? TimeZoneInfo.ConvertTimeFromUtc(payment.PaidAt.Value, vietnamTimeZone).ToString("yyyy-MM-dd HH:mm:ss")
+                    : "Pending",
+                PackageName = payment.Subscription?.Package?.Name ?? "N/A"
+            });
+        }
+
+
     }
 }
