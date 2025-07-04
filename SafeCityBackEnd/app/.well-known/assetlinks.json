@@ -1,0 +1,12 @@
+[
+  {
+    "relation": [ "delegate_permission/common.handle_all_urls" ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.SEP490.safe_city_mobile",
+      "sha256_cert_fingerprints": [
+        "C7:B7:7D:27:95:3C:30:7F:69:80:F0:59:9B:43:6C:A8:25:AE:31:70:AE:7E:83:78:84:40:B9:5E:15:67:BF:D2"
+      ]
+    }
+  }
+]
