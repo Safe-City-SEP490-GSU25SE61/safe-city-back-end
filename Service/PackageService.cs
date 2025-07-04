@@ -6,6 +6,7 @@ using Repository.Interfaces;
 using Service.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -180,6 +181,7 @@ namespace Service
                     Changes = current.Select(c => new PackageChangeDetailDTO
                     {
                         FieldName = c.FieldName,
+                        FieldDisplayName = GetDisplayNameFromField<Package>(c.FieldName),
                         OldValue = c.OldValue,
                         NewValue = c.NewValue
                     }).ToList()
@@ -187,6 +189,14 @@ namespace Service
             }
 
             return result.OrderByDescending(r => r.ChangedAt);
+        }
+        private string GetDisplayNameFromField<T>(string fieldName)
+        {
+            var prop = typeof(T).GetProperty(fieldName);
+            var displayAttr = prop?.GetCustomAttributes(typeof(DisplayAttribute), true)
+                                  .FirstOrDefault() as DisplayAttribute;
+
+            return displayAttr?.Name ?? fieldName;
         }
 
 

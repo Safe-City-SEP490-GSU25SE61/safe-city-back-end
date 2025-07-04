@@ -161,5 +161,24 @@ namespace Service
             var result = await _accountRepository.UpdateAsync(requestModel.ToAccount(id));
             return result.ToAccountResponseModel(await _subscriptionRepository.GetCurrentSubscriptionAsync(result));
         }
+        public async Task<AccountResponseModel> UpdateStatusAsync(Guid id, UpdateAccountStatusRequestModel requestModel)
+        {
+            var allowedStatuses = new[] { "active", "inactive" };
+            if (!allowedStatuses.Contains(requestModel.Status.ToLower()))
+            {
+                throw new ArgumentException("Invalid status. Must be 'active' or 'inactive'.");
+            }
+
+            var account = await _accountRepository.GetByIdAsync(id);
+            if (account == null)
+                throw new KeyNotFoundException("Account not found.");
+
+            account.Status = requestModel.Status.ToLower();
+            var updated = await _accountRepository.UpdateOfficerAsync(account);
+            var subscription = await _subscriptionRepository.GetCurrentSubscriptionAsync(updated);
+            return updated.ToAccountResponseModel(subscription);
+
+        }
+
     }
 }

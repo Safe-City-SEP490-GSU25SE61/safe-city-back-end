@@ -15,6 +15,7 @@ using SafeCityBackEnd.Helpers;
 using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.Builder.Extensions;
 using FirebaseAdmin;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -47,6 +48,10 @@ builder.Services.AddScoped<IPackageService, PackageService>();
 builder.Services.AddScoped<IPackageRepository, PackageRepository>();
 builder.Services.AddScoped<IAssignOfficerHistoryRepository, AssignOfficerHistoryRepository>();
 builder.Services.AddScoped<IPackageChangeHistoryRepository, PackageChangeHistoryRepository>();
+builder.Services.AddScoped<IIncidentReportService, IncidentReportService>();
+builder.Services.AddScoped<IIncidentReportRepository, IncidentReportRepository>();
+builder.Services.AddScoped<INoteRepository, NoteRepository>();
+
 
 
 builder.Services.AddScoped<IScanningCardService, ScanningCardService>();
@@ -163,10 +168,16 @@ if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
 }
 
 app.UseHttpsRedirection();
-
+app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(Directory.GetCurrentDirectory(), "app/.well-known")),
+    RequestPath = "/.well-known"
+});
 
 app.MapControllers();
 

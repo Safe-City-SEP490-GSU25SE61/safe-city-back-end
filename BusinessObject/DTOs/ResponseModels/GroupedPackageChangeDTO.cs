@@ -17,6 +17,7 @@ namespace BusinessObject.DTOs.ResponseModels
     public class PackageChangeDetailDTO
     {
         public string FieldName { get; set; }
+        public string FieldDisplayName { get; set; }
         public string OldValue { get; set; }
         public string NewValue { get; set; }
     }

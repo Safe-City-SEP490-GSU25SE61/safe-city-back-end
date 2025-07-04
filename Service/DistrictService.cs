@@ -192,6 +192,11 @@ namespace Service
         public async Task<IEnumerable<GroupedAssignOfficerChangeDTO>> GetHistoryByAccountIdAsync(Guid accountId)
         {
             var history = await _assignOfficerHistoryRepository.GetByAccountIdAsync(accountId);
+            var allDistricts = await _districtRepository.GetAllAsync();
+
+            string GetDistrictName(int? id) =>
+            id == null ? "Chưa được phân công" : allDistricts.FirstOrDefault(d => d.Id == id)?.Name ?? "Không xác định";
+
 
             return history
                 .GroupBy(h => h.ChangedAt)
@@ -200,13 +205,38 @@ namespace Service
                     ChangedAt = g.Key,
                     Changes = g.Select(h => new AssignOfficerChangeDTO
                     {
-                        OldDistrictId = h.OldDistrictId,
-                        NewDistrictId = h.NewDistrictId
+                        OldDistrictName = GetDistrictName(h.OldDistrictId),
+                        NewDistrictName = GetDistrictName(h.NewDistrictId)
                     }).ToList()
                 })
                 .OrderByDescending(x => x.ChangedAt)
                 .ToList();
         }
+
+        public async Task<bool> UnassignDistrictFromOfficerAsync(Guid accountId)
+        {
+            var account = await _accountRepository.GetByIdAsync(accountId);
+            if (account == null || account.RoleId != 3)
+                throw new InvalidOperationException("Tài khoản không tồn tại hoặc không phải là officer.");
+
+            if (account.DistrictId == null)
+                return false;
+
+            var log = new AssignOfficerHistory
+            {
+                AccountId = account.Id,
+                OldDistrictId = account.DistrictId,
+                NewDistrictId = null, 
+                ChangedAt = DateTime.UtcNow
+            };
+
+            account.DistrictId = null;
+            await _accountRepository.UpdateOfficerAsync(account);
+            await _assignOfficerHistoryRepository.CreateAsync(log);
+
+            return true;
+        }
+
 
     }
 }
