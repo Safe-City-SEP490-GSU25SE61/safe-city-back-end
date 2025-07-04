@@ -175,7 +175,7 @@ app.UseAuthorization();
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(
-        Path.Combine(Directory.GetCurrentDirectory(), ".well-known")),
+        Path.Combine(Directory.GetCurrentDirectory(), "app/.well-known")),
     RequestPath = "/.well-known"
 });
 

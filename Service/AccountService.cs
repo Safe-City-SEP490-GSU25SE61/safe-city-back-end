@@ -136,11 +136,11 @@ namespace Service
             return responseModels;
         }
 
-        public async Task<IEnumerable<AccountResponseModel>> GetAllOfficerAsync()
+        public async Task<IEnumerable<OfficerResponseModel>> GetAllOfficerAsync()
         {
             var result = await _accountRepository.GetAllOfficerAsync();
             var responseModels = await Task.WhenAll(result.Select(async x =>
-               x.ToAccountResponseModel(await _subscriptionRepository.GetCurrentSubscriptionAsync(x))));
+               x.ToOfficerResponseModel(await _subscriptionRepository.GetCurrentSubscriptionAsync(x))));
             return responseModels;
         }
 

@@ -62,8 +62,7 @@ namespace Repository.Repositories
             return await _context.Accounts
                 .Include(x => x.Role)
                 .Include(x => x.CitizenIdentityCard)
-                .Include(a => a.Subscriptions).ThenInclude(s => s.Package)
-                .Include(x => x.Achievement)
+                .Include(x => x.District)
                 .Where(x => x.Role.Name == "Officer")
                 .ToListAsync();
         }
