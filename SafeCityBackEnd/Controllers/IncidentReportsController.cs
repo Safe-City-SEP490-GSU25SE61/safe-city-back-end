@@ -150,6 +150,21 @@ namespace SafeCityBackEnd.Controllers
                 return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.BadRequest, ex.Message, null);
             }
         }
+        [HttpGet("citizen/filter")]
+        [Authorize]
+        public async Task<IActionResult> GetFilteredReportsByCitizen([FromQuery] string? range, [FromQuery] string? status)
+        {
+            try
+            {
+                var citizenId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+                var reports = await _reportService.GetFilteredReportsByCitizenAsync(citizenId, range, status);
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Filtered reports by citizen", reports);
+            }
+            catch (ArgumentException ex)
+            {
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.BadRequest, ex.Message, null);
+            }
+        }
 
 
 

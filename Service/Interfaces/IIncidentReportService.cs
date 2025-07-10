@@ -17,7 +17,7 @@ namespace Service.Interfaces
         Task<ReportResponseModel> AddNoteAsync(Guid id, AddInternalNoteRequestModel model, Guid officerId);
         Task<ReportResponseModel> CancelAsync(Guid reportId, Guid userId);
         Task<IEnumerable<ReportResponseModel>> GetReportsByOfficerDistrictAsync(Guid officerId);
-        Task<IEnumerable<ReportResponseModel>> GetFilteredReportsByOfficerAsync(Guid officerId, string range, string status);
-
+        Task<IEnumerable<ReportResponseModel>> GetFilteredReportsByOfficerAsync(Guid officerId, string? range, string? status);
+        Task<IEnumerable<ReportResponseModel>> GetFilteredReportsByCitizenAsync(Guid citizenId, string? range, string? status);
     }
 }

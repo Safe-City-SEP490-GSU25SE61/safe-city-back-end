@@ -31,7 +31,8 @@ namespace Service
         private static IDistrictRepository _districtRepo;
         private readonly IMediator _mediator;
         private static readonly string[] ValidRanges = { "day", "week", "month", "year" };
-        private static readonly string[] ValidStatuses = { "pending", "verified", "rejected" };
+        private static readonly string[] ValidStatuses = { "pending", "verified", "rejected", "malicious" };
+        private static readonly string[] ValidCitizenStatuses = { "pending", "verified", "rejected", "malicious", "cancelled" };
 
 
         public IncidentReportService(IIncidentReportRepository reportRepo, INoteRepository noteRepo, IFirebaseStorageService storageService, IAccountRepository accountRepo, IAchievementRepository achievementRepo, IConfiguration configuration, IDistrictRepository districtRepo, IMediator mediator)
@@ -286,6 +287,39 @@ namespace Service
 
                 reports = reports.Where(r => r.Status.Equals(status, StringComparison.OrdinalIgnoreCase));
             }
+
+            if (!string.IsNullOrEmpty(range))
+            {
+                if (!ValidRanges.Contains(range.ToLower()))
+                    throw new ArgumentException($"Giá trị 'range' không hợp lệ. Hợp lệ: {string.Join(", ", ValidRanges)}");
+
+                DateTime fromDate = range.ToLower() switch
+                {
+                    "day" => DateTime.UtcNow.AddDays(-1),
+                    "week" => DateTime.UtcNow.AddDays(-7),
+                    "month" => DateTime.UtcNow.AddMonths(-1),
+                    "year" => DateTime.UtcNow.AddYears(-1),
+                    _ => DateTime.MinValue
+                };
+
+                reports = reports.Where(r => r.CreatedAt >= fromDate);
+            }
+
+            return reports.Select(ToResponseModel);
+        }
+        public async Task<IEnumerable<ReportResponseModel>> GetFilteredReportsByCitizenAsync(Guid citizenId, string? range, string? status)
+        {
+            var reports = (await _reportRepo.GetAllAsync())
+                .Where(r => r.UserId == citizenId);
+
+            if (!string.IsNullOrEmpty(status))
+            {
+                if (!ValidCitizenStatuses.Contains(status.ToLower()))
+                    throw new ArgumentException($"Giá trị 'status' không hợp lệ. Hợp lệ: {string.Join(", ", ValidCitizenStatuses)}");
+
+                reports = reports.Where(r => r.Status.Equals(status, StringComparison.OrdinalIgnoreCase));
+            }
+
 
             if (!string.IsNullOrEmpty(range))
             {
