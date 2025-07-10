@@ -23,5 +23,7 @@ namespace BusinessObject.DTOs.ResponseModels
         public string WardName { get; set; }
         public List<string> Notes { get; set; }
         public List<string> ImageUrls { get; set; }
+        public string? VideoUrl { get; set; }
+
     }
 }

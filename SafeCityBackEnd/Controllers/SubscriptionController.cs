@@ -116,6 +116,21 @@ namespace SafeCityBackEnd.Controllers
                 return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.InternalServerError, "Failed fetch payment history.", exception.Message);
             }
         }
+        [HttpGet("admin/history")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetAllPaymentHistory()
+        {
+            try
+            {
+                var result = await _paymentService.GetAllPaymentHistoryForAdminAsync();
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Fetched admin payment history", result);
+            }
+            catch (Exception ex)
+            {
+                return CustomErrorHandler.SimpleError("Internal server error: " + ex.Message, 500);
+            }
+        }
+
 
     }
 }

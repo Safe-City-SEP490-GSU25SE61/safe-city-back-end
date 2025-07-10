@@ -13,6 +13,8 @@ namespace Repository.Interfaces
         Task<IEnumerable<IncidentReport>> GetAllAsync();
         Task CreateAsync(IncidentReport report);
         Task UpdateStatusAsync(Guid id, string status, Guid officerId);
+        Task UpdateStatusByUserAsync(Guid reportId, string status);
+
     }
 
 }

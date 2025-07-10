@@ -161,6 +161,10 @@ namespace DataAccessLayer.DataContext
                 .HasForeignKey(n => n.OfficerId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<Account>()
+                .Property(a => a.ReputationPoint)
+                .HasDefaultValue(3);
+
 
             base.OnModelCreating(modelBuilder);
         }

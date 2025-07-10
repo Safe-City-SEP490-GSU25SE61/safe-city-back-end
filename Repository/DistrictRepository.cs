@@ -16,7 +16,8 @@ namespace Repository
         }
         public async Task<District> GetByNameAsync(string name)
         {
-            return await _context.Districts.FirstOrDefaultAsync(d => d.Name == name);
+            return await _context.Districts
+        .FirstOrDefaultAsync(d => d.Name.ToLower() == name.ToLower());
         }
         public async Task<IEnumerable<District>> SearchAsync(string name, int? totalReportedIncidents, int? dangerLevel)
         {

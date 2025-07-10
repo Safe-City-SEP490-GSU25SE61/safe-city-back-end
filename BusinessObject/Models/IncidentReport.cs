@@ -49,7 +49,9 @@ namespace BusinessObject.Models
         public Guid? VerifiedBy { get; set; }
 
         [Column("image_urls")]
-        public string? ImageUrls { get; set; } 
+        public string? ImageUrls { get; set; }
+        [Column("video_url")]
+        public string? VideoUrl { get; set; }
 
 
         public Account User { get; set; }
