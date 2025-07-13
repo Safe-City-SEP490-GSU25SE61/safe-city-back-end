@@ -164,7 +164,9 @@ namespace DataAccessLayer.DataContext
             modelBuilder.Entity<Account>()
                 .Property(a => a.ReputationPoint)
                 .HasDefaultValue(3);
-
+            modelBuilder.Entity<IncidentReport>()
+                .Property(r => r.Type)
+                .HasConversion<string>(); 
 
             base.OnModelCreating(modelBuilder);
         }

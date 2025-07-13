@@ -65,6 +65,11 @@ namespace Repository
             report.Status = status;
             await _context.SaveChangesAsync();
         }
+        public async Task UpdateAsync(IncidentReport report)
+        {
+            _context.IncidentReports.Update(report);
+            await _context.SaveChangesAsync();
+        }
 
     }
 

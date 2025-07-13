@@ -109,7 +109,7 @@ namespace SafeCityBackEnd.Controllers
         }
         [HttpPatch("{id:Guid}/cancel")]
         [Authorize]//(Roles = "Citizen")]
-        public async Task<IActionResult> CancelReport(Guid id)
+        public async Task<IActionResult> CancelReport(Guid id, [FromBody] CancelReportRequestModel model)
         {
             try
             {
@@ -127,7 +127,7 @@ namespace SafeCityBackEnd.Controllers
             }
         }
         [HttpGet("officer")]
-        [Authorize(Roles = "Officer")]
+        [Authorize]
         public async Task<IActionResult> GetReportsByDistrict()
         {
             var officerId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
@@ -136,22 +136,26 @@ namespace SafeCityBackEnd.Controllers
         }
 
         [HttpGet("officer/filter")]
-        [Authorize(Roles = "Officer")]
-        public async Task<IActionResult> GetFilteredReportsByOfficer([FromQuery] string? range, [FromQuery] string? status)
+        [Authorize]
+        public async Task<IActionResult> GetFilteredReportsByOfficer([FromQuery] string? range, [FromQuery] string? status,[FromQuery] string? ward)
         {
             try
             {
                 var officerId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-                var reports = await _reportService.GetFilteredReportsByOfficerAsync(officerId, range, status);
+                var reports = await _reportService.GetFilteredReportsByOfficerAsync(officerId, range, status, ward);
                 return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Filtered reports", reports);
             }
             catch (ArgumentException ex)
             {
                 return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.BadRequest, ex.Message, null);
             }
+            catch (InvalidOperationException ex)
+            {
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.BadRequest, ex.Message, null);
+            }
         }
         [HttpGet("citizen/filter")]
-        [Authorize]
+        [Authorize]// (Roles = "Citizen")]
         public async Task<IActionResult> GetFilteredReportsByCitizen([FromQuery] string? range, [FromQuery] string? status)
         {
             try
@@ -165,6 +169,27 @@ namespace SafeCityBackEnd.Controllers
                 return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.BadRequest, ex.Message, null);
             }
         }
+
+        [HttpPatch("{id:Guid}/transfer")]
+        [Authorize]
+        public async Task<IActionResult> TransferDistrict(Guid id, [FromBody] TransferReportDistrictRequestModel model)
+        {
+            try
+            {
+                var officerId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+                var result = await _reportService.TransferDistrictAsync(id, model, officerId);
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Chuyển khu vực thành công", result);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.NotFound, ex.Message, null);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.BadRequest, ex.Message, null);
+            }
+        }
+
 
 
 

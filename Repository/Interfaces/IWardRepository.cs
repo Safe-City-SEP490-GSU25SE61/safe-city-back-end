@@ -13,6 +13,7 @@ namespace Repository.Interfaces
         Task<IEnumerable<Ward>> SearchAsync(string? name, int? totalReportedIncidents, int? dangerLevel, string? districtName);
         Task<IEnumerable<Ward>> GetAllWithDistrictAsync();
         Task<Ward> GetByIdWithDistrictAsync(int id);
+        Task<Ward?> GetByNameAndDistrictAsync(string name, int districtId);
 
     }
 }

@@ -14,7 +14,7 @@ namespace Repository.Interfaces
         Task CreateAsync(IncidentReport report);
         Task UpdateStatusAsync(Guid id, string status, Guid officerId);
         Task UpdateStatusByUserAsync(Guid reportId, string status);
-
+        Task UpdateAsync(IncidentReport report);
     }
 
 }

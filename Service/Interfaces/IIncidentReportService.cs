@@ -15,9 +15,11 @@ namespace Service.Interfaces
         Task<IEnumerable<ReportResponseModel>> GetAllAsync();
         Task<ReportResponseModel> UpdateStatusAsync(Guid id, UpdateReportStatusRequestModel model, Guid officerId);
         Task<ReportResponseModel> AddNoteAsync(Guid id, AddInternalNoteRequestModel model, Guid officerId);
-        Task<ReportResponseModel> CancelAsync(Guid reportId, Guid userId);
+        Task<ReportResponseModel> CancelAsync(Guid reportId, Guid userId, string? reason = null);
         Task<IEnumerable<ReportResponseModel>> GetReportsByOfficerDistrictAsync(Guid officerId);
-        Task<IEnumerable<ReportResponseModel>> GetFilteredReportsByOfficerAsync(Guid officerId, string? range, string? status);
-        Task<IEnumerable<ReportResponseModel>> GetFilteredReportsByCitizenAsync(Guid citizenId, string? range, string? status);
+        Task<IEnumerable<ReportResponseModel>> GetFilteredReportsByOfficerAsync(Guid officerId, string? range, string? status, string? wardName = null);
+        Task<IEnumerable<CitizenReportResponseModel>> GetFilteredReportsByCitizenAsync(Guid citizenId, string? range, string? status);
+        Task<ReportResponseModel> TransferDistrictAsync(Guid reportId, TransferReportDistrictRequestModel model, Guid officerId);
     }
 }
+
