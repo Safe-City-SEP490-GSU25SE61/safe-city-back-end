@@ -33,8 +33,8 @@ namespace Service
         private static IDistrictRepository _districtRepo;
         private readonly IMediator _mediator;
         private static readonly string[] ValidRanges = { "day", "week", "month", "year" };
-        private static readonly string[] ValidStatuses = { "pending", "forwarded", "verified", "closed", "malicious", "transferred","solved" };
-        private static readonly string[] ValidCitizenStatuses = { "pending", "forwarded", "verified", "closed", "malicious", "transferred", "solved", "cancelled" };
+        private static readonly string[] ValidStatuses = { "pending", "verified", "closed", "malicious", "transferred","solved" };
+        private static readonly string[] ValidCitizenStatuses = { "pending", "verified", "closed", "malicious", "transferred", "solved", "cancelled" };
         private readonly IWardRepository _wardRepo;
 
         public IncidentReportService(IIncidentReportRepository reportRepo, INoteRepository noteRepo, IFirebaseStorageService storageService, IAccountRepository accountRepo, IAchievementRepository achievementRepo, IConfiguration configuration, IDistrictRepository districtRepo, IMediator mediator, IWardRepository wardRepo)
@@ -101,7 +101,7 @@ namespace Service
                 }
             }
             int? wardId = null;
-            if (districtId != null)
+            if (!string.IsNullOrEmpty(model.Address) && districtId != null)
             {
                 var wardName = ExtractWardName(model.Address);
                 if (!string.IsNullOrEmpty(wardName))
@@ -165,27 +165,37 @@ namespace Service
         }
         private string? ExtractWardName(string address)
         {
-            var tokens = address.Split(',');
+            var tokens = address.Split(',').Select(t => t.Trim()).ToList();
 
-            foreach (var token in tokens.Reverse())
+            for (int i = tokens.Count - 1; i >= 0; i--)
             {
-                var trimmed = token.Trim().ToLower();
+                var trimmed = tokens[i].ToLower();
 
                 if (trimmed.StartsWith("phường ") || trimmed.StartsWith("xã "))
                 {
-                    return CultureInfo.GetCultureInfo("vi-VN").TextInfo.ToTitleCase(trimmed);
+                    return CultureInfo.GetCultureInfo("vi-VN").TextInfo.ToTitleCase(tokens[i]);
                 }
 
-                if (trimmed.StartsWith("p. ") || trimmed.StartsWith("p.") || trimmed.StartsWith("ph."))
+                if (trimmed.StartsWith("p.") || trimmed.StartsWith("p. ") || trimmed.StartsWith("ph."))
                 {
-                    
                     var wardName = trimmed.Replace("p.", "phường").Replace("ph.", "phường");
                     return CultureInfo.GetCultureInfo("vi-VN").TextInfo.ToTitleCase(wardName);
+                }
+            
+                if (trimmed.StartsWith("quận") || trimmed.StartsWith("huyện") || trimmed == "thủ đức")
+                {
+                    if (i - 1 >= 0)
+                    {
+                        return CultureInfo.GetCultureInfo("vi-VN").TextInfo.ToTitleCase(tokens[i - 1]);
+                    }
                 }
             }
 
             return null;
         }
+
+
+
 
         private string ExtractStreetName(string address)
         {
@@ -246,9 +256,8 @@ namespace Service
 
             var allowedTransitionsFrom = new Dictionary<string, string[]>
             {
-                { "pending", new[] { "forwarded", "verified", "closed", "malicious"} },
-                { "transferred", new[] { "verified", "closed", "malicious" } },
-                { "forwarded", new[] { "verified", "closed", "malicious", "transferred" } },    
+                { "pending", new[] { "verified", "closed", "malicious", "solved" } },
+                { "transferred", new[] { "verified", "closed", "malicious", "solved" } },                  
             };
 
             if (!allowedTransitionsFrom.TryGetValue(report.Status, out var nextStatuses) ||
@@ -335,7 +344,7 @@ namespace Service
                 ImageUrls = string.IsNullOrEmpty(report.ImageUrls)
                 ? new List<string>()
                 : JsonSerializer.Deserialize<List<string>>(report.ImageUrls),
-                VideoUrl = report.VideoUrl
+                VideoUrl = report.VideoUrl,
             };
         }
 
@@ -378,7 +387,7 @@ namespace Service
             return filtered;
         }
 
-        public async Task<IEnumerable<ReportResponseModel>> GetFilteredReportsByOfficerAsync(Guid officerId, string? range, string? status, string? wardName = null)
+        public async Task<IEnumerable<ReportResponseModel>> GetFilteredReportsByOfficerAsync(Guid officerId, string? range, string? status, string? wardName = null, bool includeRelated = false)
 
         {
             var officer = await _accountRepo.GetByIdAsync(officerId);
@@ -426,9 +435,31 @@ namespace Service
 
                 reports = reports.Where(r => r.WardId == ward.Id);
             }
+            var reportList = reports.ToList();
+            if (!includeRelated)
+                return reportList.Select(ToResponseModel);
 
+            var groupedReports = new List<List<IncidentReport>>();
 
-            return reports.Select(ToResponseModel);
+            foreach (var report in reportList)
+            {
+                var related = reportList
+                    .Where(r =>
+                        r.Id != report.Id &&
+                        r.Type == report.Type &&
+                        ExtractStreetName(r.Address) == ExtractStreetName(report.Address) &&
+                        Math.Abs((r.CreatedAt - report.CreatedAt).TotalMinutes) <= 15)
+                    .ToList();
+
+                if (!groupedReports.Any(g => g.Any(x => x.Id == report.Id)))
+                {
+                    var group = new List<IncidentReport> { report };
+                    group.AddRange(related);
+                    groupedReports.Add(group.DistinctBy(x => x.Id).ToList());
+                }
+            }
+
+            return groupedReports.SelectMany(g => g).DistinctBy(r => r.Id).Select(ToResponseModel);
         }
         public async Task<IEnumerable<CitizenReportResponseModel>> GetFilteredReportsByCitizenAsync(Guid citizenId, string? range, string? status)
         {

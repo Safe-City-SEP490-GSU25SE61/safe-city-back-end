@@ -137,7 +137,7 @@ namespace SafeCityBackEnd.Controllers
 
         [HttpGet("officer/filter")]
         [Authorize]
-        public async Task<IActionResult> GetFilteredReportsByOfficer([FromQuery] string? range, [FromQuery] string? status,[FromQuery] string? ward)
+        public async Task<IActionResult> GetFilteredReportsByOfficer([FromQuery] string? range, [FromQuery] string? status,[FromQuery] string? ward, [FromQuery] bool includeRelated = false)
         {
             try
             {
@@ -152,6 +152,18 @@ namespace SafeCityBackEnd.Controllers
             catch (InvalidOperationException ex)
             {
                 return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.BadRequest, ex.Message, null);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.NotFound, ex.Message, null);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.Forbidden, ex.Message, null);
+            }
+            catch (Exception ex)
+            {
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.InternalServerError, "Đã xảy ra lỗi không xác định.", null);
             }
         }
         [HttpGet("citizen/filter")]

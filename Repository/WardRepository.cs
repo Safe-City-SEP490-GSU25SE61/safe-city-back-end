@@ -60,11 +60,14 @@ namespace Repository
         }
         public async Task<Ward?> GetByNameAndDistrictAsync(string name, int districtId)
         {
+            var normalizedInput = name.ToLower().Trim();
+
             return await _context.Wards
-                .FirstOrDefaultAsync(w =>
-                    w.DistrictId == districtId &&
-                    w.Name.ToLower().Trim() == name.ToLower().Trim());
+                .Where(w => w.DistrictId == districtId)
+                .FirstOrDefaultAsync(w => w.Name.ToLower().Trim() == normalizedInput
+                                       || w.Name.ToLower().Trim().Contains(normalizedInput));
         }
+
 
 
     }
