@@ -16,6 +16,9 @@ using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.Builder.Extensions;
 using FirebaseAdmin;
 using Microsoft.Extensions.FileProviders;
+using MediatR;
+using BusinessObject.Events;
+using Service.EventHandlers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -61,6 +64,12 @@ var firebasePath = builder.Configuration["Firebase:CredentialPath"];
 FirebaseApp.Create(new AppOptions()
 {
     Credential = GoogleCredential.FromFile(firebasePath)
+});
+
+builder.Services.AddMediatR(cfg =>
+{
+    cfg.RegisterServicesFromAssembly(typeof(PointChangedEvent).Assembly);
+    cfg.RegisterServicesFromAssembly(typeof(AchievementCheckerHandler).Assembly);
 });
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());

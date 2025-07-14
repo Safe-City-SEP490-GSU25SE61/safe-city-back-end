@@ -214,6 +214,27 @@ namespace Service
                 PackageName = payment.Subscription?.Package?.Name ?? "N/A"
             });
         }
+        public async Task<IEnumerable<AdminPaymentHistoryResponseModel>> GetAllPaymentHistoryForAdminAsync()
+        {
+            var payments = await _paymentRepo.GetAllAsync(); 
+
+            var vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+
+            return payments.Select(payment => new AdminPaymentHistoryResponseModel
+            {
+                OrderCode = payment.TransactionCode,
+                Amount = payment.Amount,
+                Quantity = 1,
+                PaymentMethod = payment.PaymentMethod,
+                Status = payment.Status,
+                PaidAt = payment.PaidAt.HasValue
+                    ? TimeZoneInfo.ConvertTimeFromUtc(payment.PaidAt.Value, vietnamTimeZone).ToString("yyyy-MM-dd HH:mm:ss")
+                    : "Pending",
+                PackageName = payment.Subscription?.Package?.Name ?? "N/A",
+                UserFullName = payment.User?.FullName ?? "Unknown",
+                UserEmail = payment.User?.Email ?? "Unknown"
+            });
+        }
 
 
     }

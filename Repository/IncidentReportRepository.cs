@@ -27,6 +27,7 @@ namespace Repository
                 .Include(r => r.District)
                 .Include(r => r.Ward)
                 .Include(r => r.Notes)
+                .ThenInclude(n => n.Officer)
                 .FirstOrDefaultAsync(r => r.Id == id);
         }
 
@@ -56,6 +57,20 @@ namespace Repository
             report.VerifiedBy = officerId;
             await _context.SaveChangesAsync();
         }
+        public async Task UpdateStatusByUserAsync(Guid reportId, string status)
+        {
+            var report = await _context.IncidentReports.FirstOrDefaultAsync(r => r.Id == reportId);
+            if (report == null) throw new KeyNotFoundException("Report not found");
+
+            report.Status = status;
+            await _context.SaveChangesAsync();
+        }
+        public async Task UpdateAsync(IncidentReport report)
+        {
+            _context.IncidentReports.Update(report);
+            await _context.SaveChangesAsync();
+        }
+
     }
 
 }

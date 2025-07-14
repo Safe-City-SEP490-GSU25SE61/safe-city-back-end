@@ -49,7 +49,9 @@ namespace BusinessObject.Models
         public int TotalPoint { get; set; } 
 
         [Column("achievement_id")]
-        public int? AchievementId { get; set; } 
+        public int? AchievementId { get; set; }
+        [Column("reputation_point")]
+        public int ReputationPoint { get; set; } = 3; 
 
         [Column("is_logged_in")]
         public bool IsLoggedIn { get; set; }

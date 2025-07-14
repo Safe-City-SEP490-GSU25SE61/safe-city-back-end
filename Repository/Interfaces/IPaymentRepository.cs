@@ -13,5 +13,7 @@ namespace Repository.Interfaces
         Task<Payment?> GetByOrderCodeAsync(string orderCode);
         Task UpdateAsync(Payment payment);
         Task<IEnumerable<Payment>> GetByUserIdAsync(Guid userId);
+        Task<IEnumerable<Payment>> GetAllAsync();
+
     }
 }

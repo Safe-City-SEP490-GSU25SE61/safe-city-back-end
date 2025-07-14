@@ -58,6 +58,16 @@ namespace Repository
                 .Include(w => w.District)
                 .FirstOrDefaultAsync(w => w.Id == id);
         }
+        public async Task<Ward?> GetByNameAndDistrictAsync(string name, int districtId)
+        {
+            var normalizedInput = name.ToLower().Trim();
+
+            return await _context.Wards
+                .Where(w => w.DistrictId == districtId)
+                .FirstOrDefaultAsync(w => w.Name.ToLower().Trim() == normalizedInput
+                                       || w.Name.ToLower().Trim().Contains(normalizedInput));
+        }
+
 
 
     }

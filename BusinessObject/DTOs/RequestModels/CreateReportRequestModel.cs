@@ -19,9 +19,15 @@ namespace BusinessObject.DTOs.RequestModels
         [StringLength(1000)]
         public string Description { get; set; }
         [Required]
+        public decimal? Lat { get; set; }
+        [Required]
+        public decimal? Lng { get; set; }
+        [Required]
         public string Address { get; set; }
 
         public bool IsAnonymous { get; set; } = false;
         public List<IFormFile>? Images { get; set; }
+        public IFormFile? Video { get; set; }
+
     }
 }

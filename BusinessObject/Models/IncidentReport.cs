@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BusinessObject.Enums;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -22,7 +23,7 @@ namespace BusinessObject.Models
         public int? WardId { get; set; }
 
         [Column("type")]
-        public string Type { get; set; }  
+        public IncidentType Type { get; set; }  
 
         [Column("description")]
         public string Description { get; set; }
@@ -47,9 +48,12 @@ namespace BusinessObject.Models
 
         [Column("verified_by")]
         public Guid? VerifiedBy { get; set; }
-
+        [Column("status_message")]
+        public string? StatusMessage { get; set; }
         [Column("image_urls")]
-        public string? ImageUrls { get; set; } 
+        public string? ImageUrls { get; set; }
+        [Column("video_url")]
+        public string? VideoUrl { get; set; }
 
 
         public Account User { get; set; }

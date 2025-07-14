@@ -10,8 +10,13 @@ namespace BusinessObject.DTOs.RequestModels
     public class UpdateReportStatusRequestModel
     {
         [Required]
-        [RegularExpression("^(verified|rejected)$", ErrorMessage = "Status must be verified or rejected.")]
+        [RegularExpression("^(verified|closed|malicious|,solved)$",
+        ErrorMessage = "Trạng thái không hợp lệ. Chỉ chấp nhận: verified, closed, malicious, solved.")]
         public string Status { get; set; }
-
+        public string? Message { get; set; }
+    }
+    public class CancelReportRequestModel
+    {
+        public string? Message { get; set; }
     }
 }

@@ -173,11 +173,15 @@ namespace Service
                 var current = grouped[i];
                 var next = i < grouped.Count - 1 ? grouped[i + 1].Key : (DateTime?)null;
 
+                var durationChange = current.FirstOrDefault(c => c.FieldName == "DurationDays");
+                int? durationDays = durationChange != null ? int.Parse(durationChange.NewValue) : null;
+
                 result.Add(new GroupedPackageChangeDTO
                 {
                     ChangedAt = current.Key,
                     EffectiveStart = current.Key,
                     EffectiveEnd = next,
+                    PackageExpiration = durationDays.HasValue ? current.Key.AddDays(durationDays.Value) : null,
                     Changes = current.Select(c => new PackageChangeDetailDTO
                     {
                         FieldName = c.FieldName,
