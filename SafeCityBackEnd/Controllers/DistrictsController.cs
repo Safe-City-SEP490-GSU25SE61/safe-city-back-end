@@ -20,7 +20,7 @@ public class DistrictsController : ControllerBase
     }
     
     [HttpGet]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Officer")]
     public async Task<IActionResult> GetAllDistricts()
     {
         var districts = await _districtService.GetAllAsync();
@@ -28,7 +28,7 @@ public class DistrictsController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Officer")]
     public async Task<IActionResult> GetDistrictById(int id)
     {
         var district = await _districtService.GetByIdAsync(id);

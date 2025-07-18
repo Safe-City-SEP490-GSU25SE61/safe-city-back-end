@@ -33,8 +33,8 @@ namespace Service
         private static IDistrictRepository _districtRepo;
         private readonly IMediator _mediator;
         private static readonly string[] ValidRanges = { "day", "week", "month", "year" };
-        private static readonly string[] ValidStatuses = { "pending", "verified", "closed", "malicious", "transferred","solved" };
-        private static readonly string[] ValidCitizenStatuses = { "pending", "verified", "closed", "malicious", "transferred", "solved", "cancelled" };
+        private static readonly string[] ValidStatuses = { "pending", "verified", "closed", "malicious","solved" };
+        private static readonly string[] ValidCitizenStatuses = { "pending", "verified", "closed", "malicious", "solved", "cancelled" };
         private readonly IWardRepository _wardRepo;
 
         public IncidentReportService(IIncidentReportRepository reportRepo, INoteRepository noteRepo, IFirebaseStorageService storageService, IAccountRepository accountRepo, IAchievementRepository achievementRepo, IConfiguration configuration, IDistrictRepository districtRepo, IMediator mediator, IWardRepository wardRepo)
@@ -257,7 +257,7 @@ namespace Service
             var allowedTransitionsFrom = new Dictionary<string, string[]>
             {
                 { "pending", new[] { "verified", "closed", "malicious", "solved" } },
-                { "transferred", new[] { "verified", "closed", "malicious", "solved" } },                  
+                { "verified", new[] { "solved" } },                  
             };
 
             if (!allowedTransitionsFrom.TryGetValue(report.Status, out var nextStatuses) ||
@@ -345,6 +345,7 @@ namespace Service
                 ? new List<string>()
                 : JsonSerializer.Deserialize<List<string>>(report.ImageUrls),
                 VideoUrl = report.VideoUrl,
+
             };
         }
 
@@ -387,35 +388,30 @@ namespace Service
             return filtered;
         }
 
-        public async Task<IEnumerable<ReportResponseModel>> GetFilteredReportsByOfficerAsync(Guid officerId, string? range, string? status, string? wardName = null, bool includeRelated = false)
-
+        public async Task<IEnumerable<GroupedReportResponseModel>> GetFilteredReportsByOfficerAsync(Guid officerId, string? range, string? status, string? wardName = null, bool includeRelated = false)
         {
             var officer = await _accountRepo.GetByIdAsync(officerId);
-            if (officer == null)
-                throw new KeyNotFoundException("Không tìm thấy tài khoản.");
-
-            if (officer.Role?.Name?.ToLower() != "officer")
-                throw new UnauthorizedAccessException("Bạn không có quyền truy cập chức năng này.");
+            if (officer == null || officer.Role?.Name?.ToLower() != "officer")
+                throw new UnauthorizedAccessException("Không có quyền.");
 
             if (officer.DistrictId == null)
-                throw new InvalidOperationException("Bạn chưa được gán khu vực quản lý.");
+                throw new InvalidOperationException("Chưa được gán khu vực.");
 
-            var reports = (await _reportRepo.GetAllAsync())
-                .Where(r => r.DistrictId == officer.DistrictId);
+            var allReports = (await _reportRepo.GetAllAsync())
+                .Where(r => r.DistrictId == officer.DistrictId)
+                .ToList();
 
             if (!string.IsNullOrEmpty(status))
             {
-                if (!ValidStatuses.Contains(status.ToLower()))
-                    throw new ArgumentException($"Giá trị 'status' không hợp lệ. Hợp lệ: {string.Join(", ", ValidStatuses)}");
-
-                reports = reports.Where(r => r.Status.Equals(status, StringComparison.OrdinalIgnoreCase));
+                if (!ValidStatuses.Concat(new[] { "malicious", "cancelled" }).Contains(status.ToLower()))
+                    throw new ArgumentException($"Status không hợp lệ.");
+                allReports = allReports.Where(r => r.Status.Equals(status, StringComparison.OrdinalIgnoreCase)).ToList();
             }
 
             if (!string.IsNullOrEmpty(range))
             {
                 if (!ValidRanges.Contains(range.ToLower()))
-                    throw new ArgumentException($"Giá trị 'range' không hợp lệ. Hợp lệ: {string.Join(", ", ValidRanges)}");
-
+                    throw new ArgumentException($"Range không hợp lệ.");
                 DateTime fromDate = range.ToLower() switch
                 {
                     "day" => DateTime.UtcNow.AddDays(-1),
@@ -424,43 +420,56 @@ namespace Service
                     "year" => DateTime.UtcNow.AddYears(-1),
                     _ => DateTime.MinValue
                 };
-
-                reports = reports.Where(r => r.CreatedAt >= fromDate);
+                allReports = allReports.Where(r => r.CreatedAt >= fromDate).ToList();
             }
-            if (!string.IsNullOrWhiteSpace(wardName))
+
+            var results = new List<GroupedReportResponseModel>();
+            var visited = new HashSet<Guid>();
+
+            allReports = allReports.OrderByDescending(r => r.CreatedAt).ToList();
+            foreach (var report in allReports)
             {
-                var ward = await _wardRepo.GetByNameAndDistrictAsync(wardName.Trim(), officer.DistrictId.Value);
-                if (ward == null)
-                    throw new InvalidOperationException("Phường không hợp lệ trong khu vực bạn phụ trách.");
+                if (visited.Contains(report.Id)) continue;
 
-                reports = reports.Where(r => r.WardId == ward.Id);
-            }
-            var reportList = reports.ToList();
-            if (!includeRelated)
-                return reportList.Select(ToResponseModel);
+                var response = ToResponseModel(report);
 
-            var groupedReports = new List<List<IncidentReport>>();
-
-            foreach (var report in reportList)
-            {
-                var related = reportList
-                    .Where(r =>
-                        r.Id != report.Id &&
-                        r.Type == report.Type &&
-                        ExtractStreetName(r.Address) == ExtractStreetName(report.Address) &&
-                        Math.Abs((r.CreatedAt - report.CreatedAt).TotalMinutes) <= 15)
-                    .ToList();
-
-                if (!groupedReports.Any(g => g.Any(x => x.Id == report.Id)))
+                if (includeRelated)
                 {
-                    var group = new List<IncidentReport> { report };
-                    group.AddRange(related);
-                    groupedReports.Add(group.DistinctBy(x => x.Id).ToList());
+                    var streetName = ExtractStreetName(report.Address);
+                    var related = allReports
+                        .Where(r =>
+                            r.Id != report.Id &&
+                            !visited.Contains(r.Id) &&
+                            r.Type == report.Type &&
+                            ExtractStreetName(r.Address) == streetName &&
+                            Math.Abs((r.CreatedAt - report.CreatedAt).TotalMinutes) <= 15)
+                        .OrderByDescending(r => r.CreatedAt)
+                        .ToList();
+
+                    var relatedResponses = related.Select(ToResponseModel).ToList();
+
+                    foreach (var r in related) visited.Add(r.Id);
+
+                    results.Add(new GroupedReportResponseModel
+                    {
+                        MainReport = response,
+                        RelatedReports = relatedResponses
+                    });
                 }
+                else
+                {
+                    results.Add(new GroupedReportResponseModel
+                    {
+                        MainReport = response
+                    });
+                }
+
+                visited.Add(report.Id);
             }
 
-            return groupedReports.SelectMany(g => g).DistinctBy(r => r.Id).Select(ToResponseModel);
+            return results;
         }
+
         public async Task<IEnumerable<CitizenReportResponseModel>> GetFilteredReportsByCitizenAsync(Guid citizenId, string? range, string? status)
         {
             var reports = (await _reportRepo.GetAllAsync())
@@ -491,7 +500,7 @@ namespace Service
                 reports = reports.Where(r => r.CreatedAt >= fromDate);
             }
 
-            return reports.Select(r => new CitizenReportResponseModel
+            return reports.OrderByDescending(r => r.CreatedAt).Select(r => new CitizenReportResponseModel
             {
                 Id = r.Id,
                 Type = IncidentTypeHelper.GetAllDisplayValues()
@@ -526,7 +535,7 @@ namespace Service
                 throw new InvalidOperationException("Báo cáo đã thuộc khu vực này.");
 
             report.DistrictId = model.NewDistrictId;
-            report.Status = "tranferred";
+
             report.VerifiedBy = officerId;
 
             await _reportRepo.UpdateAsync(report);

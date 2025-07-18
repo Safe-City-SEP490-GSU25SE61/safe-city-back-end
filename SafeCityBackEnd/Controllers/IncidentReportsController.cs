@@ -32,7 +32,7 @@ namespace SafeCityBackEnd.Controllers
             {
                 var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
                 var createdReport = await _reportService.CreateAsync(model, userId);
-                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.Created, "Report created successfully", createdReport);
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.Created, "Report created successfully", null);
             }
             catch (InvalidOperationException ex)
             {
@@ -86,6 +86,10 @@ namespace SafeCityBackEnd.Controllers
             catch (KeyNotFoundException ex)
             {
                 return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.NotFound, ex.Message, null);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.BadRequest, ex.Message, null);
             }
         }
 
@@ -142,7 +146,7 @@ namespace SafeCityBackEnd.Controllers
             try
             {
                 var officerId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-                var reports = await _reportService.GetFilteredReportsByOfficerAsync(officerId, range, status, ward);
+                var reports = await _reportService.GetFilteredReportsByOfficerAsync(officerId, range, status, ward, includeRelated);
                 return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Filtered reports", reports);
             }
             catch (ArgumentException ex)
