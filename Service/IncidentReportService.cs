@@ -391,11 +391,14 @@ namespace Service
         public async Task<IEnumerable<GroupedReportResponseModel>> GetFilteredReportsByOfficerAsync(Guid officerId, string? range, string? status, string? wardName = null, bool includeRelated = false)
         {
             var officer = await _accountRepo.GetByIdAsync(officerId);
-            if (officer == null || officer.Role?.Name?.ToLower() != "officer")
-                throw new UnauthorizedAccessException("Không có quyền.");
+            if (officer == null)
+                throw new KeyNotFoundException("Không tìm thấy tài khoản.");
+
+            if (officer.Role?.Name?.ToLower() != "officer")
+                throw new UnauthorizedAccessException("Bạn không có quyền truy cập chức năng này.");
 
             if (officer.DistrictId == null)
-                throw new InvalidOperationException("Chưa được gán khu vực.");
+                throw new InvalidOperationException("Bạn chưa được gán khu vực quản lý.");
 
             var allReports = (await _reportRepo.GetAllAsync())
                 .Where(r => r.DistrictId == officer.DistrictId)
@@ -403,15 +406,15 @@ namespace Service
 
             if (!string.IsNullOrEmpty(status))
             {
-                if (!ValidStatuses.Concat(new[] { "malicious", "cancelled" }).Contains(status.ToLower()))
-                    throw new ArgumentException($"Status không hợp lệ.");
+                if (!ValidStatuses.Contains(status.ToLower()))
+                    throw new ArgumentException($"Giá trị 'status' không hợp lệ. Hợp lệ: {string.Join(", ", ValidStatuses)}");
                 allReports = allReports.Where(r => r.Status.Equals(status, StringComparison.OrdinalIgnoreCase)).ToList();
             }
 
             if (!string.IsNullOrEmpty(range))
             {
                 if (!ValidRanges.Contains(range.ToLower()))
-                    throw new ArgumentException($"Range không hợp lệ.");
+                    throw new ArgumentException($"Giá trị 'range' không hợp lệ. Hợp lệ: {string.Join(", ", ValidRanges)}");
                 DateTime fromDate = range.ToLower() switch
                 {
                     "day" => DateTime.UtcNow.AddDays(-1),
@@ -422,6 +425,15 @@ namespace Service
                 };
                 allReports = allReports.Where(r => r.CreatedAt >= fromDate).ToList();
             }
+            if (!string.IsNullOrWhiteSpace(wardName))
+            {
+                var ward = await _wardRepo.GetByNameAndDistrictAsync(wardName.Trim(), officer.DistrictId.Value);
+                if (ward == null)
+                    throw new InvalidOperationException("Phường không hợp lệ trong khu vực bạn phụ trách.");
+
+                allReports = allReports.Where(r => r.WardId == ward.Id).ToList();
+            }
+
 
             var results = new List<GroupedReportResponseModel>();
             var visited = new HashSet<Guid>();
