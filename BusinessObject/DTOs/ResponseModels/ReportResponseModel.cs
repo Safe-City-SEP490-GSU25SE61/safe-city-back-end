@@ -25,6 +25,8 @@ namespace BusinessObject.DTOs.ResponseModels
         public List<string> Notes { get; set; }
         public List<string> ImageUrls { get; set; }
         public string? VideoUrl { get; set; }
+        public List<RelatedReportResponseModel>? RelatedReports { get; set; }
+
 
     }
 }
