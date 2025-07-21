@@ -19,16 +19,15 @@ using Microsoft.Extensions.FileProviders;
 using MediatR;
 using BusinessObject.Events;
 using Service.EventHandlers;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddScoped<IGenericRepository<District>, GenericRepository<District>>();
-builder.Services.AddScoped<IGenericRepository<Ward>, GenericRepository<Ward>>();
-builder.Services.AddScoped<IDistrictRepository, DistrictRepository>();
-builder.Services.AddScoped<IWardRepository, WardRepository>();
+builder.Services.AddScoped<IGenericRepository<Commune>, GenericRepository<Commune>>();
+builder.Services.AddScoped<ICommuneRepository, CommuneRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
@@ -37,8 +36,7 @@ builder.Services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IPayosTransactionRepository, PayosTransactionRepository>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
-builder.Services.AddScoped<IDistrictService, DistrictService>();
-builder.Services.AddScoped<IWardService, WardService>();
+builder.Services.AddScoped<ICommuneService, CommuneService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IMailService, MailService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
@@ -101,6 +99,7 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.DefaultIgnoreCondition =
             System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
@@ -135,6 +134,7 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Safe City API", Version = "v1" });
     c.TagActionsBy(api => new[] { api.GroupName });
+    c.UseInlineDefinitionsForEnums();
     c.DocInclusionPredicate((name, api) => true);
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {

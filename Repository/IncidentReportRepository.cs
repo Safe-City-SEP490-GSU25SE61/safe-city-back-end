@@ -24,8 +24,7 @@ namespace Repository
             return await _context.IncidentReports
                 .Include(r => r.User)
                 .Include(r => r.Verifier)
-                .Include(r => r.District)
-                .Include(r => r.Ward)
+                .Include(r => r.Commune)
                 .Include(r => r.Notes)
                 .ThenInclude(n => n.Officer)
                 .FirstOrDefaultAsync(r => r.Id == id);
@@ -36,8 +35,7 @@ namespace Repository
             return await _context.IncidentReports
                 .Include(r => r.User)
                 .Include(r => r.Verifier)
-                .Include(r => r.District)
-                .Include(r => r.Ward)
+                .Include(r => r.Commune)
                 .Include(r => r.Notes)
                 .ToListAsync();
         }

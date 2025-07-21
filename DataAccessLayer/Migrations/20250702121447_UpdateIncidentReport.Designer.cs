@@ -186,11 +186,11 @@ namespace DataAccessLayer.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("changed_at");
 
-                    b.Property<int>("NewDistrictId")
+                    b.Property<int>("NewCommuneId")
                         .HasColumnType("integer")
                         .HasColumnName("new_district_id");
 
-                    b.Property<int?>("OldDistrictId")
+                    b.Property<int?>("OldCommuneId")
                         .HasColumnType("integer")
                         .HasColumnName("old_district_id");
 
@@ -264,7 +264,7 @@ namespace DataAccessLayer.Migrations
                     b.ToTable("citizen_identity_card");
                 });
 
-            modelBuilder.Entity("BusinessObject.Models.District", b =>
+            modelBuilder.Entity("BusinessObject.Models.Commune", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -757,7 +757,7 @@ namespace DataAccessLayer.Migrations
                         .HasForeignKey("AchievementId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("BusinessObject.Models.District", "District")
+                    b.HasOne("BusinessObject.Models.Commune", "Commune")
                         .WithMany("Accounts")
                         .HasForeignKey("DistrictId")
                         .OnDelete(DeleteBehavior.SetNull);
@@ -770,7 +770,7 @@ namespace DataAccessLayer.Migrations
 
                     b.Navigation("Achievement");
 
-                    b.Navigation("District");
+                    b.Navigation("Commune");
 
                     b.Navigation("Role");
                 });
@@ -788,7 +788,7 @@ namespace DataAccessLayer.Migrations
 
             modelBuilder.Entity("BusinessObject.Models.IncidentReport", b =>
                 {
-                    b.HasOne("BusinessObject.Models.District", "District")
+                    b.HasOne("BusinessObject.Models.Commune", "Commune")
                         .WithMany("IncidentReports")
                         .HasForeignKey("DistrictId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -809,7 +809,7 @@ namespace DataAccessLayer.Migrations
                         .HasForeignKey("WardId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.Navigation("District");
+                    b.Navigation("Commune");
 
                     b.Navigation("User");
 
@@ -888,13 +888,13 @@ namespace DataAccessLayer.Migrations
 
             modelBuilder.Entity("BusinessObject.Models.Ward", b =>
                 {
-                    b.HasOne("BusinessObject.Models.District", "District")
+                    b.HasOne("BusinessObject.Models.Commune", "Commune")
                         .WithMany("Wards")
                         .HasForeignKey("DistrictId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("District");
+                    b.Navigation("Commune");
                 });
 
             modelBuilder.Entity("BusinessObject.Models.Account", b =>
@@ -917,7 +917,7 @@ namespace DataAccessLayer.Migrations
                     b.Navigation("Accounts");
                 });
 
-            modelBuilder.Entity("BusinessObject.Models.District", b =>
+            modelBuilder.Entity("BusinessObject.Models.Commune", b =>
                 {
                     b.Navigation("Accounts");
 

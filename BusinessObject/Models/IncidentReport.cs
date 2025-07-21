@@ -16,11 +16,8 @@ namespace BusinessObject.Models
         [Column("user_id")]
         public Guid UserId { get; set; }
 
-        [Column("district_id")]
-        public int? DistrictId { get; set; }
-
-        [Column("ward_id")]
-        public int? WardId { get; set; }
+        [Column("commune_id")]
+        public int? CommuneId { get; set; }
 
         [Column("type")]
         public IncidentType Type { get; set; }  
@@ -58,8 +55,7 @@ namespace BusinessObject.Models
 
         public Account User { get; set; }
         public Account? Verifier { get; set; }
-        public District District { get; set; }
-        public Ward Ward { get; set; }
+        public Commune Commune { get; set; }
         public ICollection<Note> Notes { get; set; }
     }
 }

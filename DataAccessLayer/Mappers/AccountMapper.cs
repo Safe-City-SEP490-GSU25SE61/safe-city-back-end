@@ -43,7 +43,7 @@ namespace DataAccessLayer.Mappers
                 FullName = model.FullName,
                 Gender = model.Gender,
                 Phone = model.Phone,
-                DistrictName = model.District != null ? model.District.Name : "N/A",
+                DistrictName = model.Commune != null ? model.Commune.Name : "N/A",
                 Id = model.Id,
                 ImageUrl = model.ImageUrl,
                 RoleName = model.Role.Name,
