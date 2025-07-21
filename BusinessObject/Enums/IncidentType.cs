@@ -27,7 +27,7 @@ namespace BusinessObject.Enums
         [Display(Name = "Gây rối trật tự")]
         PublicDisorder,
 
-        [Display(Name = "Phá hoại công trình")]
+        [Display(Name = "Phá hoại tài sản")]
         Vandalism,
 
         [Display(Name = "Khác")]

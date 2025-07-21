@@ -170,7 +170,7 @@ namespace SafeCityBackEnd.Controllers
                 return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.InternalServerError, "Đã xảy ra lỗi không xác định.", null);
             }
         }
-        [HttpGet("citizen/filter")]
+        [HttpGet("citizen/history/filter")]
         [Authorize]// (Roles = "Citizen")]
         public async Task<IActionResult> GetFilteredReportsByCitizen([FromQuery] string? range, [FromQuery] string? status)
         {

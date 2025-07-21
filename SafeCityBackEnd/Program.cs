@@ -19,6 +19,7 @@ using Microsoft.Extensions.FileProviders;
 using MediatR;
 using BusinessObject.Events;
 using Service.EventHandlers;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -101,6 +102,7 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.DefaultIgnoreCondition =
             System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
@@ -135,6 +137,7 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Safe City API", Version = "v1" });
     c.TagActionsBy(api => new[] { api.GroupName });
+    c.UseInlineDefinitionsForEnums();
     c.DocInclusionPredicate((name, api) => true);
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {

@@ -115,7 +115,7 @@ namespace Service
             }
 
 
-            if (!IncidentTypeHelper.TryGetEnumFromDisplayName(model.Type, out var incidentType))
+            if (!Enum.IsDefined(typeof(IncidentType), model.Type))
             {
                 var validTypes = IncidentTypeHelper.GetAllDisplayValues()
                     .Select(t => t.DisplayName)
@@ -126,10 +126,11 @@ namespace Service
 
 
 
+
             var report = new IncidentReport
             {
                 UserId = userId,
-                Type = incidentType,
+                Type = model.Type,
                 Description = model.Description,
                 Lat = model.Lat,
                 Lng = model.Lng,
@@ -427,6 +428,8 @@ namespace Service
             }
             if (!string.IsNullOrWhiteSpace(wardName))
             {
+                if (!officer.DistrictId.HasValue)
+                    throw new InvalidOperationException("Tài khoản chưa được gán khu vực.");
                 var ward = await _wardRepo.GetByNameAndDistrictAsync(wardName.Trim(), officer.DistrictId.Value);
                 if (ward == null)
                     throw new InvalidOperationException("Phường không hợp lệ trong khu vực bạn phụ trách.");
@@ -454,7 +457,12 @@ namespace Service
                             !visited.Contains(r.Id) &&
                             r.Type == report.Type &&
                             ExtractStreetName(r.Address) == streetName &&
-                            Math.Abs((r.CreatedAt - report.CreatedAt).TotalMinutes) <= 15)
+                            Math.Abs((r.CreatedAt - report.CreatedAt).TotalMinutes) <= 15 &&
+                            report.Lat.HasValue && report.Lng.HasValue &&
+                            r.Lat.HasValue && r.Lng.HasValue &&
+                            CalculateDistanceInMeters((double)report.Lat.Value, (double)report.Lng.Value, (double)r.Lat.Value, (double)r.Lng.Value) <= 300
+                        )
+                        .ToList()
                         .OrderByDescending(r => r.CreatedAt)
                         .ToList();
 
@@ -481,6 +489,20 @@ namespace Service
 
             return results;
         }
+        private double CalculateDistanceInMeters(double lat1, double lng1, double lat2, double lng2)
+        {
+            const double R = 6371000; 
+            var dLat = (lat2 - lat1) * Math.PI / 180;
+            var dLng = (lng2 - lng1) * Math.PI / 180;
+
+            var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+                    Math.Cos(lat1 * Math.PI / 180) * Math.Cos(lat2 * Math.PI / 180) *
+                    Math.Sin(dLng / 2) * Math.Sin(dLng / 2);
+
+            var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+            return R * c;
+        }
+
 
         public async Task<IEnumerable<CitizenReportResponseModel>> GetFilteredReportsByCitizenAsync(Guid citizenId, string? range, string? status)
         {
