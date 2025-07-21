@@ -86,9 +86,9 @@ namespace Service
             }
 
             int? communeId = null;
-            if (model.Address.ToLower().Contains("hồ chí minh"))
+            if (!string.IsNullOrWhiteSpace(model.Address))
             {
-                var communeName = ExtractCommuneName(model.Address);
+                var communeName = await ExtractCommuneName(model.Address);
                 if (!string.IsNullOrEmpty(communeName))
                 {
                     var commune = await _communeRepo.GetByNameAsync(communeName);
@@ -98,6 +98,7 @@ namespace Service
                     }
                 }
             }
+
 
 
 
@@ -150,43 +151,54 @@ namespace Service
             return null;
         }
 
-        private string? ExtractCommuneName(string address)
+        private async Task<string?> ExtractCommuneName(string address)
         {
             if (string.IsNullOrWhiteSpace(address)) return null;
 
-            var tokens = address.Split(',').Select(t => t.Trim()).ToList();
+            var tokens = address.Split(',').Select(t => t.Trim().ToLowerInvariant()).Reverse();
 
-            for (int i = tokens.Count - 1; i >= 0; i--)
+            var allCommunes = await _communeRepo.GetAllAsync();
+            var normalizedCommunes = allCommunes
+                .Select(c => new
+                {
+                    Id = c.Id,
+                    Original = c.Name,
+                    Normalized = c.Name.ToLowerInvariant()
+                        .Replace("phường ", "")
+                        .Replace("xã ", "")
+                        .Replace("thị trấn ", "")
+                        .Trim()
+                })
+                .ToList();
+
+            foreach (var token in tokens)
             {
-                var token = tokens[i].ToLower();
+                var cleaned = token
+                    .Replace("p.", "")
+                    .Replace("ph.", "")
+                    .Replace("x.", "")
+                    .Replace("tt.", "")
+                    .Replace(".", "")
+                    .Replace(":", "")
+                    .Trim();
 
-                if (token.StartsWith("phường ") || token.StartsWith("xã ") || token.StartsWith("thị trấn "))
+                var normalized = cleaned
+                    .Replace("phường ", "")
+                    .Replace("xã ", "")
+                    .Replace("thị trấn ", "")
+                    .Trim();
+
+                var match = normalizedCommunes.FirstOrDefault(c => c.Normalized == normalized);
+                if (match != null)
                 {
-                    return CultureInfo.GetCultureInfo("vi-VN").TextInfo.ToTitleCase(tokens[i]);
-                }
-
-                if (token.StartsWith("p.") || token.StartsWith("ph.") || token.StartsWith("x.") || token.StartsWith("tt."))
-                {
-                    var normalized = token
-                        .Replace("p.", "phường ")
-                        .Replace("ph.", "phường ")
-                        .Replace("x.", "xã ")
-                        .Replace("tt.", "thị trấn ");
-
-                    return CultureInfo.GetCultureInfo("vi-VN").TextInfo.ToTitleCase(normalized.Trim());
-                }
-
-                if (token.StartsWith("quận") || token.StartsWith("huyện") || token.StartsWith("thành phố") || token.Contains("thủ đức"))
-                {
-                    if (i - 1 >= 0)
-                    {
-                        return CultureInfo.GetCultureInfo("vi-VN").TextInfo.ToTitleCase(tokens[i - 1]);
-                    }
+                    return match.Original; 
                 }
             }
 
             return null;
         }
+
+
 
 
         private string? ExtractWardName(string address)
