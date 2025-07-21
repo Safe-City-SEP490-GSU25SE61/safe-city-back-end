@@ -30,14 +30,13 @@ namespace Service
         private readonly IConfiguration _configuration;
         private static readonly string[] AllowedImageTypes = { "image/jpeg", "image/png", "image/jpg", "image/gif", "image/webp" };
         private static readonly string[] AllowedVideoTypes = { "video/mp4", "video/x-matroska", "video/quicktime", "video/webm" };
-        private static IDistrictRepository _districtRepo;
+        private static ICommuneRepository _communeRepo;
         private readonly IMediator _mediator;
         private static readonly string[] ValidRanges = { "day", "week", "month", "year" };
         private static readonly string[] ValidStatuses = { "pending", "verified", "closed", "malicious","solved" };
         private static readonly string[] ValidCitizenStatuses = { "pending", "verified", "closed", "malicious", "solved", "cancelled" };
-        private readonly IWardRepository _wardRepo;
 
-        public IncidentReportService(IIncidentReportRepository reportRepo, INoteRepository noteRepo, IFirebaseStorageService storageService, IAccountRepository accountRepo, IAchievementRepository achievementRepo, IConfiguration configuration, IDistrictRepository districtRepo, IMediator mediator, IWardRepository wardRepo)
+        public IncidentReportService(IIncidentReportRepository reportRepo, INoteRepository noteRepo, IFirebaseStorageService storageService, IAccountRepository accountRepo, IAchievementRepository achievementRepo, IConfiguration configuration, ICommuneRepository communeRepo, IMediator mediator)
         {
             _reportRepo = reportRepo;
             _noteRepo = noteRepo;
@@ -45,9 +44,8 @@ namespace Service
             _accountRepo = accountRepo;
             _achievementRepo = achievementRepo;
             _configuration = configuration;
-            _districtRepo = districtRepo;
+            _communeRepo = communeRepo;
             _mediator = mediator;
-            _wardRepo = wardRepo;
         }
 
         public async Task<ReportResponseModel> CreateAsync(CreateReportRequestModel model, Guid userId)
@@ -87,32 +85,20 @@ namespace Service
                 uploadedVideoUrl = await _storageService.UploadFileAsync(model.Video, "incident-video");
             }
 
-            int? districtId = null;
+            int? communeId = null;
             if (model.Address.ToLower().Contains("hồ chí minh"))
             {
-                var districtName = ExtractDistrictName(model.Address);
-                if (!string.IsNullOrEmpty(districtName))
+                var communeName = ExtractCommuneName(model.Address);
+                if (!string.IsNullOrEmpty(communeName))
                 {
-                    var district = await _districtRepo.GetByNameAsync(districtName);
-                    if (district != null)
+                    var commune = await _communeRepo.GetByNameAsync(communeName);
+                    if (commune != null)
                     {
-                        districtId = district.Id;
+                        communeId = commune.Id;
                     }
                 }
             }
-            int? wardId = null;
-            if (!string.IsNullOrEmpty(model.Address) && districtId != null)
-            {
-                var wardName = ExtractWardName(model.Address);
-                if (!string.IsNullOrEmpty(wardName))
-                {
-                    var ward = await _wardRepo.GetByNameAndDistrictAsync(wardName, districtId.Value);
-                    if (ward != null)
-                    {
-                        wardId = ward.Id;
-                    }
-                }
-            }
+
 
 
             if (!Enum.IsDefined(typeof(IncidentType), model.Type))
@@ -140,8 +126,7 @@ namespace Service
                 CreatedAt = DateTime.UtcNow,
                 ImageUrls = uploadedImageUrls.Any() ? System.Text.Json.JsonSerializer.Serialize(uploadedImageUrls) : null,
                 VideoUrl = uploadedVideoUrl,
-                DistrictId = districtId,
-                WardId = wardId,
+                CommuneId = communeId,
             };
 
             await _reportRepo.CreateAsync(report);
@@ -164,6 +149,46 @@ namespace Service
             }
             return null;
         }
+
+        private string? ExtractCommuneName(string address)
+        {
+            if (string.IsNullOrWhiteSpace(address)) return null;
+
+            var tokens = address.Split(',').Select(t => t.Trim()).ToList();
+
+            for (int i = tokens.Count - 1; i >= 0; i--)
+            {
+                var token = tokens[i].ToLower();
+
+                if (token.StartsWith("phường ") || token.StartsWith("xã ") || token.StartsWith("thị trấn "))
+                {
+                    return CultureInfo.GetCultureInfo("vi-VN").TextInfo.ToTitleCase(tokens[i]);
+                }
+
+                if (token.StartsWith("p.") || token.StartsWith("ph.") || token.StartsWith("x.") || token.StartsWith("tt."))
+                {
+                    var normalized = token
+                        .Replace("p.", "phường ")
+                        .Replace("ph.", "phường ")
+                        .Replace("x.", "xã ")
+                        .Replace("tt.", "thị trấn ");
+
+                    return CultureInfo.GetCultureInfo("vi-VN").TextInfo.ToTitleCase(normalized.Trim());
+                }
+
+                if (token.StartsWith("quận") || token.StartsWith("huyện") || token.StartsWith("thành phố") || token.Contains("thủ đức"))
+                {
+                    if (i - 1 >= 0)
+                    {
+                        return CultureInfo.GetCultureInfo("vi-VN").TextInfo.ToTitleCase(tokens[i - 1]);
+                    }
+                }
+            }
+
+            return null;
+        }
+
+
         private string? ExtractWardName(string address)
         {
             var tokens = address.Split(',').Select(t => t.Trim()).ToList();
@@ -339,8 +364,7 @@ namespace Service
                 VerifiedByName = report.Verifier?.FullName,
                 StatusMessage = report.StatusMessage,
                 UserName = report.IsAnonymous ? null : report.User.FullName,
-                DistrictName = report.District?.Name,
-                WardName = report.Ward?.Name,
+                DistrictName = report.Commune?.Name,
                 Notes = report.Notes.Select(n => $"[{n.CreatedAt:yyyy-MM-dd HH:mm}] {n.Officer.FullName}: {n.Content}").ToList(),
                 ImageUrls = string.IsNullOrEmpty(report.ImageUrls)
                 ? new List<string>()
@@ -377,13 +401,13 @@ namespace Service
             if (officer.Role?.Name?.ToLower() != "officer")
                 throw new UnauthorizedAccessException("Bạn không có quyền truy cập chức năng này.");
 
-            if (officer.DistrictId == null)
+            if (officer.CommuneId == null)
                 throw new InvalidOperationException("Bạn chưa được gán khu vực quản lý.");
 
 
             var allReports = await _reportRepo.GetAllAsync();
             var filtered = allReports
-                .Where(r => r.DistrictId == officer.DistrictId)
+                .Where(r => r.CommuneId == officer.CommuneId)
                 .Select(ToResponseModel);
 
             return filtered;
@@ -398,11 +422,11 @@ namespace Service
             if (officer.Role?.Name?.ToLower() != "officer")
                 throw new UnauthorizedAccessException("Bạn không có quyền truy cập chức năng này.");
 
-            if (officer.DistrictId == null)
+            if (officer.CommuneId == null)
                 throw new InvalidOperationException("Bạn chưa được gán khu vực quản lý.");
 
             var allReports = (await _reportRepo.GetAllAsync())
-                .Where(r => r.DistrictId == officer.DistrictId)
+                .Where(r => r.CommuneId == officer.CommuneId)
                 .ToList();
 
             if (!string.IsNullOrEmpty(status))
@@ -425,16 +449,6 @@ namespace Service
                     _ => DateTime.MinValue
                 };
                 allReports = allReports.Where(r => r.CreatedAt >= fromDate).ToList();
-            }
-            if (!string.IsNullOrWhiteSpace(wardName))
-            {
-                if (!officer.DistrictId.HasValue)
-                    throw new InvalidOperationException("Tài khoản chưa được gán khu vực.");
-                var ward = await _wardRepo.GetByNameAndDistrictAsync(wardName.Trim(), officer.DistrictId.Value);
-                if (ward == null)
-                    throw new InvalidOperationException("Phường không hợp lệ trong khu vực bạn phụ trách.");
-
-                allReports = allReports.Where(r => r.WardId == ward.Id).ToList();
             }
 
 
@@ -561,14 +575,14 @@ namespace Service
             if (officer == null || officer.Role?.Name?.ToLower() != "officer")
                 throw new UnauthorizedAccessException("Chỉ cán bộ mới có quyền chuyển khu vực.");
 
-            var newDistrict = await _districtRepo.GetByIdAsync(model.NewDistrictId);
+            var newDistrict = await _communeRepo.GetByIdAsync(model.NewDistrictId);
             if (newDistrict == null)
                 throw new InvalidOperationException("Khu vực mới không hợp lệ.");
 
-            if (report.DistrictId == model.NewDistrictId)
+            if (report.CommuneId == model.NewDistrictId)
                 throw new InvalidOperationException("Báo cáo đã thuộc khu vực này.");
 
-            report.DistrictId = model.NewDistrictId;
+            report.CommuneId = model.NewDistrictId;
 
             report.VerifiedBy = officerId;
 

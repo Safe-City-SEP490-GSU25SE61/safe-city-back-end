@@ -14,8 +14,8 @@ namespace BusinessObject.DTOs.ResponseModels
 
     public class AssignOfficerChangeDTO
     {
-        public string OldDistrictName { get; set; }
-        public string NewDistrictName { get; set; }
+        public string OldCommuneName { get; set; }
+        public string NewCommuneName { get; set; }
     }
 }
 

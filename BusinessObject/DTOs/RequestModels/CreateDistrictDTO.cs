@@ -12,7 +12,6 @@ namespace BusinessObject.DTOs
         public string Note { get; set; }
 
         [StringLength(1000, ErrorMessage = "Dữ liệu Polygon không được dài hơn 1000 ký tự.")]
-        [RegularExpression(@"^\(\([0-9]+\.[0-9]+ [0-9]+\.[0-9]+(, [0-9]+\.[0-9]+ [0-9]+\.[0-9]+)*\)\)$", ErrorMessage = "Dữ liệu Polygon phải theo định dạng hợp lệ.")]
         public string PolygonData { get; set; }
     }
 }

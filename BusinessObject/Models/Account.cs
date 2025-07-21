@@ -36,8 +36,8 @@ namespace BusinessObject.Models
         [Column("role_id")]
         public int RoleId { get; set; }     
 
-        [Column("district_id")]
-        public int? DistrictId { get; set; }  
+        [Column("commune_id")]
+        public int? CommuneId { get; set; }  
 
         [Column("created_at")]
         public DateTime CreatedAt { get; set; }
@@ -76,7 +76,7 @@ namespace BusinessObject.Models
 
 
         public Role Role { get; set; }
-        public District? District { get; set; }
+        public Commune? Commune { get; set; }
         public Achievement? Achievement { get; set; }
         public CitizenIdentityCard? CitizenIdentityCard { get; set; }
         public ICollection<Subscription>? Subscriptions { get; set; }

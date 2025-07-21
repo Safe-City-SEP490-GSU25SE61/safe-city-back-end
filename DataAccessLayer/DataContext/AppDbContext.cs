@@ -18,12 +18,11 @@ namespace DataAccessLayer.DataContext
         public DbSet<Account> Accounts { get; set; }
         public DbSet<Achievement> Achievements { get; set; }
         public DbSet<CitizenIdentityCard> CitizenIdentityCards { get; set; }
-        public DbSet<District> Districts { get; set; }
+        public DbSet<Commune> Communes { get; set; }
         public DbSet<Package> Packages { get; set; }
         public DbSet<Role> Roles { get; set; }
         public DbSet<ReputationEvent> ReputationEvents { get; set; }
         public DbSet<Subscription> Subscriptions { get; set; }
-        public DbSet<Ward> Wards { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<PayosTransaction> PayosTransactions { get; set; }
         public DbSet<PackageChangeHistory> PackageChanges { get; set; }
@@ -53,9 +52,9 @@ namespace DataAccessLayer.DataContext
                 .OnDelete(DeleteBehavior.SetNull);
 
             modelBuilder.Entity<Account>()
-                .HasOne(a => a.District)
+                .HasOne(a => a.Commune)
                 .WithMany(d => d.Accounts) 
-                .HasForeignKey(a => a.DistrictId)
+                .HasForeignKey(a => a.CommuneId)
                 .OnDelete(DeleteBehavior.SetNull);
 
             modelBuilder.Entity<Account>()
@@ -80,12 +79,6 @@ namespace DataAccessLayer.DataContext
                 .HasOne(s => s.Package)
                 .WithMany(p => p.Subscriptions)
                 .HasForeignKey(s => s.PackageId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<Ward>()
-                .HasOne(w => w.District)  
-                .WithMany(d => d.Wards)   
-                .HasForeignKey(w => w.DistrictId)  
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Payment>()
@@ -135,17 +128,12 @@ namespace DataAccessLayer.DataContext
 
             
             modelBuilder.Entity<IncidentReport>()
-                .HasOne(ir => ir.District)
+                .HasOne(ir => ir.Commune)
                 .WithMany(d => d.IncidentReports)
-                .HasForeignKey(ir => ir.DistrictId)
+                .HasForeignKey(ir => ir.CommuneId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            
-            modelBuilder.Entity<IncidentReport>()
-                .HasOne(ir => ir.Ward)
-                .WithMany(w => w.IncidentReports)
-                .HasForeignKey(ir => ir.WardId)
-                .OnDelete(DeleteBehavior.Restrict);
+          
 
 
             modelBuilder.Entity<Note>()
