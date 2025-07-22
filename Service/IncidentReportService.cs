@@ -17,6 +17,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using TimeZoneConverter;
 
 namespace Service
 {
@@ -111,7 +112,8 @@ namespace Service
                 throw new InvalidOperationException($"Loại sự cố không hợp lệ. Các loại hợp lệ gồm: {string.Join(", ", validTypes)}");
             }
 
-
+            if (model.OccurredAt > DateTime.UtcNow || model.OccurredAt < DateTime.UtcNow.AddDays(-1))
+                throw new InvalidOperationException("Thời gian xảy ra sự cố phải nằm trong 24 giờ gần nhất.");
 
 
             var report = new IncidentReport
@@ -124,6 +126,7 @@ namespace Service
                 Address = model.Address,
                 IsAnonymous = model.IsAnonymous,
                 Status = "pending",
+                OccurredAt = model.OccurredAt.ToUniversalTime(),
                 CreatedAt = DateTime.UtcNow,
                 ImageUrls = uploadedImageUrls.Any() ? System.Text.Json.JsonSerializer.Serialize(uploadedImageUrls) : null,
                 VideoUrl = uploadedVideoUrl,
@@ -361,6 +364,7 @@ namespace Service
 
         private static ReportResponseModel ToResponseModel(IncidentReport report)
         {
+            //var tz = TZConvert.GetTimeZoneInfo("SE Asia Standard Time");
             return new ReportResponseModel
             {
                 Id = report.Id,
@@ -372,7 +376,8 @@ namespace Service
                 Address = report.Address,
                 Status = report.Status,
                 IsAnonymous = report.IsAnonymous,
-                CreatedAt = report.CreatedAt,
+                OccurredAt = DateTimeHelper.ToVietnamTime(report.OccurredAt),
+                CreatedAt = DateTimeHelper.ToVietnamTime(report.CreatedAt),
                 VerifiedByName = report.Verifier?.FullName,
                 StatusMessage = report.StatusMessage,
                 UserName = report.IsAnonymous ? null : report.User.FullName,
@@ -559,6 +564,7 @@ namespace Service
 
                 reports = reports.Where(r => r.CreatedAt >= fromDate);
             }
+            //var tz = TZConvert.GetTimeZoneInfo("SE Asia Standard Time");
 
             return reports.OrderByDescending(r => r.CreatedAt).Select(r => new CitizenReportResponseModel
             {
@@ -570,7 +576,8 @@ namespace Service
                 Status = r.Status,
                 StatusMessage = r.StatusMessage,
                 IsAnonymous = r.IsAnonymous,
-                CreatedAt = r.CreatedAt,
+                OccurredAt = DateTimeHelper.ToVietnamTime(r.OccurredAt),
+                CreatedAt = DateTimeHelper.ToVietnamTime(r.CreatedAt),
                 ImageUrls = string.IsNullOrEmpty(r.ImageUrls)
                 ? new List<string>()
                 : JsonSerializer.Deserialize<List<string>>(r.ImageUrls),

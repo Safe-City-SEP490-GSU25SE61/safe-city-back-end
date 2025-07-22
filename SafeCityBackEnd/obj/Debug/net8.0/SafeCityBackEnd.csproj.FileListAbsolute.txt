@@ -301,3 +301,4 @@ C:\SafeCity\SafeCityBackEnd\obj\Debug\net8.0\ref\SafeCityBackEnd.dll
 C:\SafeCity\SafeCityBackEnd\obj\Debug\net8.0\SafeCityBackEnd.MvcApplicationPartsAssemblyInfo.cs
 C:\SafeCity\SafeCityBackEnd\bin\Debug\net8.0\MediatR.dll
 C:\SafeCity\SafeCityBackEnd\bin\Debug\net8.0\MediatR.Contracts.dll
+C:\SafeCity\SafeCityBackEnd\bin\Debug\net8.0\TimeZoneConverter.dll

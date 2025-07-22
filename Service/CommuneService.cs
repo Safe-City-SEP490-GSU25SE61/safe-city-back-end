@@ -8,6 +8,7 @@ using BusinessObject.DTOs;
 using Repository.Repositories;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Repository;
+using Service.Helpers;
 
 namespace Service
 {
@@ -36,8 +37,8 @@ namespace Service
                 TotalReportedIncidents = d.TotalReportedIncidents,
                 Note = d.Note,
                 PolygonData = d.PolygonData,
-                CreateAt = d.CreateAt,
-                LastUpdated = d.LastUpdated,
+                CreateAt = DateTimeHelper.ToVietnamTime(d.CreateAt),
+                LastUpdated = DateTimeHelper.ToVietnamTime(d.LastUpdated),
                 IsActive = d.IsActive,
                 TotalAssignedOfficers = allAccounts
             .Count(a => a.CommuneId == d.Id && a.RoleId == 3 && a.Status == "active")
@@ -63,8 +64,8 @@ namespace Service
                 TotalReportedIncidents = district.TotalReportedIncidents,
                 Note = district.Note,
                 PolygonData = district.PolygonData,
-                CreateAt = district.CreateAt,
-                LastUpdated = district.LastUpdated,
+                CreateAt = DateTimeHelper.ToVietnamTime(district.CreateAt),
+                LastUpdated = DateTimeHelper.ToVietnamTime(district.LastUpdated),
                 IsActive = district.IsActive,
 
                 TotalAssignedOfficers = totalOfficers
@@ -169,7 +170,9 @@ namespace Service
                 Name = d.Name,
                 TotalReportedIncidents = d.TotalReportedIncidents,
                 Note = d.Note,
-                PolygonData = d.PolygonData
+                PolygonData = d.PolygonData,
+                CreateAt = DateTimeHelper.ToVietnamTime(d.CreateAt),
+                LastUpdated = DateTimeHelper.ToVietnamTime(d.LastUpdated)
             }).ToList();
         }
         public async Task<IEnumerable<GroupedAssignOfficerChangeDTO>> GetHistoryByAccountIdAsync(Guid accountId)
@@ -185,7 +188,7 @@ namespace Service
                 .GroupBy(h => h.ChangedAt)
                 .Select(g => new GroupedAssignOfficerChangeDTO
                 {
-                    ChangedAt = g.Key,
+                    ChangedAt = DateTimeHelper.ToVietnamTime(g.Key),
                     Changes = g.Select(h => new AssignOfficerChangeDTO
                     {
                         OldCommuneName = GetDistrictName(h.OldCommuneId),
