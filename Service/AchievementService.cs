@@ -2,6 +2,7 @@
 using BusinessObject.DTOs.ResponseModels;
 using BusinessObject.Models;
 using Repository.Interfaces;
+using Service.Helpers;
 using Service.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -34,8 +35,8 @@ namespace Service
                 Description = achievement.Description,
                 MinPoint = achievement.MinPoint,
                 Benefit = achievement.Benefit,
-                CreateAt = achievement.CreateAt,
-                LastUpdated = achievement.LastUpdated
+                CreateAt = DateTimeHelper.ToVietnamTime(achievement.CreateAt),
+                LastUpdated = DateTimeHelper.ToVietnamTime(achievement.LastUpdated)
             };
         }
 
@@ -80,8 +81,8 @@ namespace Service
                 Description = achievement.Description,
                 MinPoint = achievement.MinPoint,
                 Benefit = achievement.Benefit,
-                CreateAt = achievement.CreateAt,
-                LastUpdated = achievement.LastUpdated
+                CreateAt = DateTimeHelper.ToVietnamTime(achievement.CreateAt),
+                LastUpdated = DateTimeHelper.ToVietnamTime(achievement.LastUpdated)
             }).ToList();
         }
 

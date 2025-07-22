@@ -12,6 +12,7 @@ namespace BusinessObject.DTOs.ResponseModels
         public string Type { get; set; }
         public string Description { get; set; }
         public string Address { get; set; }
+        public DateTime OccurredAt { get; set; }
         public string Status { get; set; }
         public string? StatusMessage { get; set; }
         public bool IsAnonymous { get; set; }

@@ -33,7 +33,8 @@ namespace BusinessObject.Models
 
         [Column("lng")]
         public decimal? Lng { get; set; }
-
+        [Column("occurred_at")]
+        public DateTime OccurredAt { get; set; }
         [Column("is_anonymous")]
         public bool IsAnonymous { get; set; }
 

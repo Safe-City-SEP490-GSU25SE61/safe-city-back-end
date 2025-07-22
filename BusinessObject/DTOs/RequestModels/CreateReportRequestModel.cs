@@ -26,7 +26,8 @@ namespace BusinessObject.DTOs.RequestModels
         public decimal? Lng { get; set; }
         [Required]
         public string Address { get; set; }
-
+        [Required]
+        public DateTime OccurredAt { get; set; }
         public bool IsAnonymous { get; set; } = false;
         public List<IFormFile>? Images { get; set; }
         public IFormFile? Video { get; set; }

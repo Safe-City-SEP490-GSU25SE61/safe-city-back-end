@@ -17,6 +17,7 @@ namespace BusinessObject.DTOs.ResponseModels
         public string Address { get; set; }
         public string Status { get; set; }
         public bool IsAnonymous { get; set; }
+        public DateTime OccurredAt { get; set; }
         public DateTime CreatedAt { get; set; }
         public string? VerifiedByName { get; set; }
         public string? StatusMessage { get; set; }
