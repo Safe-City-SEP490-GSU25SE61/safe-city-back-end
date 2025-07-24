@@ -544,20 +544,22 @@ namespace Service
             var reports = (await _reportRepo.GetAllAsync())
                 .Where(r => r.UserId == citizenId);
 
-            if (!string.IsNullOrEmpty(status))
+            if (!string.IsNullOrWhiteSpace(status) && status.ToLower() != "null" && status.ToLower() != "undefined")
             {
-                if (!ValidCitizenStatuses.Contains(status.ToLower()))
+                var normalizedStatus = status.Trim().ToLower();
+                if (!ValidCitizenStatuses.Contains(normalizedStatus))
                     throw new ArgumentException($"Giá trị 'status' không hợp lệ. Hợp lệ: {string.Join(", ", ValidCitizenStatuses)}");
 
-                reports = reports.Where(r => r.Status.Equals(status, StringComparison.OrdinalIgnoreCase));
+                reports = reports.Where(r => r.Status.Equals(normalizedStatus, StringComparison.OrdinalIgnoreCase));
             }
 
-            if (!string.IsNullOrEmpty(range))
+            if (!string.IsNullOrWhiteSpace(range) && range.ToLower() != "null" && range.ToLower() != "undefined")
             {
-                if (!ValidRanges.Contains(range.ToLower()))
+                var normalizedRange = range.Trim().ToLower();
+                if (!ValidRanges.Contains(normalizedRange))
                     throw new ArgumentException($"Giá trị 'range' không hợp lệ. Hợp lệ: {string.Join(", ", ValidRanges)}");
 
-                DateTime fromDate = range.ToLower() switch
+                DateTime fromDate = normalizedRange switch
                 {
                     "day" => DateTime.UtcNow.AddDays(-1),
                     "week" => DateTime.UtcNow.AddDays(-7),
@@ -568,6 +570,7 @@ namespace Service
 
                 reports = reports.Where(r => r.CreatedAt >= fromDate);
             }
+
             //var tz = TZConvert.GetTimeZoneInfo("SE Asia Standard Time");
 
             return reports.OrderByDescending(r => r.CreatedAt).Select(r => new CitizenReportResponseModel
