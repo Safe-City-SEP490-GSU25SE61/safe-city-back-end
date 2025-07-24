@@ -30,6 +30,11 @@ namespace DataAccessLayer.DataContext
         public DbSet<AssignOfficerHistory> AssignOffers { get; set; }
         public DbSet<IncidentReport> IncidentReports { get; set; }
         public DbSet<Note> Notes { get; set; }
+        public DbSet<Blog> Blogs { get; set; }
+        public DbSet<Comment> Comments { get; set; }
+        public DbSet<BlogLike> BlogLikes { get; set; }
+        public DbSet<BlogMedia> BlogMedias { get; set; }
+
 
 
         private static string? GetConnectionString()
@@ -161,6 +166,55 @@ namespace DataAccessLayer.DataContext
                 .HasForeignKey(n => n.OfficerId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<Blog>()
+                .Property(b => b.Type)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<Blog>()
+                .HasOne(b => b.Author)
+                .WithMany(a => a.Blogs)
+                .HasForeignKey(b => b.AuthorId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Blog>()
+                .HasOne(b => b.District)
+                .WithMany(d => d.Blogs)
+                .HasForeignKey(b => b.DistrictId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Comment>()
+                .HasOne(c => c.User)
+                .WithMany(a => a.Comments)
+                .HasForeignKey(c => c.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Comment>()
+                .HasOne(c => c.Blog)
+                .WithMany(b => b.Comments)
+                .HasForeignKey(c => c.BlogId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<BlogLike>()
+                .HasOne(pl => pl.User)
+                .WithMany(a => a.BlogLikes)
+                .HasForeignKey(pl => pl.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<BlogLike>()
+                .HasOne(pl => pl.Blog)
+                .WithMany(b => b.Likes)
+                .HasForeignKey(pl => pl.BlogId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<BlogLike>()
+                .HasIndex(pl => new { pl.UserId, pl.BlogId })
+                .IsUnique();
+
+            modelBuilder.Entity<BlogMedia>()
+                .HasOne(m => m.Blog)
+                .WithMany(b => b.Media)
+                .HasForeignKey(m => m.BlogId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             base.OnModelCreating(modelBuilder);
         }

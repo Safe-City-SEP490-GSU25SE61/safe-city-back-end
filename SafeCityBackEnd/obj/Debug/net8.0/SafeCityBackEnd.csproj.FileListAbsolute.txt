@@ -149,3 +149,6 @@ C:\Project-Capstone\safe-city-back-end\SafeCityBackEnd\obj\Debug\net8.0\refint\S
 C:\Project-Capstone\safe-city-back-end\SafeCityBackEnd\obj\Debug\net8.0\SafeCityBackEnd.pdb
 C:\Project-Capstone\safe-city-back-end\SafeCityBackEnd\obj\Debug\net8.0\SafeCityBackEnd.genruntimeconfig.cache
 C:\Project-Capstone\safe-city-back-end\SafeCityBackEnd\obj\Debug\net8.0\ref\SafeCityBackEnd.dll
+C:\Project-Capstone\safe-city-back-end\SafeCityBackEnd\bin\Debug\net8.0\OpenAI.dll
+C:\Project-Capstone\safe-city-back-end\SafeCityBackEnd\bin\Debug\net8.0\System.ClientModel.dll
+C:\Project-Capstone\safe-city-back-end\SafeCityBackEnd\bin\Debug\net8.0\System.Memory.Data.dll

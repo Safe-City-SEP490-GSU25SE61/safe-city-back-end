@@ -1,0 +1,88 @@
+﻿using BusinessObject.DTOs.ResponseModels;
+using BusinessObject.Models;
+using DataAccessLayer.DataContext;
+using Microsoft.EntityFrameworkCore;
+using Repository.Interfaces;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Repository
+{
+    public class BlogRepository : IBlogRepository
+    {
+        private readonly AppDbContext _context;
+
+        public BlogRepository(AppDbContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<Blog?> GetByIdAsync(int id)
+        {
+            return await _context.Set<Blog>().FindAsync(id);
+        }
+
+        public async Task AddAsync(Blog blog)
+        {
+            _context.Set<Blog>().Add(blog);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task UpdateAsync(Blog blog)
+        {
+            _context.Set<Blog>().Update(blog);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<IEnumerable<BlogResponseDto>> GetVisibleByDistrictAsync(int districtId, Guid currentUserId)
+        {
+            var blogs = await _context.Set<Blog>()
+                .Where(b => b.DistrictId == districtId && b.IsVisible && b.IsApproved)
+                .OrderByDescending(b => b.Pinned)
+                .ThenByDescending(b => b.CreatedAt)
+                .Select(b => new BlogResponseDto
+                {
+                    Id = b.Id,
+                    Title = b.Title,
+                    Content = b.Content,
+                    AuthorName = b.Author.FullName,
+                    DistrictName = b.District.Name,
+                    Pinned = b.Pinned,
+                    Type = b.Type,
+                    CreatedAt = b.CreatedAt,
+                    TotalLike = b.Likes.Count,
+                    TotalComment = b.Comments.Count,
+                    IsLike = b.Likes.Any(l => l.UserId == currentUserId)
+                })
+                .ToListAsync();
+
+            return blogs;
+        }
+
+        public async Task<IEnumerable<BlogResponseDto>> GetCreatedBlogsByUserAsync(Guid userId)
+        {
+            return await _context.Blogs
+                .Where(b => b.AuthorId == userId)
+                .OrderByDescending(b => b.CreatedAt)
+                .Select(b => new BlogResponseDto
+                {
+                    Id = b.Id,
+                    Title = b.Title,
+                    Content = b.Content,
+                    AuthorName = b.Author.FullName,
+                    DistrictName = b.District.Name,
+                    Pinned = b.Pinned,
+                    Type = b.Type,
+                    CreatedAt = b.CreatedAt,
+                    TotalLike = b.Likes.Count,
+                    TotalComment = b.Comments.Count,
+                    IsLike = b.Likes.Any(l => l.UserId == userId)
+                })
+                .ToListAsync();
+        }
+    }
+
+}
