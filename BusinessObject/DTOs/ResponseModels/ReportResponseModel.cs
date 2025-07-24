@@ -21,7 +21,7 @@ namespace BusinessObject.DTOs.ResponseModels
         public DateTime CreatedAt { get; set; }
         public string? VerifiedByName { get; set; }
         public string? StatusMessage { get; set; }
-        public string DistrictName { get; set; }
+        public string CommuneName { get; set; }
         public string WardName { get; set; }
         public List<string> Notes { get; set; }
         public List<string> ImageUrls { get; set; }

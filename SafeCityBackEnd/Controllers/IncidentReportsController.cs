@@ -141,12 +141,12 @@ namespace SafeCityBackEnd.Controllers
 
         [HttpGet("officer/filter")]
         [Authorize]
-        public async Task<IActionResult> GetFilteredReportsByOfficer([FromQuery] string? range, [FromQuery] string? status,[FromQuery] string? ward, [FromQuery] bool includeRelated = false)
+        public async Task<IActionResult> GetFilteredReportsByOfficer([FromQuery] string? range, [FromQuery] string? status, [FromQuery] bool includeRelated = false)
         {
             try
             {
                 var officerId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-                var reports = await _reportService.GetFilteredReportsByOfficerAsync(officerId, range, status, ward, includeRelated);
+                var reports = await _reportService.GetFilteredReportsByOfficerAsync(officerId, range, status, includeRelated);
                 return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Filtered reports", reports);
             }
             catch (ArgumentException ex)
