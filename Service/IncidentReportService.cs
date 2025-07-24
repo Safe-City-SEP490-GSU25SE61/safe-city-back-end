@@ -381,7 +381,7 @@ namespace Service
                 VerifiedByName = report.Verifier?.FullName,
                 StatusMessage = report.StatusMessage,
                 UserName = report.IsAnonymous ? null : report.User.FullName,
-                DistrictName = report.Commune?.Name,
+                CommuneName = report.Commune?.Name,
                 Notes = report.Notes.Select(n => $"[{n.CreatedAt:yyyy-MM-dd HH:mm}] {n.Officer.FullName}: {n.Content}").ToList(),
                 ImageUrls = string.IsNullOrEmpty(report.ImageUrls)
                 ? new List<string>()
@@ -430,7 +430,7 @@ namespace Service
             return filtered;
         }
 
-        public async Task<IEnumerable<GroupedReportResponseModel>> GetFilteredReportsByOfficerAsync(Guid officerId, string? range, string? status, string? wardName = null, bool includeRelated = false)
+        public async Task<IEnumerable<GroupedReportResponseModel>> GetFilteredReportsByOfficerAsync(Guid officerId, string? range, string? status, bool includeRelated = false)
         {
             var officer = await _accountRepo.GetByIdAsync(officerId);
             if (officer == null)
@@ -451,6 +451,10 @@ namespace Service
                 if (!ValidStatuses.Contains(status.ToLower()))
                     throw new ArgumentException($"Giá trị 'status' không hợp lệ. Hợp lệ: {string.Join(", ", ValidStatuses)}");
                 allReports = allReports.Where(r => r.Status.Equals(status, StringComparison.OrdinalIgnoreCase)).ToList();
+            }
+            else
+            {
+                allReports = allReports.Where(r => !r.Status.Equals("cancelled", StringComparison.OrdinalIgnoreCase)).ToList();
             }
 
             if (!string.IsNullOrEmpty(range))
