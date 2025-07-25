@@ -32,7 +32,10 @@ namespace Service
             GoogleCredential credential = GoogleCredential.FromFile(filePath);
             var storage = StorageClient.Create(credential);
 
-            var fileName = $"{folder}/{Guid.NewGuid()}_{file.FileName}";
+            var safeFileName = Path.GetFileNameWithoutExtension(file.FileName).Replace(" ", "_");
+            var extension = Path.GetExtension(file.FileName);
+            var fileName = $"{folder}/{Guid.NewGuid()}_{safeFileName}{extension}";
+
             using var stream = file.OpenReadStream();
 
             await storage.UploadObjectAsync(new Google.Apis.Storage.v1.Data.Object

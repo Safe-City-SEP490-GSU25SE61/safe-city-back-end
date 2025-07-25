@@ -119,22 +119,16 @@ namespace SafeCityBackEnd.Controllers
 
         [HttpPost("test")]
         [AllowAnonymous]
-        public async Task<ActionResult<BlogModerationResult>> TestModeration([FromBody]string testContent, BlogType type)
+        public async Task<IActionResult> Test([FromBody] string content, BlogType type)
         {
             try
             {
-                var result = await _blogModerationService.ModerateBlogAsync(testContent, type);
-
-                return Ok(new
-                {
-                    testContent,
-                    moderationResult = result,
-                    timestamp = DateTime.UtcNow
-                });
+                var blogs = await _blogModerationService.ModerateBlogAsync(content, type);
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Get blog history successfully", blogs);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { error = "Internal server error occurred during test" });
+                return BadRequest(new { message = ex.Message });
             }
         }
 

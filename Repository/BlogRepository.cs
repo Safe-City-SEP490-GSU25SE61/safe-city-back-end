@@ -40,7 +40,7 @@ namespace Repository
         public async Task<IEnumerable<BlogResponseDto>> GetVisibleByDistrictAsync(int districtId, Guid currentUserId)
         {
             var blogs = await _context.Set<Blog>()
-                .Where(b => b.DistrictId == districtId && b.IsVisible && b.IsApproved)
+                .Where(b => b.CommuneId == districtId && b.IsVisible && b.IsApproved)
                 .OrderByDescending(b => b.Pinned)
                 .ThenByDescending(b => b.CreatedAt)
                 .Select(b => new BlogResponseDto
@@ -49,7 +49,7 @@ namespace Repository
                     Title = b.Title,
                     Content = b.Content,
                     AuthorName = b.Author.FullName,
-                    DistrictName = b.District.Name,
+                    DistrictName = b.Commune.Name,
                     Pinned = b.Pinned,
                     Type = b.Type,
                     CreatedAt = b.CreatedAt,
@@ -73,7 +73,7 @@ namespace Repository
                     Title = b.Title,
                     Content = b.Content,
                     AuthorName = b.Author.FullName,
-                    DistrictName = b.District.Name,
+                    DistrictName = b.Commune.Name,
                     Pinned = b.Pinned,
                     Type = b.Type,
                     CreatedAt = b.CreatedAt,

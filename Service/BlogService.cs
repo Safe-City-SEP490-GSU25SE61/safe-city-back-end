@@ -86,7 +86,7 @@ namespace Service
                 Title = request.Title,
                 Content = request.Content,
                 Type = request.Type,
-                DistrictId = request.DistrictId,
+                CommuneId = request.DistrictId,
                 AuthorId = authorId,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,

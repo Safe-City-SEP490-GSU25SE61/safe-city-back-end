@@ -45,22 +45,35 @@ namespace Service
 
                         2. **No anti-state content (Không chống phá nhà nước)**: Do not allow any content that criticizes or compares negatively against the Vietnamese government or policies.
 
-                        3. **Positive meaning (Có ý nghĩa tích cực)**: The blog must offer clear, motivational, or socially beneficial ideas. No confusion or negativity.
+                        3. **Positive meaning (Không quá tiêu cực, mang lại giá trị xã hội tích cực)**: The blog should generally provide motivational, informative, or socially beneficial ideas. However, content that reflects real social issues or contains cautious or negative context aimed at warning or educating the public is acceptable, as long as it serves a constructive purpose.
 
                         4. **Type-Specific Requirement**:
                         {{typeExpectations}}
 
-                        Return ONLY strict JSON (no code blocks or markdown):
+                        You must return a JSON object with:
+                        - The approval result.
+                        - A breakdown of the four criteria.
+                        - A short Vietnamese explanation.
+                        - A list of **violating excerpts** from the blog content, organized by paragraph and by which **criteria** it violates.
+
+                        Return ONLY valid strict JSON (no markdown, no explanation, no extra characters). Example:
 
                         {
                           "is_approved": true/false,
                           "criteria": {
-                            "politeness": true/false,
-                            "no_anti_state": true/false,
-                            "positive_meaning": true/false,
-                            "type_requirement": true/false
+                              "politeness": true/false,
+                              "no_anti_state": true/false,
+                              "positive_meaning": true/false,
+                              "type_requirement": true/false
                           },
-                          "reasoning": "Brief explanation in Vietnamese"
+                          "reasoning": "Brief explanation in Vietnamese",
+                          "violations":[
+                                "Việt Nam là đất nước hiếu khách nhưng có nhiều trộm cắp....",
+                                "Nạn bắt cóc xảy ra khá nhiều...",
+                                "Người dân không thích người nước ngoài.",
+                                "Thu nhập thấp, dân nghèo nàn...",
+                                "Không nên làm việc ở đây..."
+                              ]                                                   
                         }
 
                         Here is the blog content to analyze:
@@ -68,8 +81,8 @@ namespace Service
                         """;
 
 
-                var response = await _chat.CompleteChatAsync(prompt);
 
+                var response = await _chat.CompleteChatAsync(prompt);
                 string rawResponse = response.Value.Content[0].Text;
                 _logger.LogInformation("Raw AI Response: {Response}", rawResponse);
 
@@ -79,7 +92,7 @@ namespace Service
                 using var doc = JsonDocument.Parse(json);
                 var root = doc.RootElement;
 
-                return new BlogModerationResult
+                var result = new BlogModerationResult
                 {
                     IsApproved = root.GetProperty("is_approved").GetBoolean(),
                     Politeness = root.GetProperty("criteria").GetProperty("politeness").GetBoolean(),
@@ -88,6 +101,20 @@ namespace Service
                     TypeRequirement = root.GetProperty("criteria").GetProperty("type_requirement").GetBoolean(),
                     Reasoning = root.GetProperty("reasoning").GetString() ?? string.Empty
                 };
+
+                if (root.TryGetProperty("violations", out var violationsElement) &&
+                    violationsElement.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var item in violationsElement.EnumerateArray())
+                    {
+                        if (item.ValueKind == JsonValueKind.String)
+                        {
+                            result.Violations.Add(item.GetString() ?? string.Empty);
+                        }
+                    }
+                }
+
+                return result;
             }
             catch (Exception ex)
             {

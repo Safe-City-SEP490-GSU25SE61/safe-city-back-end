@@ -17,14 +17,10 @@ namespace BusinessObject.DTOs.ResponseModels
         [Range(0, int.MaxValue, ErrorMessage = "Tổng số sự cố báo cáo phải là một số dương.")]
         public int TotalReportedIncidents { get; set; }
 
-        [Range(0, 10, ErrorMessage = "Mức độ nguy hiểm phải nằm trong khoảng từ 0 đến 10.")]
-        public int DangerLevel { get; set; }
-
         [StringLength(500, ErrorMessage = "Ghi chú không được dài hơn 500 ký tự.")]
         public string Note { get; set; }
 
         [StringLength(1000, ErrorMessage = "Dữ liệu Polygon không được dài hơn 1000 ký tự.")]
-        [RegularExpression(@"^\(\([0-9]+\.[0-9]+ [0-9]+\.[0-9]+(, [0-9]+\.[0-9]+ [0-9]+\.[0-9]+)*\)\)$", ErrorMessage = "Dữ liệu Polygon phải theo định dạng hợp lệ.")]
         public string PolygonData { get; set; }
 
 
@@ -37,7 +33,6 @@ namespace BusinessObject.DTOs.ResponseModels
         public int TotalAssignedOfficers { get; set; } 
 
 
-        //public List<WardDTO> Wards { get; set; }
     }
 }
 

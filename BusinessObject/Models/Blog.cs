@@ -21,8 +21,8 @@ namespace BusinessObject.Models
         [Column("author_id")]
         public Guid AuthorId { get; set; }
 
-        [Column("district_id")]
-        public int DistrictId { get; set; }
+        [Column("commune_id")]
+        public int CommuneId { get; set; }
 
         [Column("title")]
         public string Title { get; set; }
@@ -49,7 +49,7 @@ namespace BusinessObject.Models
         public DateTime UpdatedAt { get; set; }
 
         public Account Author { get; set; }
-        public District District { get; set; }
+        public Commune Commune { get; set; }
 
         public ICollection<Comment> Comments { get; set; } = new List<Comment>();
         public ICollection<BlogLike> Likes { get; set; } = new List<BlogLike>();

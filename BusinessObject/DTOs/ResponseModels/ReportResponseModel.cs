@@ -17,11 +17,17 @@ namespace BusinessObject.DTOs.ResponseModels
         public string Address { get; set; }
         public string Status { get; set; }
         public bool IsAnonymous { get; set; }
+        public DateTime OccurredAt { get; set; }
         public DateTime CreatedAt { get; set; }
         public string? VerifiedByName { get; set; }
+        public string? StatusMessage { get; set; }
         public string DistrictName { get; set; }
         public string WardName { get; set; }
         public List<string> Notes { get; set; }
         public List<string> ImageUrls { get; set; }
+        public string? VideoUrl { get; set; }
+        public List<RelatedReportResponseModel>? RelatedReports { get; set; }
+
+
     }
 }

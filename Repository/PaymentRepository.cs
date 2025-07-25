@@ -44,5 +44,12 @@ namespace Repository
                 .OrderByDescending(p => p.PaidAt)
                 .ToListAsync();
         }
+        public async Task<IEnumerable<Payment>> GetAllAsync()
+        {
+            return await _context.Payments
+                .Include(p => p.Subscription).ThenInclude(s => s.Package).Include(p => p.User)
+                .ToListAsync();
+        }
+
     }
 }

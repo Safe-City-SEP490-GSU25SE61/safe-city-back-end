@@ -14,6 +14,8 @@ namespace BusinessObject.DTOs.ResponseModels
         public bool PositiveMeaning { get; set; }
         public bool TypeRequirement { get; set; }
         public string Reasoning { get; set; } = string.Empty;
+        public List<string> Violations { get; set; } = new();
     }
+
 
 }

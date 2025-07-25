@@ -6,21 +6,22 @@ using System.Threading.Tasks;
 
 namespace Repository
 {
-    public class DistrictRepository : GenericRepository<District>, IDistrictRepository
+    public class CommuneRepository : GenericRepository<Commune>, ICommuneRepository
     {
         private readonly AppDbContext _context;
 
-        public DistrictRepository(AppDbContext context) : base(context)
+        public CommuneRepository(AppDbContext context) : base(context)
         {
             _context = context;
         }
-        public async Task<District> GetByNameAsync(string name)
+        public async Task<Commune> GetByNameAsync(string name)
         {
-            return await _context.Districts.FirstOrDefaultAsync(d => d.Name == name);
+            return await _context.Communes
+        .FirstOrDefaultAsync(d => d.Name.ToLower() == name.ToLower());
         }
-        public async Task<IEnumerable<District>> SearchAsync(string name, int? totalReportedIncidents, int? dangerLevel)
+        public async Task<IEnumerable<Commune>> SearchAsync(string name, int? totalReportedIncidents)
         {
-            var query = _context.Districts.AsQueryable();  
+            var query = _context.Communes.AsQueryable();  
 
 
             if (!string.IsNullOrEmpty(name))
@@ -35,10 +36,6 @@ namespace Repository
             }
 
             
-            if (dangerLevel.HasValue)
-            {
-                query = query.Where(d => d.DangerLevel == dangerLevel.Value); 
-            }
 
             return await query.ToListAsync(); 
         }

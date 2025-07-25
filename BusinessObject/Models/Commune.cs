@@ -5,8 +5,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BusinessObject.Models
 {
-    [Table("district")]
-    public class District
+    [Table("commune")]
+    public class Commune
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -18,9 +18,6 @@ namespace BusinessObject.Models
 
         [Column("total_reported_incidents")]
         public int TotalReportedIncidents { get; set; }
-
-        [Column("danger_level")]
-        public int DangerLevel { get; set; }
 
         [Column("create_at")]
         public DateTime CreateAt { get; set; }
@@ -38,7 +35,6 @@ namespace BusinessObject.Models
         public bool IsActive { get; set; }
 
         public ICollection<Account> Accounts { get; set; }
-        public ICollection<Ward> Wards { get; set; }
         public ICollection<IncidentReport> IncidentReports { get; set; }
         public ICollection<Blog> Blogs { get; set; }
     }

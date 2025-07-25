@@ -36,8 +36,8 @@ namespace BusinessObject.Models
         [Column("role_id")]
         public int RoleId { get; set; }     
 
-        [Column("district_id")]
-        public int? DistrictId { get; set; }  
+        [Column("commune_id")]
+        public int? CommuneId { get; set; }  
 
         [Column("created_at")]
         public DateTime CreatedAt { get; set; }
@@ -52,7 +52,7 @@ namespace BusinessObject.Models
         public int ReputationPoint { get; set; } = 3;
 
         [Column("achievement_id")]
-        public int? AchievementId { get; set; } 
+        public int? AchievementId { get; set; }
 
         [Column("is_logged_in")]
         public bool IsLoggedIn { get; set; }
@@ -77,7 +77,7 @@ namespace BusinessObject.Models
 
 
         public Role Role { get; set; }
-        public District? District { get; set; }
+        public Commune? Commune { get; set; }
         public Achievement? Achievement { get; set; }
         public CitizenIdentityCard? CitizenIdentityCard { get; set; }
         public ICollection<Subscription>? Subscriptions { get; set; }

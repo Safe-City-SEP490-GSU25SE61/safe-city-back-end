@@ -11,6 +11,7 @@ namespace BusinessObject.DTOs.ResponseModels
         public DateTime ChangedAt { get; set; }
         public DateTime EffectiveStart { get; set; }     
         public DateTime? EffectiveEnd { get; set; }
+        public DateTime? PackageExpiration { get; set; }
         public List<PackageChangeDetailDTO> Changes { get; set; }
     }
 

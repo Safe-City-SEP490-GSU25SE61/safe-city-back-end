@@ -16,10 +16,10 @@ namespace BusinessObject.Models
         public Guid AccountId { get; set; }
 
         [Column("old_district_id")]
-        public int? OldDistrictId { get; set; }
+        public int? OldCommuneId { get; set; }
 
         [Column("new_district_id")]
-        public int? NewDistrictId { get; set; }
+        public int? NewCommuneId { get; set; }
 
         [Column("changed_at")]
         public DateTime ChangedAt { get; set; }

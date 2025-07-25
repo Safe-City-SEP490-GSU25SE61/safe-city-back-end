@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BusinessObject.Enums;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -15,14 +16,11 @@ namespace BusinessObject.Models
         [Column("user_id")]
         public Guid UserId { get; set; }
 
-        [Column("district_id")]
-        public int? DistrictId { get; set; }
-
-        [Column("ward_id")]
-        public int? WardId { get; set; }
+        [Column("commune_id")]
+        public int? CommuneId { get; set; }
 
         [Column("type")]
-        public string Type { get; set; }  
+        public IncidentType Type { get; set; }  
 
         [Column("description")]
         public string Description { get; set; }
@@ -35,7 +33,8 @@ namespace BusinessObject.Models
 
         [Column("lng")]
         public decimal? Lng { get; set; }
-
+        [Column("occurred_at")]
+        public DateTime OccurredAt { get; set; }
         [Column("is_anonymous")]
         public bool IsAnonymous { get; set; }
 
@@ -47,15 +46,17 @@ namespace BusinessObject.Models
 
         [Column("verified_by")]
         public Guid? VerifiedBy { get; set; }
-
+        [Column("status_message")]
+        public string? StatusMessage { get; set; }
         [Column("image_urls")]
-        public string? ImageUrls { get; set; } 
+        public string? ImageUrls { get; set; }
+        [Column("video_url")]
+        public string? VideoUrl { get; set; }
 
 
         public Account User { get; set; }
         public Account? Verifier { get; set; }
-        public District District { get; set; }
-        public Ward Ward { get; set; }
+        public Commune Commune { get; set; }
         public ICollection<Note> Notes { get; set; }
     }
 }

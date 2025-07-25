@@ -16,18 +16,18 @@ using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.Builder.Extensions;
 using FirebaseAdmin;
 using Microsoft.Extensions.FileProviders;
+using MediatR;
+using BusinessObject.Events;
+using Service.EventHandlers;
 using System.Text.Json.Serialization;
-using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddScoped<IGenericRepository<District>, GenericRepository<District>>();
-builder.Services.AddScoped<IGenericRepository<Ward>, GenericRepository<Ward>>();
-builder.Services.AddScoped<IDistrictRepository, DistrictRepository>();
-builder.Services.AddScoped<IWardRepository, WardRepository>();
+builder.Services.AddScoped<IGenericRepository<Commune>, GenericRepository<Commune>>();
+builder.Services.AddScoped<ICommuneRepository, CommuneRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
@@ -42,8 +42,7 @@ builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<IBlogService, BlogService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
-builder.Services.AddScoped<IDistrictService, DistrictService>();
-builder.Services.AddScoped<IWardService, WardService>();
+builder.Services.AddScoped<ICommuneService, CommuneService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IMailService, MailService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
@@ -69,6 +68,12 @@ var firebasePath = builder.Configuration["Firebase:CredentialPath"];
 FirebaseApp.Create(new AppOptions()
 {
     Credential = GoogleCredential.FromFile(firebasePath)
+});
+
+builder.Services.AddMediatR(cfg =>
+{
+    cfg.RegisterServicesFromAssembly(typeof(PointChangedEvent).Assembly);
+    cfg.RegisterServicesFromAssembly(typeof(AchievementCheckerHandler).Assembly);
 });
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
@@ -151,6 +156,7 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Safe City API", Version = "v1" });
     c.TagActionsBy(api => new[] { api.GroupName });
+    c.UseInlineDefinitionsForEnums();
     c.DocInclusionPredicate((name, api) => true);
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {

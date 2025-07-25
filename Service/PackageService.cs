@@ -3,6 +3,7 @@ using BusinessObject.DTOs.ResponseModels;
 using BusinessObject.Models;
 using Repository;
 using Repository.Interfaces;
+using Service.Helpers;
 using Service.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -36,8 +37,8 @@ namespace Service
                 Price = p.Price,
                 DurationDays = p.DurationDays,
                 Color = p.Color,
-                CreateAt = p.CreateAt,
-                LastUpdated = p.LastUpdated,
+                CreateAt = DateTimeHelper.ToVietnamTime(p.CreateAt),
+                LastUpdated = DateTimeHelper.ToVietnamTime(p.LastUpdated),
                 IsActive = p.IsActive
             }).ToList();
         }
@@ -59,8 +60,8 @@ namespace Service
                 Price = package.Price,
                 DurationDays = package.DurationDays,
                 Color = package.Color,
-                CreateAt = package.CreateAt,
-                LastUpdated = package.LastUpdated,
+                CreateAt = DateTimeHelper.ToVietnamTime(package.CreateAt),
+                LastUpdated = DateTimeHelper.ToVietnamTime(package.LastUpdated),
                 IsActive = package.IsActive
             };
         }
@@ -163,7 +164,7 @@ namespace Service
 
             var grouped = history
                 .GroupBy(h => h.ChangedAt)
-                .OrderBy(g => g.Key) 
+                .OrderBy(g => g.Key)
                 .ToList();
 
             var result = new List<GroupedPackageChangeDTO>();
@@ -173,11 +174,17 @@ namespace Service
                 var current = grouped[i];
                 var next = i < grouped.Count - 1 ? grouped[i + 1].Key : (DateTime?)null;
 
+                var durationChange = current.FirstOrDefault(c => c.FieldName == "DurationDays");
+                int? durationDays = durationChange != null ? int.Parse(durationChange.NewValue) : null;
+
                 result.Add(new GroupedPackageChangeDTO
                 {
-                    ChangedAt = current.Key,
-                    EffectiveStart = current.Key,
-                    EffectiveEnd = next,
+                    ChangedAt = DateTimeHelper.ToVietnamTime(current.Key),
+                    EffectiveStart = DateTimeHelper.ToVietnamTime(current.Key),
+                    EffectiveEnd = next.HasValue ? DateTimeHelper.ToVietnamTime(next.Value) : null,
+                    PackageExpiration = durationDays.HasValue
+                ? DateTimeHelper.ToVietnamTime(current.Key.AddDays(durationDays.Value))
+                : null,
                     Changes = current.Select(c => new PackageChangeDetailDTO
                     {
                         FieldName = c.FieldName,
@@ -190,6 +197,7 @@ namespace Service
 
             return result.OrderByDescending(r => r.ChangedAt);
         }
+
         private string GetDisplayNameFromField<T>(string fieldName)
         {
             var prop = typeof(T).GetProperty(fieldName);

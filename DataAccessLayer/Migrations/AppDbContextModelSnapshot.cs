@@ -17,7 +17,7 @@ namespace DataAccessLayer.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.16")
+                .HasAnnotation("ProductVersion", "8.0.17")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -41,6 +41,10 @@ namespace DataAccessLayer.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("code_expiry");
 
+                    b.Property<int?>("CommuneId")
+                        .HasColumnType("integer")
+                        .HasColumnName("commune_id");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -52,10 +56,6 @@ namespace DataAccessLayer.Migrations
                     b.Property<string>("DeviceId")
                         .HasColumnType("text")
                         .HasColumnName("device_id");
-
-                    b.Property<int?>("DistrictId")
-                        .HasColumnType("integer")
-                        .HasColumnName("district_id");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -102,7 +102,9 @@ namespace DataAccessLayer.Migrations
                         .HasColumnName("refresh_token_expiry");
 
                     b.Property<int>("ReputationPoint")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
+                        .HasDefaultValue(3)
                         .HasColumnName("reputation_point");
 
                     b.Property<int>("RoleId")
@@ -122,7 +124,7 @@ namespace DataAccessLayer.Migrations
 
                     b.HasIndex("AchievementId");
 
-                    b.HasIndex("DistrictId");
+                    b.HasIndex("CommuneId");
 
                     b.HasIndex("RoleId");
 
@@ -187,11 +189,11 @@ namespace DataAccessLayer.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("changed_at");
 
-                    b.Property<int?>("NewDistrictId")
+                    b.Property<int?>("NewCommuneId")
                         .HasColumnType("integer")
                         .HasColumnName("new_district_id");
 
-                    b.Property<int?>("OldDistrictId")
+                    b.Property<int?>("OldCommuneId")
                         .HasColumnType("integer")
                         .HasColumnName("old_district_id");
 
@@ -442,7 +444,7 @@ namespace DataAccessLayer.Migrations
                     b.ToTable("comment");
                 });
 
-            modelBuilder.Entity("BusinessObject.Models.District", b =>
+            modelBuilder.Entity("BusinessObject.Models.Commune", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -454,10 +456,6 @@ namespace DataAccessLayer.Migrations
                     b.Property<DateTime>("CreateAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("create_at");
-
-                    b.Property<int>("DangerLevel")
-                        .HasColumnType("integer")
-                        .HasColumnName("danger_level");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean")
@@ -488,7 +486,7 @@ namespace DataAccessLayer.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("district");
+                    b.ToTable("commune");
                 });
 
             modelBuilder.Entity("BusinessObject.Models.IncidentReport", b =>
@@ -502,6 +500,10 @@ namespace DataAccessLayer.Migrations
                         .HasColumnType("text")
                         .HasColumnName("address");
 
+                    b.Property<int?>("CommuneId")
+                        .HasColumnType("integer")
+                        .HasColumnName("commune_id");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -510,10 +512,6 @@ namespace DataAccessLayer.Migrations
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("description");
-
-                    b.Property<int?>("DistrictId")
-                        .HasColumnType("integer")
-                        .HasColumnName("district_id");
 
                     b.Property<string>("ImageUrls")
                         .HasColumnType("text")
@@ -531,10 +529,18 @@ namespace DataAccessLayer.Migrations
                         .HasColumnType("numeric")
                         .HasColumnName("lng");
 
+                    b.Property<DateTime>("OccurredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("occurred_at");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("status");
+
+                    b.Property<string>("StatusMessage")
+                        .HasColumnType("text")
+                        .HasColumnName("status_message");
 
                     b.Property<string>("Type")
                         .IsRequired()
@@ -549,19 +555,17 @@ namespace DataAccessLayer.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("verified_by");
 
-                    b.Property<int?>("WardId")
-                        .HasColumnType("integer")
-                        .HasColumnName("ward_id");
+                    b.Property<string>("VideoUrl")
+                        .HasColumnType("text")
+                        .HasColumnName("video_url");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DistrictId");
+                    b.HasIndex("CommuneId");
 
                     b.HasIndex("UserId");
 
                     b.HasIndex("VerifiedBy");
-
-                    b.HasIndex("WardId");
 
                     b.ToTable("incident_report");
                 });
@@ -891,61 +895,6 @@ namespace DataAccessLayer.Migrations
                     b.ToTable("subscription");
                 });
 
-            modelBuilder.Entity("BusinessObject.Models.Ward", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreateAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("create_at");
-
-                    b.Property<int>("DangerLevel")
-                        .HasColumnType("integer")
-                        .HasColumnName("danger_level");
-
-                    b.Property<int>("DistrictId")
-                        .HasColumnType("integer")
-                        .HasColumnName("district_id");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_active");
-
-                    b.Property<DateTime>("LastUpdated")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_updated");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("name");
-
-                    b.Property<string>("Note")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("note");
-
-                    b.Property<string>("PolygonData")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("polygon_data");
-
-                    b.Property<int>("TotalReportedIncidents")
-                        .HasColumnType("integer")
-                        .HasColumnName("total_reported_incidents");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DistrictId");
-
-                    b.ToTable("ward");
-                });
-
             modelBuilder.Entity("BusinessObject.Models.Account", b =>
                 {
                     b.HasOne("BusinessObject.Models.Achievement", "Achievement")
@@ -953,9 +902,9 @@ namespace DataAccessLayer.Migrations
                         .HasForeignKey("AchievementId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("BusinessObject.Models.District", "District")
+                    b.HasOne("BusinessObject.Models.Commune", "Commune")
                         .WithMany("Accounts")
-                        .HasForeignKey("DistrictId")
+                        .HasForeignKey("CommuneId")
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("BusinessObject.Models.Role", "Role")
@@ -966,7 +915,7 @@ namespace DataAccessLayer.Migrations
 
                     b.Navigation("Achievement");
 
-                    b.Navigation("District");
+                    b.Navigation("Commune");
 
                     b.Navigation("Role");
                 });
@@ -1051,9 +1000,9 @@ namespace DataAccessLayer.Migrations
 
             modelBuilder.Entity("BusinessObject.Models.IncidentReport", b =>
                 {
-                    b.HasOne("BusinessObject.Models.District", "District")
+                    b.HasOne("BusinessObject.Models.Commune", "Commune")
                         .WithMany("IncidentReports")
-                        .HasForeignKey("DistrictId")
+                        .HasForeignKey("CommuneId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("BusinessObject.Models.Account", "User")
@@ -1067,18 +1016,11 @@ namespace DataAccessLayer.Migrations
                         .HasForeignKey("VerifiedBy")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("BusinessObject.Models.Ward", "Ward")
-                        .WithMany("IncidentReports")
-                        .HasForeignKey("WardId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("District");
+                    b.Navigation("Commune");
 
                     b.Navigation("User");
 
                     b.Navigation("Verifier");
-
-                    b.Navigation("Ward");
                 });
 
             modelBuilder.Entity("BusinessObject.Models.Note", b =>
@@ -1149,17 +1091,6 @@ namespace DataAccessLayer.Migrations
                     b.Navigation("Package");
                 });
 
-            modelBuilder.Entity("BusinessObject.Models.Ward", b =>
-                {
-                    b.HasOne("BusinessObject.Models.District", "District")
-                        .WithMany("Wards")
-                        .HasForeignKey("DistrictId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("District");
-                });
-
             modelBuilder.Entity("BusinessObject.Models.Account", b =>
                 {
                     b.Navigation("BlogLikes");
@@ -1195,15 +1126,13 @@ namespace DataAccessLayer.Migrations
                     b.Navigation("Media");
                 });
 
-            modelBuilder.Entity("BusinessObject.Models.District", b =>
+            modelBuilder.Entity("BusinessObject.Models.Commune", b =>
                 {
                     b.Navigation("Accounts");
 
                     b.Navigation("Blogs");
 
                     b.Navigation("IncidentReports");
-
-                    b.Navigation("Wards");
                 });
 
             modelBuilder.Entity("BusinessObject.Models.IncidentReport", b =>
@@ -1230,11 +1159,6 @@ namespace DataAccessLayer.Migrations
             modelBuilder.Entity("BusinessObject.Models.Subscription", b =>
                 {
                     b.Navigation("Payment");
-                });
-
-            modelBuilder.Entity("BusinessObject.Models.Ward", b =>
-                {
-                    b.Navigation("IncidentReports");
                 });
 #pragma warning restore 612, 618
         }

@@ -8,79 +8,66 @@ using BusinessObject.DTOs;
 using Repository.Repositories;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Repository;
+using Service.Helpers;
 
 namespace Service
 {
-    public class DistrictService : IDistrictService
+    public class CommuneService : ICommuneService
     {
-        private readonly IDistrictRepository _districtRepository;
+        private readonly ICommuneRepository _communeRepository;
         private readonly IAccountRepository _accountRepository;
-        private readonly IWardRepository _wardRepository;
         private readonly IAssignOfficerHistoryRepository _assignOfficerHistoryRepository;
 
-        public DistrictService(IDistrictRepository districtRepository, IAccountRepository accountRepository, IWardRepository wardRepository, IAssignOfficerHistoryRepository assignOfficerHistoryRepository)
+        public CommuneService(ICommuneRepository districtRepository, IAccountRepository accountRepository, IAssignOfficerHistoryRepository assignOfficerHistoryRepository)
         {
-            _districtRepository = districtRepository;
+            _communeRepository = districtRepository;
             _accountRepository = accountRepository;
-            _wardRepository = wardRepository;
             _assignOfficerHistoryRepository = assignOfficerHistoryRepository;
         }
 
 
         public async Task<IEnumerable<DistrictDTO>> GetAllAsync()
         {
-            var districts = await _districtRepository.GetAllAsync();
-            var allWards = await _wardRepository.GetAllAsync();
+            var districts = await _communeRepository.GetAllAsync();
             var allAccounts = await _accountRepository.GetAllAsync();
             return districts.Select(d => new DistrictDTO
             {
                 Id = d.Id,
                 Name = d.Name,
                 TotalReportedIncidents = d.TotalReportedIncidents,
-                DangerLevel = d.DangerLevel,
                 Note = d.Note,
                 PolygonData = d.PolygonData,
-                CreateAt = d.CreateAt,
-                LastUpdated = d.LastUpdated,
+                CreateAt = DateTimeHelper.ToVietnamTime(d.CreateAt),
+                LastUpdated = DateTimeHelper.ToVietnamTime(d.LastUpdated),
                 IsActive = d.IsActive,
-                WardNames = allWards
-                    .Where(w => w.DistrictId == d.Id && w.IsActive)
-                    .Select(w => w.Name)
-                    .ToList(),  
                 TotalAssignedOfficers = allAccounts
-            .Count(a => a.DistrictId == d.Id && a.RoleId == 3 && a.Status == "active")
+            .Count(a => a.CommuneId == d.Id && a.RoleId == 3 && a.Status == "active")
             }).ToList();
         }
 
         public async Task<DistrictDTO> GetByIdAsync(int id)
         {
-            var district = await _districtRepository.GetByIdAsync(id);
+            var district = await _communeRepository.GetByIdAsync(id);
             if (district == null) return null;
 
-            var allWards = await _wardRepository.GetAllAsync();
             var allAccounts = await _accountRepository.GetAllAsync();
 
-            var wardNames = allWards
-                .Where(w => w.DistrictId == district.Id && w.IsActive)
-                .Select(w => w.Name)
-                .ToList();
+
 
             var totalOfficers = allAccounts
-                .Count(a => a.DistrictId == district.Id && a.RoleId == 3 && a.Status == "active");
+                .Count(a => a.CommuneId == district.Id && a.RoleId == 3 && a.Status == "active");
 
             return new DistrictDTO
             {
                 Id = district.Id,
                 Name = district.Name,
                 TotalReportedIncidents = district.TotalReportedIncidents,
-                DangerLevel = district.DangerLevel,
                 Note = district.Note,
                 PolygonData = district.PolygonData,
-                CreateAt = district.CreateAt,
-                LastUpdated = district.LastUpdated,
+                CreateAt = DateTimeHelper.ToVietnamTime(district.CreateAt),
+                LastUpdated = DateTimeHelper.ToVietnamTime(district.LastUpdated),
                 IsActive = district.IsActive,
 
-                WardNames = wardNames,
                 TotalAssignedOfficers = totalOfficers
             };
         }
@@ -88,11 +75,10 @@ namespace Service
 
         public async Task<int> CreateAsync(CreateDistrictDTO createDistrictDTO)
         {
-            var district = new District
+            var district = new Commune
             {
                 Name = createDistrictDTO.Name,
-                TotalReportedIncidents = 0,  
-                DangerLevel = 0,  
+                TotalReportedIncidents = 0,   
                 Note = createDistrictDTO.Note,
                 PolygonData = createDistrictDTO.PolygonData,
                 CreateAt = DateTime.UtcNow,  
@@ -100,14 +86,14 @@ namespace Service
                 IsActive = true  
             };
 
-            await _districtRepository.CreateAsync(district);
+            await _communeRepository.CreateAsync(district);
 
             return district.Id;
         }
 
         public async Task UpdateAsync(int id, CreateDistrictDTO districtDTO)
         {
-            var district = await _districtRepository.GetByIdAsync(id);
+            var district = await _communeRepository.GetByIdAsync(id);
             if (district == null)
                 throw new KeyNotFoundException("Quận không tồn tại");
             if (!district.IsActive)
@@ -115,31 +101,30 @@ namespace Service
             
             district.Name = districtDTO.Name;
             district.TotalReportedIncidents = 0;  
-            district.DangerLevel = 0;  
             district.Note = districtDTO.Note;
             district.PolygonData = districtDTO.PolygonData;
             district.LastUpdated = DateTime.UtcNow;
 
-            await _districtRepository.UpdateAsync(district);
+            await _communeRepository.UpdateAsync(district);
         }
 
         public async Task DeleteAsync(int id)
         {
-            var district = await _districtRepository.GetByIdAsync(id);
+            var district = await _communeRepository.GetByIdAsync(id);
             if (district == null)
                 throw new KeyNotFoundException("Quận không tồn tại");
             if (!district.IsActive)
                 throw new InvalidOperationException("Quận đã xóa trước đó.");
 
             district.IsActive = false;  
-            await _districtRepository.UpdateAsync(district);
+            await _communeRepository.UpdateAsync(district);
         }
 
 
         public async Task<bool> AssignDistrictToOfficerAsync(Guid accountId, int districtId)
         {
             
-            var district = await _districtRepository.GetByIdAsync(districtId);
+            var district = await _communeRepository.GetByIdAsync(districtId);
             if (district == null || !district.IsActive)
             {
                 throw new KeyNotFoundException("Quận không tìm thấy hoặc đã bị vô hiệu hóa.");
@@ -152,7 +137,7 @@ namespace Service
                 throw new InvalidOperationException("Tài khoản không tìm thấy hoặc không phải là officer.");
             }
 
-            var oldDistrictId = account.DistrictId;
+            var oldDistrictId = account.CommuneId;
 
 
             if (oldDistrictId != districtId)
@@ -162,51 +147,52 @@ namespace Service
                 var log = new AssignOfficerHistory
                 {
                     AccountId = account.Id,
-                    OldDistrictId = oldDistrictId,
-                    NewDistrictId = districtId,
+                    OldCommuneId = oldDistrictId,
+                    NewCommuneId = districtId,
                     ChangedAt = changedAt
                 };
 
                 await _assignOfficerHistoryRepository.CreateAsync(log);
             }
 
-            account.DistrictId = districtId;
+            account.CommuneId = districtId;
             await _accountRepository.UpdateOfficerAsync(account);
 
             return true; 
         }
-        public async Task<IEnumerable<DistrictDTO>> SearchAsync(string? name, int? totalReportedIncidents, int? dangerLevel)
+        public async Task<IEnumerable<DistrictDTO>> SearchAsync(string? name, int? totalReportedIncidents)
         {
-            var districts = await _districtRepository.SearchAsync(name, totalReportedIncidents, dangerLevel);
+            var communes = await _communeRepository.SearchAsync(name, totalReportedIncidents);
 
-            return districts.Select(d => new DistrictDTO
+            return communes.Select(d => new DistrictDTO
             {
                 Id = d.Id,
                 Name = d.Name,
                 TotalReportedIncidents = d.TotalReportedIncidents,
-                DangerLevel = d.DangerLevel,
                 Note = d.Note,
-                PolygonData = d.PolygonData
+                PolygonData = d.PolygonData,
+                CreateAt = DateTimeHelper.ToVietnamTime(d.CreateAt),
+                LastUpdated = DateTimeHelper.ToVietnamTime(d.LastUpdated)
             }).ToList();
         }
         public async Task<IEnumerable<GroupedAssignOfficerChangeDTO>> GetHistoryByAccountIdAsync(Guid accountId)
         {
             var history = await _assignOfficerHistoryRepository.GetByAccountIdAsync(accountId);
-            var allDistricts = await _districtRepository.GetAllAsync();
+            var allCommunes = await _communeRepository.GetAllAsync();
 
             string GetDistrictName(int? id) =>
-            id == null ? "Chưa được phân công" : allDistricts.FirstOrDefault(d => d.Id == id)?.Name ?? "Không xác định";
+            id == null ? "Chưa được phân công" : allCommunes.FirstOrDefault(d => d.Id == id)?.Name ?? "Không xác định";
 
 
             return history
                 .GroupBy(h => h.ChangedAt)
                 .Select(g => new GroupedAssignOfficerChangeDTO
                 {
-                    ChangedAt = g.Key,
+                    ChangedAt = DateTimeHelper.ToVietnamTime(g.Key),
                     Changes = g.Select(h => new AssignOfficerChangeDTO
                     {
-                        OldDistrictName = GetDistrictName(h.OldDistrictId),
-                        NewDistrictName = GetDistrictName(h.NewDistrictId)
+                        OldCommuneName = GetDistrictName(h.OldCommuneId),
+                        NewCommuneName = GetDistrictName(h.NewCommuneId)
                     }).ToList()
                 })
                 .OrderByDescending(x => x.ChangedAt)
@@ -219,18 +205,18 @@ namespace Service
             if (account == null || account.RoleId != 3)
                 throw new InvalidOperationException("Tài khoản không tồn tại hoặc không phải là officer.");
 
-            if (account.DistrictId == null)
+            if (account.CommuneId == null)
                 return false;
 
             var log = new AssignOfficerHistory
             {
                 AccountId = account.Id,
-                OldDistrictId = account.DistrictId,
-                NewDistrictId = null, 
+                OldCommuneId = account.CommuneId,
+                NewCommuneId = null, 
                 ChangedAt = DateTime.UtcNow
             };
 
-            account.DistrictId = null;
+            account.CommuneId = null;
             await _accountRepository.UpdateOfficerAsync(account);
             await _assignOfficerHistoryRepository.CreateAsync(log);
 

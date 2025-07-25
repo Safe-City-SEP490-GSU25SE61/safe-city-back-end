@@ -15,5 +15,7 @@ namespace Service.Interfaces
         Task<PaymentStatusResponse?> GetPaymentStatusAsync(string orderCode);
         Task ConfirmWebhookAsync(string webhookUrl);
         Task<IEnumerable<PaymentHistoryResponseModel>> GetUserPaymentHistoryAsync(Guid userId);
+        Task<IEnumerable<AdminPaymentHistoryResponseModel>> GetAllPaymentHistoryForAdminAsync();
+
     }
 }
