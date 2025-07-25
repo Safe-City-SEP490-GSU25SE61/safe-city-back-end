@@ -27,6 +27,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<IGenericRepository<Commune>, GenericRepository<Commune>>();
+builder.Services.AddScoped<IProvinceRepository, ProvinceRepository>();
 builder.Services.AddScoped<ICommuneRepository, CommuneRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -40,6 +41,7 @@ builder.Services.AddScoped<IBlogLikeRepository, BlogLikeRepository>();
 builder.Services.AddScoped<IBlogMediaRepository, BlogMediaRepository>();
 builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 builder.Services.AddScoped<IBlogModerationRepository, BlogModerationRepository>();
+builder.Services.AddScoped<IProvinceService, ProvinceService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<IBlogService, BlogService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
