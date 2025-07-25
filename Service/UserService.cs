@@ -53,6 +53,7 @@ public class UserService : IUserService
             PlaceOfIssue = user.CitizenIdentityCard.PlaceOfIssue,
             PlaceOfBirth = user.CitizenIdentityCard.PlaceOfBirth,
             TotalPoint = user.TotalPoint,
+            ReputationPoint = user.ReputationPoint,
             CurrentSubscription = await _subscriptionRepository.GetCurrentSubscriptionAsync(user),
             AchievementName = user.Achievement != null ? user.Achievement.Name : "Unrank"
         };

@@ -46,12 +46,13 @@ namespace BusinessObject.Models
         public string? DeviceId { get; set; }  
 
         [Column("total_point")]
-        public int TotalPoint { get; set; } 
+        public int TotalPoint { get; set; }
+
+        [Column("reputation_point")]
+        public int ReputationPoint { get; set; } = 3;
 
         [Column("achievement_id")]
         public int? AchievementId { get; set; }
-        [Column("reputation_point")]
-        public int ReputationPoint { get; set; } = 3; 
 
         [Column("is_logged_in")]
         public bool IsLoggedIn { get; set; }
@@ -84,6 +85,8 @@ namespace BusinessObject.Models
         public ICollection<IncidentReport> IncidentReports { get; set; }
         public ICollection<IncidentReport> VerifiedIncidentReports { get; set; }
         public ICollection<Note> Notes { get; set; }
-
+        public ICollection<Blog> Blogs { get; set; }
+        public ICollection<Comment> Comments { get; set; }
+        public ICollection<BlogLike> BlogLikes { get; set; }
     }
 }

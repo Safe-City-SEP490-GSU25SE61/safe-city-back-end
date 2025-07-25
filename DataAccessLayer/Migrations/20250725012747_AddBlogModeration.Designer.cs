@@ -3,6 +3,7 @@ using System;
 using DataAccessLayer.DataContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DataAccessLayer.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250725012747_AddBlogModeration")]
+    partial class AddBlogModeration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -384,8 +387,7 @@ namespace DataAccessLayer.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BlogId")
-                        .IsUnique();
+                    b.HasIndex("BlogId");
 
                     b.ToTable("blog_moderation");
                 });
@@ -1026,8 +1028,8 @@ namespace DataAccessLayer.Migrations
             modelBuilder.Entity("BusinessObject.Models.BlogModeration", b =>
                 {
                     b.HasOne("BusinessObject.Models.Blog", "Blog")
-                        .WithOne("Moderation")
-                        .HasForeignKey("BusinessObject.Models.BlogModeration", "BlogId")
+                        .WithMany()
+                        .HasForeignKey("BlogId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1189,9 +1191,6 @@ namespace DataAccessLayer.Migrations
                     b.Navigation("Likes");
 
                     b.Navigation("Media");
-
-                    b.Navigation("Moderation")
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("BusinessObject.Models.Commune", b =>

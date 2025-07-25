@@ -16,6 +16,7 @@ public class UserProfileResponseModel
     public string PlaceOfIssue { get; set; }
     public string PlaceOfBirth { get; set; }
     public int TotalPoint { get; set; }
+    public int ReputationPoint { get; set; }
     public CurrentSubscriptionResponseModel? CurrentSubscription { get; set; }
     public string AchievementName { get; set; }
 }

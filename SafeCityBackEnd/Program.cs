@@ -35,6 +35,13 @@ builder.Services.AddScoped<IIdentityCardRepository, IdentityCardRepository>();
 builder.Services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IPayosTransactionRepository, PayosTransactionRepository>();
+builder.Services.AddScoped<IBlogRepository, BlogRepository>();
+builder.Services.AddScoped<IBlogLikeRepository, BlogLikeRepository>();
+builder.Services.AddScoped<IBlogMediaRepository, BlogMediaRepository>();
+builder.Services.AddScoped<ICommentRepository, CommentRepository>();
+builder.Services.AddScoped<IBlogModerationRepository, BlogModerationRepository>();
+builder.Services.AddScoped<ICommentService, CommentService>();
+builder.Services.AddScoped<IBlogService, BlogService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<ICommuneService, CommuneService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -71,6 +78,22 @@ builder.Services.AddMediatR(cfg =>
 });
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+builder.Services.AddSingleton<BlogModerationService>(provider =>
+{
+    var logger = provider.GetRequiredService<ILogger<BlogModerationService>>();
+    var config = provider.GetRequiredService<IConfiguration>();
+
+    var apiKey = config["OpenAI:ApiKey"] ?? Environment.GetEnvironmentVariable("OPENAI_API_KEY");
+
+    if (string.IsNullOrEmpty(apiKey))
+    {
+        throw new InvalidOperationException("OpenAI API key not found in configuration or environment variables");
+    }
+
+    return new BlogModerationService(apiKey, logger);
+});
+
 
 builder.Services.AddControllers()
     .ConfigureApiBehaviorOptions(options =>
