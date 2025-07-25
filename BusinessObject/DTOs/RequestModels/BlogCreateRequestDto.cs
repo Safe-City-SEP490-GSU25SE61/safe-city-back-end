@@ -24,8 +24,8 @@ namespace BusinessObject.DTOs.RequestModels
         [Required(ErrorMessage = "Type is required.")]
         public BlogType Type { get; set; }
 
-        [Required(ErrorMessage = "District is required.")]
-        public int DistrictId { get; set; }
+        [Required(ErrorMessage = "Commune is required.")]
+        public int CommuneId { get; set; }
         public List<IFormFile>? MediaFiles { get; set; }
     }
 }

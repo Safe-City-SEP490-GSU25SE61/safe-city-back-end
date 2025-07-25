@@ -25,10 +25,11 @@ namespace Repository
             return await _context.Set<Blog>().FindAsync(id);
         }
 
-        public async Task AddAsync(Blog blog)
+        public async Task<int> AddAsync(Blog blog)
         {
-            _context.Set<Blog>().Add(blog);
+            _context.Blogs.Add(blog);
             await _context.SaveChangesAsync();
+            return blog.Id;
         }
 
         public async Task UpdateAsync(Blog blog)
@@ -37,7 +38,7 @@ namespace Repository
             await _context.SaveChangesAsync();
         }
 
-        public async Task<IEnumerable<BlogResponseDto>> GetVisibleByDistrictAsync(int districtId, Guid currentUserId)
+        public async Task<IEnumerable<BlogResponseDto>> GetVisibleByCommuneAsync(int districtId, Guid currentUserId)
         {
             var blogs = await _context.Set<Blog>()
                 .Where(b => b.CommuneId == districtId && b.IsVisible && b.IsApproved)
@@ -49,7 +50,7 @@ namespace Repository
                     Title = b.Title,
                     Content = b.Content,
                     AuthorName = b.Author.FullName,
-                    DistrictName = b.Commune.Name,
+                    CommuneName = b.Commune.Name,
                     Pinned = b.Pinned,
                     Type = b.Type,
                     CreatedAt = b.CreatedAt,
@@ -73,7 +74,7 @@ namespace Repository
                     Title = b.Title,
                     Content = b.Content,
                     AuthorName = b.Author.FullName,
-                    DistrictName = b.Commune.Name,
+                    CommuneName = b.Commune.Name,
                     Pinned = b.Pinned,
                     Type = b.Type,
                     CreatedAt = b.CreatedAt,
@@ -82,6 +83,30 @@ namespace Repository
                     IsLike = b.Likes.Any(l => l.UserId == userId)
                 })
                 .ToListAsync();
+        }
+
+        public async Task<IEnumerable<BlogResponseForOfficerDto>> GetBlogsForOfficerAsync(int communeId)
+        {
+            var blogs = await _context.Set<Blog>()
+                .Where(b => b.CommuneId == communeId)
+                .OrderByDescending(b => b.CreatedAt)
+                .Select(b => new BlogResponseForOfficerDto
+                {
+                    Id = b.Id,
+                    Title = b.Title,
+                    Content = b.Content,
+                    AuthorName = b.Author.FullName,
+                    CommuneName = b.Commune.Name,
+                    Pinned = b.Pinned,
+                    Type = b.Type,
+                    CreatedAt = b.CreatedAt,
+                    TotalLike = b.Likes.Count,
+                    TotalComment = b.Comments.Count,
+                    BlogModeration = b.Moderation,
+                })
+                .ToListAsync();
+
+            return blogs;
         }
     }
 

@@ -14,8 +14,9 @@ namespace Service.Interfaces
         Task ApproveBlogAsync(int blogId, bool isApproved, bool isPinned);
         Task TogglePinnedAsync(int blogId, bool pinned);
         Task<BlogResponseDto> CreateBlogAsync(BlogCreateRequestDto request, Guid authorId);
-        Task<IEnumerable<BlogResponseDto>> GetBlogsByDistrictAsync(int districtId, Guid currentUserId);
+        Task<IEnumerable<BlogResponseDto>> GetBlogsByCommuneAsync(int districtId, Guid currentUserId);
         Task<IEnumerable<BlogResponseDto>> GetCreatedBlogsByUserAsync(Guid userId);
+        Task<IEnumerable<BlogResponseForOfficerDto>> GetBlogsForOfficerAsync(Guid userId);
     }
 
 }

@@ -1,4 +1,5 @@
 ﻿using BusinessObject.DTOs.Enums;
+using BusinessObject.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,11 +17,26 @@ namespace BusinessObject.DTOs.ResponseModels
         public string AuthorName { get; set; }
         public DateTime CreatedAt { get; set; }
         public bool Pinned { get; set; }
-        public string DistrictName { get; set; }
+        public string CommuneName { get; set; }
         public List<string> MediaUrls { get; set; }
         public int TotalLike { get; set; }
         public int TotalComment { get; set; }
-        public bool IsLike { get; set; } //Is the user like this blog
+        public bool IsLike { get; set; }
     }
 
+    public class BlogResponseForOfficerDto
+    {
+        public int Id { get; set; }
+        public string Title { get; set; }
+        public string Content { get; set; }
+        public BlogType Type { get; set; }
+        public string AuthorName { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public bool Pinned { get; set; }
+        public string CommuneName { get; set; }
+        public List<string> MediaUrls { get; set; }
+        public int TotalLike { get; set; }
+        public int TotalComment { get; set; }
+        public BlogModeration BlogModeration { get; set; }
+    }
 }

@@ -171,9 +171,9 @@ namespace DataAccessLayer.DataContext
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Blog>()
-                .HasMany<BlogModeration>()
-                .WithOne(bm => bm.Blog)
-                .HasForeignKey(bm => bm.BlogId)
+                .HasOne(b => b.Moderation)
+                .WithOne(m => m.Blog)
+                .HasForeignKey<BlogModeration>(m => m.BlogId)
                 .OnDelete(DeleteBehavior.Cascade);
 
 

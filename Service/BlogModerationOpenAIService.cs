@@ -17,7 +17,7 @@ namespace Service
             _logger = logger;
         }
 
-        public async Task<BlogModerationResult> ModerateBlogAsync(string blogContent, BlogType blogType)
+        public async Task<BlogModerationResult> ModerateBlogAsync(string title, string blogContent, BlogType blogType)
         {
             try
             {
@@ -75,7 +75,8 @@ namespace Service
                                 "Không nên làm việc ở đây..."
                               ]                                                   
                         }
-
+                        Here is the blog title to analyze:
+                        {{title}}
                         Here is the blog content to analyze:
                         {{blogContent}}
                         """;

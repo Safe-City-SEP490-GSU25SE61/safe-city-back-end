@@ -11,10 +11,11 @@ namespace Repository.Interfaces
     public interface IBlogRepository
     {
         Task<Blog?> GetByIdAsync(int id);
-        Task AddAsync(Blog blog);
+        Task<int> AddAsync(Blog blog);
         Task UpdateAsync(Blog blog);
-        Task<IEnumerable<BlogResponseDto>> GetVisibleByDistrictAsync(int districtId, Guid currentUserId);
+        Task<IEnumerable<BlogResponseDto>> GetVisibleByCommuneAsync(int districtId, Guid currentUserId);
         Task<IEnumerable<BlogResponseDto>> GetCreatedBlogsByUserAsync(Guid userId);
+        Task<IEnumerable<BlogResponseForOfficerDto>> GetBlogsForOfficerAsync(int communeId);
     }
 
 }

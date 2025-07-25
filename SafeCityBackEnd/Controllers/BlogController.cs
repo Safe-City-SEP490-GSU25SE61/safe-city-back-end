@@ -47,6 +47,7 @@ namespace SafeCityBackEnd.Controllers
         }
 
         [HttpPatch("approve/{id}")]
+        [Authorize(Roles = "Officer")]
         public async Task<IActionResult> Approve(int id, bool isApproved, bool isPinned)
         {
             try
@@ -60,8 +61,8 @@ namespace SafeCityBackEnd.Controllers
             }
         }
 
-        [HttpGet("district/{districtId}")]
-        public async Task<IActionResult> GetByDistrict(int districtId)
+        [HttpGet("user/commune/{communeId}")]
+        public async Task<IActionResult> GetByDistrict(int communeId)
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim == null)
@@ -70,7 +71,7 @@ namespace SafeCityBackEnd.Controllers
             var userId = Guid.Parse(userIdClaim.Value);
             try
             {
-                var result = await _blogService.GetBlogsByDistrictAsync(districtId, userId);
+                var result = await _blogService.GetBlogsByCommuneAsync(communeId, userId);
                 return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Get blogs by district successfully", result);
             }
             catch (Exception ex)
@@ -117,20 +118,33 @@ namespace SafeCityBackEnd.Controllers
             }
         }
 
-        [HttpPost("test")]
-        [AllowAnonymous]
-        public async Task<IActionResult> Test([FromBody] string content, BlogType type)
+        [HttpGet("officer")]
+        [Authorize(Roles = "Officer")]
+        public async Task<IActionResult> GetBlogsByCommune()
         {
-            try
-            {
-                var blogs = await _blogModerationService.ModerateBlogAsync(content, type);
-                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Get blog history successfully", blogs);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+                return CustomErrorHandler.SimpleError("User ID claim not found.", 401);
+
+            var userId = Guid.Parse(userIdClaim.Value);
+            var blogs = await _blogService.GetBlogsForOfficerAsync(userId);
+            return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Get blog for officer successfully", blogs);
         }
+
+        //[HttpPost("test")]
+        //[AllowAnonymous]
+        //public async Task<IActionResult> Test([FromBody] string content, string title, BlogType type)
+        //{
+        //    try
+        //    {
+        //        var blogs = await _blogModerationService.ModerateBlogAsync(title, content, type);
+        //        return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Get blog history successfully", blogs);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest(new { message = ex.Message });
+        //    }
+        //}
 
     }
 }

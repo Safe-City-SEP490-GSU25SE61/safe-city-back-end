@@ -50,7 +50,7 @@ namespace BusinessObject.Models
 
         public Account Author { get; set; }
         public Commune Commune { get; set; }
-
+        public BlogModeration Moderation { get; set; }
         public ICollection<Comment> Comments { get; set; } = new List<Comment>();
         public ICollection<BlogLike> Likes { get; set; } = new List<BlogLike>();
         public ICollection<BlogMedia> Media { get; set; } = new List<BlogMedia>();
