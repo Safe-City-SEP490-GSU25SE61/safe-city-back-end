@@ -34,6 +34,9 @@ namespace BusinessObject.Models
         [Column("is_active")]
         public bool IsActive { get; set; }
 
+        [Column("province_id")]
+        public int? ProvinceId { get; set; }
+        public Province? Province { get; set; }
         public ICollection<Account> Accounts { get; set; }
         public ICollection<IncidentReport> IncidentReports { get; set; }
         public ICollection<Blog> Blogs { get; set; }

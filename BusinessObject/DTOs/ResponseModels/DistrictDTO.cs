@@ -34,6 +34,13 @@ namespace BusinessObject.DTOs.ResponseModels
 
 
     }
+
+    public class CommuneForCitizenDTO
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+
+    }
 }
 
 

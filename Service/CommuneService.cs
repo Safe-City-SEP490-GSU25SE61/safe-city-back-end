@@ -45,6 +45,11 @@ namespace Service
             }).ToList();
         }
 
+        public async Task<IEnumerable<CommuneForCitizenDTO>> GetAllForCitizenAsync(int provinceId)
+        {
+            return await _communeRepository.GetAllActiveByProvinceAsync(provinceId);
+        }
+
         public async Task<DistrictDTO> GetByIdAsync(int id)
         {
             var district = await _communeRepository.GetByIdAsync(id);

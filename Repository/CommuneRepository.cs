@@ -1,4 +1,5 @@
-﻿using BusinessObject.Models;
+﻿using BusinessObject.DTOs.ResponseModels;
+using BusinessObject.Models;
 using DataAccessLayer.DataContext;
 using Microsoft.EntityFrameworkCore;
 using Repository.Interfaces;
@@ -38,6 +39,18 @@ namespace Repository
             
 
             return await query.ToListAsync(); 
+        }
+
+        public async Task<IEnumerable<CommuneForCitizenDTO>> GetAllActiveByProvinceAsync(int provinceId)
+        {
+            return await _context.Communes
+                .Where(c  => c.ProvinceId == provinceId)
+                .Select(c => new CommuneForCitizenDTO
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                })
+                .ToListAsync();
         }
     }
 }

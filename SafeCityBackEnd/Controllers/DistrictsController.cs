@@ -27,6 +27,18 @@ public class DistrictsController : ControllerBase
         return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Get all districts successfully", districts);
     }
 
+    [HttpGet("province/{provinceId}")]
+    [Authorize]
+    public async Task<IActionResult> GetAllCommunesByProvince(int provinceId)
+    {
+        try 
+        {
+            var communes = await _districtService.GetAllForCitizenAsync(provinceId);
+            return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Get all communes by province successfully", communes);
+        }
+        catch (Exception ex) { return BadRequest(ex.Message); }
+    }
+
     [HttpGet("{id:int}")]
     [Authorize(Roles = "Admin,Officer")]
     public async Task<IActionResult> GetCommuneById(int id)
