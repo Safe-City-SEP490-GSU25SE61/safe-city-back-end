@@ -11,6 +11,8 @@ namespace BusinessObject.DTOs.ResponseModels
         public Guid Id { get; set; }
         public string? UserName { get; set; }
         public string Type { get; set; }
+        public string? PriorityLevel { get; set; }
+        public string? SubCategory { get; set; } 
         public string Description { get; set; }
         public decimal? Lat { get; set; }
         public decimal? Lng { get; set; }

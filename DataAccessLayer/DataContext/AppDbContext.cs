@@ -217,7 +217,25 @@ namespace DataAccessLayer.DataContext
 
             modelBuilder.Entity<IncidentReport>()
                 .Property(r => r.Type)
-                .HasConversion<string>(); 
+                .HasConversion<string>();
+            modelBuilder.Entity<IncidentReport>()
+                .Property(r => r.TrafficSubCategory)
+                .HasConversion<string>();
+            modelBuilder.Entity<IncidentReport>()
+                .Property(r => r.SecuritySubCategory)
+                .HasConversion<string>();
+            modelBuilder.Entity<IncidentReport>()
+                .Property(r => r.InfrastructureSubCategory)
+                .HasConversion<string>();
+            modelBuilder.Entity<IncidentReport>()
+                .Property(r => r.EnvironmentSubCategory)
+                .HasConversion<string>();
+            modelBuilder.Entity<IncidentReport>()
+                .Property(r => r.OtherSubCategory)
+                .HasConversion<string>();
+            modelBuilder.Entity<IncidentReport>()
+                .Property(r => r.PriorityLevel)
+                .HasConversion<string>();
 
             base.OnModelCreating(modelBuilder);
         }

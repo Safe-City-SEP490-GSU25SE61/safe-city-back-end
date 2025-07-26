@@ -16,7 +16,12 @@ namespace BusinessObject.DTOs.RequestModels
         [Required]
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public IncidentType Type { get; set; }
-
+        [Required]
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public PriorityLevel? PriorityLevel { get; set; }
+        [Required]
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public string? SubCategory { get; set; }
         [Required]
         [StringLength(1000)]
         public string Description { get; set; }
