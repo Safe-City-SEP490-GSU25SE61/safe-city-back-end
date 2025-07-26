@@ -3,6 +3,7 @@ using System;
 using DataAccessLayer.DataContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,13 +12,15 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DataAccessLayer.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250725045423_AddProvince")]
+    partial class AddProvince
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.17")
+                .HasAnnotation("ProductVersion", "8.0.16")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -573,17 +576,9 @@ namespace DataAccessLayer.Migrations
                         .HasColumnType("text")
                         .HasColumnName("description");
 
-                    b.Property<string>("EnvironmentSubCategory")
-                        .HasColumnType("text")
-                        .HasColumnName("environment_sub_category");
-
                     b.Property<string>("ImageUrls")
                         .HasColumnType("text")
                         .HasColumnName("image_urls");
-
-                    b.Property<string>("InfrastructureSubCategory")
-                        .HasColumnType("text")
-                        .HasColumnName("infrastructure_sub_category");
 
                     b.Property<bool>("IsAnonymous")
                         .HasColumnType("boolean")
@@ -601,18 +596,6 @@ namespace DataAccessLayer.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("occurred_at");
 
-                    b.Property<string>("OtherSubCategory")
-                        .HasColumnType("text")
-                        .HasColumnName("other_sub_category");
-
-                    b.Property<string>("PriorityLevel")
-                        .HasColumnType("text")
-                        .HasColumnName("priority_level");
-
-                    b.Property<string>("SecuritySubCategory")
-                        .HasColumnType("text")
-                        .HasColumnName("security_sub_category");
-
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("text")
@@ -621,10 +604,6 @@ namespace DataAccessLayer.Migrations
                     b.Property<string>("StatusMessage")
                         .HasColumnType("text")
                         .HasColumnName("status_message");
-
-                    b.Property<string>("TrafficSubCategory")
-                        .HasColumnType("text")
-                        .HasColumnName("traffic_sub_category");
 
                     b.Property<string>("Type")
                         .IsRequired()

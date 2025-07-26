@@ -34,6 +34,8 @@ namespace DataAccessLayer.DataContext
         public DbSet<BlogLike> BlogLikes { get; set; }
         public DbSet<BlogMedia> BlogMedias { get; set; }
         public DbSet<BlogModeration> BlogModerations { get; set; }
+        public DbSet<Province> Provinces { get; set; }
+
 
 
 
@@ -218,6 +220,7 @@ namespace DataAccessLayer.DataContext
             modelBuilder.Entity<IncidentReport>()
                 .Property(r => r.Type)
                 .HasConversion<string>();
+                .HasConversion<string>();
             modelBuilder.Entity<IncidentReport>()
                 .Property(r => r.TrafficSubCategory)
                 .HasConversion<string>();
@@ -236,6 +239,12 @@ namespace DataAccessLayer.DataContext
             modelBuilder.Entity<IncidentReport>()
                 .Property(r => r.PriorityLevel)
                 .HasConversion<string>();
+
+            modelBuilder.Entity<Commune>()
+                .HasOne(c => c.Province)
+                .WithMany(p => p.Communes)
+                .HasForeignKey(c => c.ProvinceId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             base.OnModelCreating(modelBuilder);
         }
