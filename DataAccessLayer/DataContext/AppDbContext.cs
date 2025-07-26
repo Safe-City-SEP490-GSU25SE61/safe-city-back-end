@@ -220,7 +220,6 @@ namespace DataAccessLayer.DataContext
             modelBuilder.Entity<IncidentReport>()
                 .Property(r => r.Type)
                 .HasConversion<string>();
-                .HasConversion<string>();
             modelBuilder.Entity<IncidentReport>()
                 .Property(r => r.TrafficSubCategory)
                 .HasConversion<string>();
