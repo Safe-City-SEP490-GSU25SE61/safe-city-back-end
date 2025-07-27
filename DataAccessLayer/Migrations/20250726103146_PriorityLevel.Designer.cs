@@ -3,6 +3,7 @@ using System;
 using DataAccessLayer.DataContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DataAccessLayer.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250726103146_PriorityLevel")]
+    partial class PriorityLevel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -534,17 +537,11 @@ namespace DataAccessLayer.Migrations
                         .HasColumnType("text")
                         .HasColumnName("polygon_data");
 
-                    b.Property<int?>("ProvinceId")
-                        .HasColumnType("integer")
-                        .HasColumnName("province_id");
-
                     b.Property<int>("TotalReportedIncidents")
                         .HasColumnType("integer")
                         .HasColumnName("total_reported_incidents");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ProvinceId");
 
                     b.ToTable("commune");
                 });
@@ -885,42 +882,6 @@ namespace DataAccessLayer.Migrations
                     b.ToTable("payos_transaction");
                 });
 
-            modelBuilder.Entity("BusinessObject.Models.Province", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreateAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("create_at");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_active");
-
-                    b.Property<DateTime>("LastUpdated")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_updated");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("name");
-
-                    b.Property<string>("Note")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("note");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("province");
-                });
-
             modelBuilder.Entity("BusinessObject.Models.ReputationEvent", b =>
                 {
                     b.Property<int>("Id")
@@ -1129,16 +1090,6 @@ namespace DataAccessLayer.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("BusinessObject.Models.Commune", b =>
-                {
-                    b.HasOne("BusinessObject.Models.Province", "Province")
-                        .WithMany("Communes")
-                        .HasForeignKey("ProvinceId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("Province");
-                });
-
             modelBuilder.Entity("BusinessObject.Models.IncidentReport", b =>
                 {
                     b.HasOne("BusinessObject.Models.Commune", "Commune")
@@ -1293,11 +1244,6 @@ namespace DataAccessLayer.Migrations
                 {
                     b.Navigation("PayosTransaction")
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("BusinessObject.Models.Province", b =>
-                {
-                    b.Navigation("Communes");
                 });
 
             modelBuilder.Entity("BusinessObject.Models.Role", b =>

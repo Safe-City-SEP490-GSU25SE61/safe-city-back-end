@@ -10,17 +10,17 @@ using Microsoft.AspNetCore.Authorization;
 [Route("api/communes")]
 [ApiExplorerSettings(GroupName = "Communes")]
 [ApiController]
-public class DistrictsController : ControllerBase
+public class CommunesController : ControllerBase
 {
     private readonly ICommuneService _districtService;
 
-    public DistrictsController(ICommuneService districtService)
+    public CommunesController(ICommuneService districtService)
     {
         _districtService = districtService;
     }
     
     [HttpGet]
-    [Authorize(Roles = "Admin,Officer")]
+    [Authorize]
     public async Task<IActionResult> GetAllCommunes()
     {
         var districts = await _districtService.GetAllAsync();
@@ -40,7 +40,7 @@ public class DistrictsController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
-    [Authorize(Roles = "Admin,Officer")]
+    [Authorize]
     public async Task<IActionResult> GetCommuneById(int id)
     {
         var district = await _districtService.GetByIdAsync(id);
@@ -69,7 +69,7 @@ public class DistrictsController : ControllerBase
     {
         try
         {
-            // Cập nhật district
+            
             await _districtService.UpdateAsync(id, districtDTO);
             return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Commune updated successfully", districtDTO);
         }
@@ -125,7 +125,7 @@ public class DistrictsController : ControllerBase
     }
 
     [HttpGet("search")]
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     public async Task<IActionResult> SearchCommune([FromQuery] string? name, [FromQuery] int? totalReportedIncidents)
     {
         try
