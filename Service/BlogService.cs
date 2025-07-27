@@ -186,6 +186,24 @@ namespace Service
             var communeId = user.CommuneId != null ? user.CommuneId.Value : -1;
             return await _blogRepository.GetBlogsForOfficerAsync(communeId);
         }
+
+        public async Task<BlogModerationResponseDto> GetBlogModerationAsync(int id)
+        {
+            return await _blogRepository.GetDetailByIdAsync(id);
+        }
+
+        public async Task<IEnumerable<BlogResponseDto>> GetBlogsByFilterAsync(BlogFilterDto filter, Guid currentUserId)
+        {
+            var blogs = await _blogRepository.GetBlogsByFilterAsync(filter, currentUserId);
+
+            foreach (var blog in blogs)
+            {
+                blog.MediaUrls = await _mediaRepository.GetUrlsByPostIdAsync(blog.Id);
+            }
+
+            return blogs;
+        }
+
     }
 
 }

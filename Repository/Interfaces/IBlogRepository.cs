@@ -1,4 +1,5 @@
-﻿using BusinessObject.DTOs.ResponseModels;
+﻿using BusinessObject.DTOs.RequestModels;
+using BusinessObject.DTOs.ResponseModels;
 using BusinessObject.Models;
 using System;
 using System.Collections.Generic;
@@ -13,9 +14,11 @@ namespace Repository.Interfaces
         Task<Blog?> GetByIdAsync(int id);
         Task<int> AddAsync(Blog blog);
         Task UpdateAsync(Blog blog);
+        Task<BlogModerationResponseDto> GetDetailByIdAsync(int id);
         Task<IEnumerable<BlogResponseDto>> GetVisibleByCommuneAsync(int districtId, Guid currentUserId);
         Task<IEnumerable<BlogResponseDto>> GetCreatedBlogsByUserAsync(Guid userId);
         Task<IEnumerable<BlogResponseForOfficerDto>> GetBlogsForOfficerAsync(int communeId);
+        Task<IEnumerable<BlogResponseDto>> GetBlogsByFilterAsync(BlogFilterDto filter, Guid currentUserId);
     }
 
 }

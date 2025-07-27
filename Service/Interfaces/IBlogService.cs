@@ -17,6 +17,8 @@ namespace Service.Interfaces
         Task<IEnumerable<BlogResponseDto>> GetBlogsByCommuneAsync(int districtId, Guid currentUserId);
         Task<IEnumerable<BlogResponseDto>> GetCreatedBlogsByUserAsync(Guid userId);
         Task<IEnumerable<BlogResponseForOfficerDto>> GetBlogsForOfficerAsync(Guid userId);
+        Task<BlogModerationResponseDto> GetBlogModerationAsync(int id);
+        Task<IEnumerable<BlogResponseDto>> GetBlogsByFilterAsync(BlogFilterDto filter, Guid currentUserId);
     }
 
 }
