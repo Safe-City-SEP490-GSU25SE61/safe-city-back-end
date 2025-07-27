@@ -245,6 +245,22 @@ namespace DataAccessLayer.DataContext
                 .HasForeignKey(c => c.ProvinceId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<Blog>()
+                .HasIndex(b => new { b.IsVisible, b.IsApproved });
+
+            modelBuilder.Entity<Blog>()
+                .HasIndex(b => b.CommuneId);
+
+            modelBuilder.Entity<Blog>()
+                .HasIndex(b => b.Type);
+
+            modelBuilder.Entity<Blog>()
+                .HasIndex(b => b.CreatedAt);
+
+            modelBuilder.Entity<Blog>()
+                .HasIndex(b => b.Title)
+                .HasMethod("GIN");
+
             base.OnModelCreating(modelBuilder);
         }
     }

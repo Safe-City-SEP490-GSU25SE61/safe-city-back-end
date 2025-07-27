@@ -61,24 +61,24 @@ namespace SafeCityBackEnd.Controllers
             }
         }
 
-        [HttpGet("user/commune/{communeId}")]
-        public async Task<IActionResult> GetByDistrict(int communeId)
-        {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim == null)
-                return CustomErrorHandler.SimpleError("User ID claim not found.", 401);
+        //[HttpGet("user/commune/{communeId}")]
+        //public async Task<IActionResult> GetByDistrict(int communeId)
+        //{
+        //    var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        //    if (userIdClaim == null)
+        //        return CustomErrorHandler.SimpleError("User ID claim not found.", 401);
 
-            var userId = Guid.Parse(userIdClaim.Value);
-            try
-            {
-                var result = await _blogService.GetBlogsByCommuneAsync(communeId, userId);
-                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Get blogs by district successfully", result);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-        }
+        //    var userId = Guid.Parse(userIdClaim.Value);
+        //    try
+        //    {
+        //        var result = await _blogService.GetBlogsByCommuneAsync(communeId, userId);
+        //        return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Get blogs by district successfully", result);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest(new { message = ex.Message });
+        //    }
+        //}
 
         [HttpPost("like/{postId}")]
         public async Task<IActionResult> LikePost(int postId)
@@ -119,7 +119,6 @@ namespace SafeCityBackEnd.Controllers
         }
 
         [HttpGet("officer")]
-        [Authorize(Roles = "Officer")]
         public async Task<IActionResult> GetBlogsByCommune()
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
@@ -127,9 +126,51 @@ namespace SafeCityBackEnd.Controllers
                 return CustomErrorHandler.SimpleError("User ID claim not found.", 401);
 
             var userId = Guid.Parse(userIdClaim.Value);
-            var blogs = await _blogService.GetBlogsForOfficerAsync(userId);
-            return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Get blog for officer successfully", blogs);
+            try
+            {
+                var blogs = await _blogService.GetBlogsForOfficerAsync(userId);
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Get blogs for officer successfully", blogs);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
+
+        [HttpGet("officer/{id}")]
+        public async Task<IActionResult> GetBlogModerationById(int id)
+        {
+            try
+            {
+                var blog = await _blogService.GetBlogModerationAsync(id);
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Get blog moderation successfully", blog);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }          
+        }
+
+        [HttpGet("user")]
+        public async Task<IActionResult> GetBlogsByFilter([FromQuery] BlogFilterDto filter)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+                return CustomErrorHandler.SimpleError("User ID claim not found.", 401);
+
+            var userId = Guid.Parse(userIdClaim.Value);
+
+            try
+            {
+                var result = await _blogService.GetBlogsByFilterAsync(filter, userId);
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Get blogs with filter successfully", result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
 
         //[HttpPost("test")]
         //[AllowAnonymous]

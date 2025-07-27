@@ -1,4 +1,5 @@
-﻿using BusinessObject.DTOs.ResponseModels;
+﻿using BusinessObject.DTOs.RequestModels;
+using BusinessObject.DTOs.ResponseModels;
 using BusinessObject.Models;
 using DataAccessLayer.DataContext;
 using Microsoft.EntityFrameworkCore;
@@ -24,6 +25,27 @@ namespace Repository
         {
             return await _context.Set<Blog>().FindAsync(id);
         }
+
+        public async Task<BlogModerationResponseDto> GetDetailByIdAsync(int id)
+        {
+            var blogDto = await _context.Blogs
+                .Where(b => b.Id == id)
+                .Select(b => new BlogModerationResponseDto
+                {
+                    Id = b.Id,
+                    Title = b.Title,
+                    Content = b.Content,
+                    Type = b.Type,
+                    AuthorName = b.Author.FullName,
+                    CreatedAt = b.CreatedAt,
+                    MediaUrls = b.Media.OrderBy(m => m.MediaSlot).Select(m => m.FileUrl).ToList(),
+                    BlogModeration = b.Moderation
+                })
+                .FirstOrDefaultAsync();
+
+            return blogDto;
+        }
+
 
         public async Task<int> AddAsync(Blog blog)
         {
@@ -53,6 +75,7 @@ namespace Repository
                     CommuneName = b.Commune.Name,
                     Pinned = b.Pinned,
                     Type = b.Type,
+                    AvaterUrl = b.Author.ImageUrl,
                     CreatedAt = b.CreatedAt,
                     TotalLike = b.Likes.Count,
                     TotalComment = b.Comments.Count,
@@ -77,6 +100,7 @@ namespace Repository
                     CommuneName = b.Commune.Name,
                     Pinned = b.Pinned,
                     Type = b.Type,
+                    AvaterUrl = b.Author.ImageUrl,
                     CreatedAt = b.CreatedAt,
                     TotalLike = b.Likes.Count,
                     TotalComment = b.Comments.Count,
@@ -94,20 +118,60 @@ namespace Repository
                 {
                     Id = b.Id,
                     Title = b.Title,
-                    Content = b.Content,
                     AuthorName = b.Author.FullName,
-                    CommuneName = b.Commune.Name,
-                    Pinned = b.Pinned,
                     Type = b.Type,
                     CreatedAt = b.CreatedAt,
-                    TotalLike = b.Likes.Count,
-                    TotalComment = b.Comments.Count,
-                    BlogModeration = b.Moderation,
                 })
                 .ToListAsync();
 
             return blogs;
         }
+
+        public async Task<IEnumerable<BlogResponseDto>> GetBlogsByFilterAsync(BlogFilterDto filter, Guid currentUserId)
+        {
+            var query = _context.Blogs
+                .Where(b => b.IsVisible && b.IsApproved)
+                .AsNoTracking();
+
+            if (!string.IsNullOrWhiteSpace(filter.Title))
+            {
+                query = query.Where(b => b.Title.ToLower().Contains(filter.Title.ToLower()));
+            }
+
+            if (filter.CommuneId.HasValue)
+            {
+                query = query.Where(b => b.CommuneId == filter.CommuneId.Value);
+            }
+
+            if (filter.Type.HasValue)
+            {
+                query = query.Where(b => b.Type == filter.Type.Value);
+            }
+
+            var blogs = await query
+                .OrderByDescending(b => b.CreatedAt)
+                .Select(b => new BlogResponseDto
+                {
+                    Id = b.Id,
+                    Title = b.Title,
+                    Content = b.Content,
+                    AuthorName = b.Author.FullName,
+                    CommuneName = b.Commune.Name,
+                    Pinned = b.Pinned,
+                    Type = b.Type,
+                    AvaterUrl = b.Author.ImageUrl,
+                    CreatedAt = b.CreatedAt,
+                    TotalLike = b.Likes.Count,
+                    TotalComment = b.Comments.Count,
+                    IsLike = b.Likes.Any(l => l.UserId == currentUserId)
+                })
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
+                .ToListAsync();
+
+            return blogs;
+        }
+
     }
 
 }
