@@ -130,16 +130,12 @@ namespace Repository
         public async Task<IEnumerable<BlogResponseDto>> GetBlogsByFilterAsync(BlogFilterDto filter, Guid currentUserId)
         {
             var query = _context.Blogs
-                .Include(b => b.Author)
-                .Include(b => b.Commune)
-                .Include(b => b.Likes)
-                .Include(b => b.Comments)
                 .Where(b => b.IsVisible && b.IsApproved)
-                .AsQueryable();
+                .AsNoTracking();
 
             if (!string.IsNullOrWhiteSpace(filter.Title))
             {
-                query = query.Where(b => b.Title.Contains(filter.Title));
+                query = query.Where(b => b.Title.ToLower().Contains(filter.Title.ToLower()));
             }
 
             if (filter.CommuneId.HasValue)
@@ -154,8 +150,6 @@ namespace Repository
 
             var blogs = await query
                 .OrderByDescending(b => b.CreatedAt)
-                .Skip((filter.PageNumber - 1) * filter.PageSize)
-                .Take(filter.PageSize)
                 .Select(b => new BlogResponseDto
                 {
                     Id = b.Id,
@@ -171,6 +165,8 @@ namespace Repository
                     TotalComment = b.Comments.Count,
                     IsLike = b.Likes.Any(l => l.UserId == currentUserId)
                 })
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
                 .ToListAsync();
 
             return blogs;

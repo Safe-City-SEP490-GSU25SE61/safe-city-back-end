@@ -1,8 +1,10 @@
 ﻿using BusinessObject.DTOs.RequestModels;
+using BusinessObject.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SafeCityBackEnd.Helpers;
+using Service.Helpers;
 using Service.Interfaces;
 using System.Net;
 using System.Security.Claims;
@@ -141,12 +143,12 @@ namespace SafeCityBackEnd.Controllers
 
         [HttpGet("officer/filter")]
         [Authorize]
-        public async Task<IActionResult> GetFilteredReportsByOfficer([FromQuery] string? range, [FromQuery] string? status, [FromQuery] bool includeRelated = false)
+        public async Task<IActionResult> GetFilteredReportsByOfficer([FromQuery] string? range, [FromQuery] string? status, [FromQuery] bool includeRelated = false, [FromQuery] string? sort = "newest", [FromQuery] PriorityLevel? priorityFilter = null)
         {
             try
             {
                 var officerId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-                var reports = await _reportService.GetFilteredReportsByOfficerAsync(officerId, range, status, includeRelated);
+                var reports = await _reportService.GetFilteredReportsByOfficerAsync(officerId, range, status, includeRelated, sort, priorityFilter);
                 return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Filtered reports", reports);
             }
             catch (ArgumentException ex)
@@ -172,12 +174,12 @@ namespace SafeCityBackEnd.Controllers
         }
         [HttpGet("history/citizen/filter")]
         [Authorize]// (Roles = "Citizen")]
-        public async Task<IActionResult> GetFilteredReportsByCitizen([FromQuery] string? range, [FromQuery] string? status)
+        public async Task<IActionResult> GetFilteredReportsByCitizen([FromQuery] string? range, [FromQuery] string? status, [FromQuery] string? sort = "newest", [FromQuery] PriorityLevel? priorityFilter = null, [FromQuery] string? communeName = null)
         {
             try
             {
                 var citizenId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-                var reports = await _reportService.GetFilteredReportsByCitizenAsync(citizenId, range, status);
+                var reports = await _reportService.GetFilteredReportsByCitizenAsync(citizenId, range, status, sort, priorityFilter, communeName);
                 return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Filtered reports by citizen", reports);
             }
             catch (ArgumentException ex)
@@ -203,6 +205,56 @@ namespace SafeCityBackEnd.Controllers
             catch (InvalidOperationException ex)
             {
                 return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.BadRequest, ex.Message, null);
+            }
+        }
+        [HttpGet("metadata")]
+        [AllowAnonymous]
+        public IActionResult GetReportMetadata()
+        {
+            var types = IncidentTypeHelper.GetAllDisplayValues()
+                .Select(t => new
+                {
+                    Value = t.Value,
+                    DisplayName = t.DisplayName,
+                    SubCategories = IncidentTypeHelper.GetSubCategories(Enum.Parse<IncidentType>(t.Value))
+                        .Select(sc => new
+                        {
+                            Value = sc.Value,
+                            DisplayName = sc.DisplayName
+                        })
+                });
+
+            var priorities = IncidentTypeHelper.GetPriorityLevels()
+                .Select(p => new
+                {
+                    Value = p.Value,
+                    DisplayName = p.DisplayName
+                });
+
+            return Ok(new
+            {
+                Types = types,
+                PriorityLevels = priorities
+            });
+        }
+        [HttpGet("admin/filter")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetFilteredReportsByAdmin([FromQuery] string? range,[FromQuery] string? status,[FromQuery] bool includeRelated = false,[FromQuery] string? sort = "newest", [FromQuery] PriorityLevel? priorityFilter = null)
+        {
+            try
+            {
+                var reports = await _reportService.GetFilteredReportsForAdminAsync(
+                    range, status, includeRelated, sort, priorityFilter);
+
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Filtered reports for admin", reports);
+            }
+            catch (ArgumentException ex)
+            {
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.BadRequest, ex.Message, null);
+            }
+            catch (Exception ex)
+            {
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.InternalServerError, "Đã xảy ra lỗi không xác định.", null);
             }
         }
 

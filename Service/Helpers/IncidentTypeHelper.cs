@@ -26,21 +26,46 @@ namespace Service.Helpers
             result = default;
             return false;
         }
+
+
+
+    public static IEnumerable<(string Value, string DisplayName)> GetDisplayValues<TEnum>() where TEnum : Enum
+            {
+                return Enum.GetValues(typeof(TEnum))
+                    .Cast<TEnum>()
+                    .Select(e =>
+                    {
+                        var field = typeof(TEnum).GetField(e.ToString());
+                        var attr = field?.GetCustomAttributes(typeof(DisplayAttribute), false)
+                            .FirstOrDefault() as DisplayAttribute;
+                        return (
+                            Value: e.ToString(),
+                            DisplayName: attr?.Name ?? e.ToString()
+                        );
+                    });
+         }
+
         public static IEnumerable<(string Value, string DisplayName)> GetAllDisplayValues()
-        {
-            return Enum.GetValues(typeof(IncidentType))
-                .Cast<IncidentType>()
-                .Select(e =>
+                => GetDisplayValues<IncidentType>();
+
+        public static IEnumerable<(string Value, string DisplayName)> GetSubCategories(IncidentType type)
+            {
+                return type switch
                 {
-                    var field = typeof(IncidentType).GetField(e.ToString());
-                    var attr = field?.GetCustomAttributes(typeof(DisplayAttribute), false)
-                        .FirstOrDefault() as DisplayAttribute;
-                    return (
-                        Value: e.ToString(),
-                        DisplayName: attr?.Name ?? e.ToString()
-                    );
-                });
-        }
+                    IncidentType.Traffic => GetDisplayValues<TrafficSubCategory>(),
+                    IncidentType.Security => GetDisplayValues<SecuritySubCategory>(),
+                    IncidentType.Infrastructure => GetDisplayValues<InfrastructureSubCategory>(),
+                    IncidentType.Environment => GetDisplayValues<EnvironmentSubCategory>(),
+                    IncidentType.Other => GetDisplayValues<OtherSubCategory>(),
+                    _ => Enumerable.Empty<(string, string)>()
+                };
+            }
+
+        public static IEnumerable<(string Value, string DisplayName)> GetPriorityLevels()
+                => GetDisplayValues<PriorityLevel>();
+
+
+
 
     }
 

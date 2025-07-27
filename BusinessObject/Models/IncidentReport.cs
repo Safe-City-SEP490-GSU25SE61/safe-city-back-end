@@ -52,6 +52,22 @@ namespace BusinessObject.Models
         public string? ImageUrls { get; set; }
         [Column("video_url")]
         public string? VideoUrl { get; set; }
+        [Column("traffic_sub_category")]
+        public TrafficSubCategory? TrafficSubCategory { get; set; }
+
+        [Column("security_sub_category")]
+        public SecuritySubCategory? SecuritySubCategory { get; set; }
+
+        [Column("infrastructure_sub_category")]
+        public InfrastructureSubCategory? InfrastructureSubCategory { get; set; }
+
+        [Column("environment_sub_category")]
+        public EnvironmentSubCategory? EnvironmentSubCategory { get; set; }
+
+        [Column("other_sub_category")]
+        public OtherSubCategory? OtherSubCategory { get; set; }
+        [Column("priority_level")]
+        public PriorityLevel? PriorityLevel { get; set; }
 
 
         public Account User { get; set; }

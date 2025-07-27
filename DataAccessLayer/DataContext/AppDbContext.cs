@@ -220,12 +220,46 @@ namespace DataAccessLayer.DataContext
             modelBuilder.Entity<IncidentReport>()
                 .Property(r => r.Type)
                 .HasConversion<string>();
+            modelBuilder.Entity<IncidentReport>()
+                .Property(r => r.TrafficSubCategory)
+                .HasConversion<string>();
+            modelBuilder.Entity<IncidentReport>()
+                .Property(r => r.SecuritySubCategory)
+                .HasConversion<string>();
+            modelBuilder.Entity<IncidentReport>()
+                .Property(r => r.InfrastructureSubCategory)
+                .HasConversion<string>();
+            modelBuilder.Entity<IncidentReport>()
+                .Property(r => r.EnvironmentSubCategory)
+                .HasConversion<string>();
+            modelBuilder.Entity<IncidentReport>()
+                .Property(r => r.OtherSubCategory)
+                .HasConversion<string>();
+            modelBuilder.Entity<IncidentReport>()
+                .Property(r => r.PriorityLevel)
+                .HasConversion<string>();
 
             modelBuilder.Entity<Commune>()
                 .HasOne(c => c.Province)
                 .WithMany(p => p.Communes)
                 .HasForeignKey(c => c.ProvinceId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Blog>()
+                .HasIndex(b => new { b.IsVisible, b.IsApproved });
+
+            modelBuilder.Entity<Blog>()
+                .HasIndex(b => b.CommuneId);
+
+            modelBuilder.Entity<Blog>()
+                .HasIndex(b => b.Type);
+
+            modelBuilder.Entity<Blog>()
+                .HasIndex(b => b.CreatedAt);
+
+            modelBuilder.Entity<Blog>()
+                .HasIndex(b => b.Title)
+                .HasMethod("GIN");
 
             base.OnModelCreating(modelBuilder);
         }

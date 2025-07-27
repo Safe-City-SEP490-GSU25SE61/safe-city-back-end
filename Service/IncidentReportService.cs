@@ -112,6 +112,13 @@ namespace Service
                 throw new InvalidOperationException($"Loại sự cố không hợp lệ. Các loại hợp lệ gồm: {string.Join(", ", validTypes)}");
             }
 
+
+
+
+            if (model.PriorityLevel == null)
+                throw new InvalidOperationException("Bạn cần chọn mức độ ưu tiên.");
+
+
             if (model.OccurredAt > DateTime.UtcNow || model.OccurredAt < DateTime.UtcNow.AddDays(-1))
                 throw new InvalidOperationException("Thời gian xảy ra sự cố phải nằm trong 24 giờ gần nhất.");
 
@@ -131,7 +138,45 @@ namespace Service
                 ImageUrls = uploadedImageUrls.Any() ? System.Text.Json.JsonSerializer.Serialize(uploadedImageUrls) : null,
                 VideoUrl = uploadedVideoUrl,
                 CommuneId = communeId,
+                PriorityLevel = model.PriorityLevel,
+
             };
+            if (string.IsNullOrWhiteSpace(model.SubCategory))
+                throw new InvalidOperationException("Bạn cần chọn phân loại chi tiết.");
+
+            var sub = model.SubCategory.Trim();
+            switch (model.Type)
+            {
+                case IncidentType.Traffic:
+                    if (!Enum.TryParse<TrafficSubCategory>(sub, true, out var traffic))
+                        throw new InvalidOperationException("Phân loại chi tiết không hợp lệ cho loại Giao thông.");
+                    report.TrafficSubCategory = traffic;
+                    break;
+
+                case IncidentType.Security:
+                    if (!Enum.TryParse<SecuritySubCategory>(sub, true, out var security))
+                        throw new InvalidOperationException("Phân loại chi tiết không hợp lệ cho loại An ninh.");
+                    report.SecuritySubCategory = security;
+                    break;
+
+                case IncidentType.Infrastructure:
+                    if (!Enum.TryParse<InfrastructureSubCategory>(sub, true, out var infra))
+                        throw new InvalidOperationException("Phân loại chi tiết không hợp lệ cho loại Cơ sở hạ tầng.");
+                    report.InfrastructureSubCategory = infra;
+                    break;
+
+                case IncidentType.Environment:
+                    if (!Enum.TryParse<EnvironmentSubCategory>(sub, true, out var env))
+                        throw new InvalidOperationException("Phân loại chi tiết không hợp lệ cho loại Môi trường.");
+                    report.EnvironmentSubCategory = env;
+                    break;
+
+                case IncidentType.Other:
+                    if (!Enum.TryParse<OtherSubCategory>(sub, true, out var other))
+                        throw new InvalidOperationException("Phân loại chi tiết không hợp lệ cho loại Khác.");
+                    report.OtherSubCategory = other;
+                    break;
+            }
 
             await _reportRepo.CreateAsync(report);
 
@@ -387,8 +432,33 @@ namespace Service
                 ? new List<string>()
                 : JsonSerializer.Deserialize<List<string>>(report.ImageUrls),
                 VideoUrl = report.VideoUrl,
+                PriorityLevel = report.PriorityLevel?.ToString(),
+                SubCategory = report.Type switch
+                {
+                    IncidentType.Traffic => IncidentTypeHelper
+                        .GetDisplayValues<TrafficSubCategory>()
+                        .FirstOrDefault(x => x.Value == report.TrafficSubCategory?.ToString()).DisplayName,
 
-            };
+                    IncidentType.Security => IncidentTypeHelper
+                        .GetDisplayValues<SecuritySubCategory>()
+                        .FirstOrDefault(x => x.Value == report.SecuritySubCategory?.ToString()).DisplayName,
+
+                    IncidentType.Infrastructure => IncidentTypeHelper
+                        .GetDisplayValues<InfrastructureSubCategory>()
+                        .FirstOrDefault(x => x.Value == report.InfrastructureSubCategory?.ToString()).DisplayName,
+
+                    IncidentType.Environment => IncidentTypeHelper
+                        .GetDisplayValues<EnvironmentSubCategory>()
+                        .FirstOrDefault(x => x.Value == report.EnvironmentSubCategory?.ToString()).DisplayName,
+
+                    IncidentType.Other => IncidentTypeHelper
+                        .GetDisplayValues<OtherSubCategory>()
+                        .FirstOrDefault(x => x.Value == report.OtherSubCategory?.ToString()).DisplayName,
+
+                    _ => null
+                }
+
+        };
         }
 
         public async Task<ReportResponseModel> CancelAsync(Guid reportId, Guid userId, string? reason = null)
@@ -399,7 +469,9 @@ namespace Service
 
             if (report.Status != "pending")
                 throw new InvalidOperationException("Chỉ có thể huỷ report khi trạng thái là 'pending'.");
-
+            var timeSinceCreated = DateTime.UtcNow - report.CreatedAt;
+            if (timeSinceCreated.TotalMinutes > 5)
+                throw new InvalidOperationException("Bạn chỉ có thể huỷ báo cáo trong vòng 5 phút sau khi tạo.");
             report.Status = "cancelled";
             if (!string.IsNullOrWhiteSpace(reason))
             {
@@ -430,7 +502,7 @@ namespace Service
             return filtered;
         }
 
-        public async Task<IEnumerable<GroupedReportResponseModel>> GetFilteredReportsByOfficerAsync(Guid officerId, string? range, string? status, bool includeRelated = false)
+        public async Task<IEnumerable<GroupedReportResponseModel>> GetFilteredReportsByOfficerAsync(Guid officerId, string? range, string? status, bool includeRelated = false, string? sort = null, PriorityLevel? priorityFilter = null)
         {
             var officer = await _accountRepo.GetByIdAsync(officerId);
             if (officer == null)
@@ -471,12 +543,28 @@ namespace Service
                 };
                 allReports = allReports.Where(r => r.CreatedAt >= fromDate).ToList();
             }
+            if (priorityFilter.HasValue)
+            {
+                allReports = allReports.Where(r => r.PriorityLevel == priorityFilter).ToList();
+            }
+            var validSorts = new[] { "newest", "oldest", "urgent" };
+            if (string.IsNullOrWhiteSpace(sort) || !validSorts.Contains(sort.ToLower()))
+            {
+                throw new ArgumentException($"Giá trị 'sort' không hợp lệ. Hãy chọn một trong: {string.Join(", ", validSorts)}");
+            }
+            allReports = sort.ToLower() switch
+            {
+                "oldest" => allReports.OrderBy(r => r.CreatedAt).ToList(),
+                "urgent" => allReports.OrderByDescending(r => r.PriorityLevel).ThenByDescending(r => r.CreatedAt).ToList(),
+                "newest" => allReports.OrderByDescending(r => r.CreatedAt).ToList(),
+                _ => allReports.OrderByDescending(r => r.CreatedAt).ToList()
+            };
 
 
             var results = new List<GroupedReportResponseModel>();
             var visited = new HashSet<Guid>();
 
-            allReports = allReports.OrderByDescending(r => r.CreatedAt).ToList();
+
             foreach (var report in allReports)
             {
                 if (visited.Contains(report.Id)) continue;
@@ -491,6 +579,7 @@ namespace Service
                             r.Id != report.Id &&
                             !visited.Contains(r.Id) &&
                             r.Type == report.Type &&
+                            IsSameSubCategory(report, r) &&
                             ExtractStreetName(r.Address) == streetName &&
                             Math.Abs((r.CreatedAt - report.CreatedAt).TotalMinutes) <= 15 &&
                             report.Lat.HasValue && report.Lng.HasValue &&
@@ -537,9 +626,21 @@ namespace Service
             var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
             return R * c;
         }
+        private bool IsSameSubCategory(IncidentReport a, IncidentReport b)
+        {
+            return a.Type switch
+            {
+                IncidentType.Traffic => a.TrafficSubCategory == b.TrafficSubCategory,
+                IncidentType.Security => a.SecuritySubCategory == b.SecuritySubCategory,
+                IncidentType.Infrastructure => a.InfrastructureSubCategory == b.InfrastructureSubCategory,
+                IncidentType.Environment => a.EnvironmentSubCategory == b.EnvironmentSubCategory,
+                IncidentType.Other => a.OtherSubCategory == b.OtherSubCategory,
+                _ => true
+            };
+        }
 
 
-        public async Task<IEnumerable<CitizenReportResponseModel>> GetFilteredReportsByCitizenAsync(Guid citizenId, string? range, string? status)
+        public async Task<IEnumerable<CitizenReportResponseModel>> GetFilteredReportsByCitizenAsync(Guid citizenId, string? range, string? status, string? sort, PriorityLevel? priorityFilter = null, string? communeName = null)
         {
             var reports = (await _reportRepo.GetAllAsync())
                 .Where(r => r.UserId == citizenId);
@@ -570,10 +671,33 @@ namespace Service
 
                 reports = reports.Where(r => r.CreatedAt >= fromDate);
             }
+            if (priorityFilter.HasValue)
+            {
+                reports = reports.Where(r => r.PriorityLevel == priorityFilter);
+            }
 
-            //var tz = TZConvert.GetTimeZoneInfo("SE Asia Standard Time");
+            if (!string.IsNullOrWhiteSpace(communeName))
+            {
+                var normalized = communeName.Trim().ToLowerInvariant();
+                reports = reports.Where(r => r.Commune != null &&
+                                             r.Commune.Name.ToLowerInvariant().Contains(normalized));
+            }
 
-            return reports.OrderByDescending(r => r.CreatedAt).Select(r => new CitizenReportResponseModel
+            var validSorts = new[] { "newest", "oldest", "urgent" };
+            if (string.IsNullOrWhiteSpace(sort) || !validSorts.Contains(sort.ToLower()))
+            {
+                throw new ArgumentException($"Giá trị 'sort' không hợp lệ. Hãy chọn một trong: {string.Join(", ", validSorts)}");
+            }
+
+            reports = sort.ToLower() switch
+            {
+                "oldest" => reports.OrderBy(r => r.CreatedAt),
+                "urgent" => reports.OrderByDescending(r => r.PriorityLevel).ThenByDescending(r => r.CreatedAt),
+                "newest" => reports.OrderByDescending(r => r.CreatedAt),
+                _ => reports.OrderByDescending(r => r.CreatedAt)
+            };
+
+            return reports.Select(r => new CitizenReportResponseModel
             {
                 Id = r.Id,
                 Type = IncidentTypeHelper.GetAllDisplayValues()
@@ -588,7 +712,32 @@ namespace Service
                 ImageUrls = string.IsNullOrEmpty(r.ImageUrls)
                 ? new List<string>()
                 : JsonSerializer.Deserialize<List<string>>(r.ImageUrls),
-                VideoUrl = r.VideoUrl
+                VideoUrl = r.VideoUrl,
+                PriorityLevel = r.PriorityLevel?.ToString(),
+                SubCategory = r.Type switch
+                {
+                    IncidentType.Traffic => IncidentTypeHelper
+                        .GetDisplayValues<TrafficSubCategory>()
+                        .FirstOrDefault(x => x.Value == r.TrafficSubCategory?.ToString()).DisplayName,
+
+                    IncidentType.Security => IncidentTypeHelper
+                        .GetDisplayValues<SecuritySubCategory>()
+                        .FirstOrDefault(x => x.Value == r.SecuritySubCategory?.ToString()).DisplayName,
+
+                    IncidentType.Infrastructure => IncidentTypeHelper
+                        .GetDisplayValues<InfrastructureSubCategory>()
+                        .FirstOrDefault(x => x.Value == r.InfrastructureSubCategory?.ToString()).DisplayName,
+
+                    IncidentType.Environment => IncidentTypeHelper
+                        .GetDisplayValues<EnvironmentSubCategory>()
+                        .FirstOrDefault(x => x.Value == r.EnvironmentSubCategory?.ToString()).DisplayName,
+
+                    IncidentType.Other => IncidentTypeHelper
+                        .GetDisplayValues<OtherSubCategory>()
+                        .FirstOrDefault(x => x.Value == r.OtherSubCategory?.ToString()).DisplayName,
+
+                    _ => null
+                }
             });
         }
         public async Task<ReportResponseModel> TransferDistrictAsync(Guid reportId, TransferReportDistrictRequestModel model, Guid officerId)
@@ -629,10 +778,106 @@ namespace Service
             var updated = await _reportRepo.GetByIdAsync(reportId);
             return ToResponseModel(updated!);
         }
+        public async Task<IEnumerable<GroupedReportResponseModel>> GetFilteredReportsForAdminAsync(string? range,string? status,bool includeRelated = false,string? sort = null,PriorityLevel? priorityFilter = null)
+        {
+            var allReports = (await _reportRepo.GetAllAsync()).ToList();
+
+            if (!string.IsNullOrEmpty(status))
+            {
+                if (!ValidStatuses.Contains(status.ToLower()))
+                    throw new ArgumentException($"Giá trị 'status' không hợp lệ. Hợp lệ: {string.Join(", ", ValidStatuses)}");
+
+                allReports = allReports.Where(r => r.Status.Equals(status, StringComparison.OrdinalIgnoreCase)).ToList();
+            }
 
 
+            if (!string.IsNullOrEmpty(range))
+            {
+                if (!ValidRanges.Contains(range.ToLower()))
+                    throw new ArgumentException($"Giá trị 'range' không hợp lệ. Hợp lệ: {string.Join(", ", ValidRanges)}");
 
+                DateTime fromDate = range.ToLower() switch
+                {
+                    "day" => DateTime.UtcNow.AddDays(-1),
+                    "week" => DateTime.UtcNow.AddDays(-7),
+                    "month" => DateTime.UtcNow.AddMonths(-1),
+                    "year" => DateTime.UtcNow.AddYears(-1),
+                    _ => DateTime.MinValue
+                };
 
+                allReports = allReports.Where(r => r.CreatedAt >= fromDate).ToList();
+            }
+
+            if (priorityFilter.HasValue)
+            {
+                allReports = allReports.Where(r => r.PriorityLevel == priorityFilter).ToList();
+            }
+
+            var validSorts = new[] { "newest", "oldest", "urgent" };
+            if (string.IsNullOrWhiteSpace(sort) || !validSorts.Contains(sort.ToLower()))
+            {
+                throw new ArgumentException($"Giá trị 'sort' không hợp lệ. Hãy chọn một trong: {string.Join(", ", validSorts)}");
+            }
+
+            allReports = sort.ToLower() switch
+            {
+                "oldest" => allReports.OrderBy(r => r.CreatedAt).ToList(),
+                "urgent" => allReports.OrderByDescending(r => r.PriorityLevel).ThenByDescending(r => r.CreatedAt).ToList(),
+                "newest" => allReports.OrderByDescending(r => r.CreatedAt).ToList(),
+                _ => allReports.OrderByDescending(r => r.CreatedAt).ToList()
+            };
+
+            var results = new List<GroupedReportResponseModel>();
+            var visited = new HashSet<Guid>();
+
+            foreach (var report in allReports)
+            {
+                if (visited.Contains(report.Id)) continue;
+
+                var response = ToResponseModel(report);
+
+                if (includeRelated)
+                {
+                    var streetName = ExtractStreetName(report.Address);
+                    var related = allReports
+                        .Where(r =>
+                            r.Id != report.Id &&
+                            !visited.Contains(r.Id) &&
+                            r.Type == report.Type &&
+                            IsSameSubCategory(report, r) &&
+                            ExtractStreetName(r.Address) == streetName &&
+                            Math.Abs((r.CreatedAt - report.CreatedAt).TotalMinutes) <= 15 &&
+                            report.Lat.HasValue && report.Lng.HasValue &&
+                            r.Lat.HasValue && r.Lng.HasValue &&
+                            CalculateDistanceInMeters((double)report.Lat.Value, (double)report.Lng.Value, (double)r.Lat.Value, (double)r.Lng.Value) <= 300
+                        )
+                        .ToList()
+                        .OrderByDescending(r => r.CreatedAt)
+                        .ToList();
+
+                    var relatedResponses = related.Select(ToResponseModel).ToList();
+
+                    foreach (var r in related) visited.Add(r.Id);
+
+                    results.Add(new GroupedReportResponseModel
+                    {
+                        MainReport = response,
+                        RelatedReports = relatedResponses
+                    });
+                }
+                else
+                {
+                    results.Add(new GroupedReportResponseModel
+                    {
+                        MainReport = response
+                    });
+                }
+
+                visited.Add(report.Id);
+            }
+
+            return results;
+        }
 
 
     }
