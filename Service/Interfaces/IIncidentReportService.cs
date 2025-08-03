@@ -22,6 +22,8 @@ namespace Service.Interfaces
         Task<IEnumerable<CitizenReportResponseModel>> GetFilteredReportsByCitizenAsync(Guid citizenId, string? range, string? status, string? sort, PriorityLevel? priorityFilter = null, string? communeName = null);
         Task<ReportResponseModel> TransferDistrictAsync(Guid reportId, TransferReportDistrictRequestModel model, Guid officerId);
         Task<IEnumerable<GroupedReportResponseModel>> GetFilteredReportsForAdminAsync(string? range,string? status,bool includeRelated = false,string? sort = null,PriorityLevel? priorityFilter = null);
+        Task<ReportStatisticsResponse> GetSystemReportStatisticsAsync(string? range);
+        Task<ReportStatisticsResponse> GetOfficerStatisticsAsync(Guid officerId, string? range);
 
     }
 }
