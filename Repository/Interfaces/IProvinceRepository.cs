@@ -1,4 +1,5 @@
-﻿using BusinessObject.Models;
+﻿using BusinessObject.DTOs.ResponseModels;
+using BusinessObject.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,5 +10,6 @@ namespace Repository.Interfaces
 {
     public interface IProvinceRepository : IGenericRepository<Province>
     {
+        Task<IEnumerable<ProvinceDto>> GetAllProAsync();
     }
 }

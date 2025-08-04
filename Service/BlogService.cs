@@ -3,6 +3,7 @@ using BusinessObject.DTOs.ResponseModels;
 using BusinessObject.Models;
 using DataAccessLayer.DataContext;
 using Google;
+using Microsoft.EntityFrameworkCore;
 using Repository.Interfaces;
 using Service.Interfaces;
 using System;
@@ -24,6 +25,7 @@ namespace Service
         private readonly IBlogModerationRepository _blogModerationRepository;
         private readonly BlogModerationService _blogModerationService;
         private readonly IAccountRepository _accountRepository;
+        private readonly IProvinceRepository _provinceRepository;
 
         public BlogService(
             IBlogRepository blogRepository,
@@ -32,7 +34,8 @@ namespace Service
             IFirebaseStorageService fileUploader,
             IBlogModerationRepository blogModerationRepository,
             BlogModerationService blogModerationService,
-            IAccountRepository accountRepository)
+            IAccountRepository accountRepository,
+            IProvinceRepository provinceRepository)
         {
             _blogRepository = blogRepository;
             _likeRepository = likeRepository;
@@ -41,6 +44,7 @@ namespace Service
             _blogModerationRepository = blogModerationRepository;
             _blogModerationService = blogModerationService;
             _accountRepository = accountRepository;
+            _provinceRepository = provinceRepository;
         }
 
         public async Task LikeAsync(Guid userId, int postId)
@@ -73,6 +77,7 @@ namespace Service
 
             blog.IsApproved = isApproved;
             blog.Pinned = isApproved && isPinned;
+            blog.IsVisible = isApproved;
             blog.UpdatedAt = DateTime.UtcNow;
 
             await _blogRepository.UpdateAsync(blog);
@@ -180,12 +185,14 @@ namespace Service
             return blogs;
         }
 
-        public async Task<IEnumerable<BlogResponseForOfficerDto>> GetBlogsForOfficerAsync(Guid userId)
+        public async Task<IEnumerable<BlogResponseForOfficerDto>> GetBlogsForOfficerAsync(Guid userId, BlogFilterForOfficerRequest filter)
         {
             var user = await _accountRepository.GetByIdAsync(userId);
-            var communeId = user.CommuneId != null ? user.CommuneId.Value : -1;
-            return await _blogRepository.GetBlogsForOfficerAsync(communeId);
+            var communeId = user.CommuneId ?? -1;
+
+            return await _blogRepository.GetBlogsForOfficerAsync(communeId, filter);
         }
+
 
         public async Task<BlogModerationResponseDto> GetBlogModerationAsync(int id)
         {
@@ -203,6 +210,26 @@ namespace Service
 
             return blogs;
         }
+
+        public async Task UpdateBlogVisibilityAsync(int blogId, bool isVisible)
+        {
+            var blog = await _blogRepository.GetByIdAsync(blogId);
+
+            blog.IsVisible = isVisible;
+            blog.UpdatedAt = DateTime.UtcNow;
+
+            await _blogRepository.UpdateAsync(blog);
+        }
+
+        public async Task<FirstRequestBlogResponseDto> GetFirstRequestDataAsync(Guid currentUserId)
+        {
+            return new FirstRequestBlogResponseDto
+            {
+                Provinces = await _provinceRepository.GetAllProAsync(),
+                Blogs = await _blogRepository.GetBlogsFirstRequestAsync(currentUserId)
+            };
+        }
+
 
     }
 
