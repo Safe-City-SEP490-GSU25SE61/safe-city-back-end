@@ -13,6 +13,8 @@ namespace Service.Interfaces
         Task<MapReportResponse> GetReportsForMapAsync(int communeId);
 
         Task<IEnumerable<MapReportDetailDTO>> GetReportDetailsForMapAsync(int communeId, string? type, string? range);
+        Task<MapReportResponse> GetOfficerReportsForMapAsync(Guid officerId);
+        Task<IEnumerable<MapReportDetailDTO>> GetOfficerReportDetailsForMapAsync(Guid officerId, string? type, string? range);
 
     }
 

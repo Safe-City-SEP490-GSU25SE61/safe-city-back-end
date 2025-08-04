@@ -757,23 +757,30 @@ namespace Service
             if (report.CommuneId == model.NewDistrictId)
                 throw new InvalidOperationException("Báo cáo đã thuộc khu vực này.");
 
+            var oldCommune = await _communeRepo.GetByIdAsync(report.CommuneId ?? 0);
+
             report.CommuneId = model.NewDistrictId;
 
             report.VerifiedBy = officerId;
 
             await _reportRepo.UpdateAsync(report);
 
+           
+            var transferNote = $"Chuyển khu vực từ {(oldCommune?.Name ?? "null")} sang {newDistrict.Name}.";
             if (!string.IsNullOrWhiteSpace(model.Note))
             {
-                var note = new Note
-                {
-                    OfficerId = officerId,
-                    ReportId = reportId,
-                    Content = model.Note,
-                    CreatedAt = DateTime.UtcNow
-                };
-                await _noteRepo.CreateAsync(note);
+                transferNote += $" Ghi chú: {model.Note}";
             }
+
+            var note = new Note
+            {
+                OfficerId = officerId,
+                ReportId = reportId,
+                Content = transferNote,
+                CreatedAt = DateTime.UtcNow
+            };
+            await _noteRepo.CreateAsync(note);
+
 
             var updated = await _reportRepo.GetByIdAsync(reportId);
             return ToResponseModel(updated!);

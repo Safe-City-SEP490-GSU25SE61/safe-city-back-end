@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Service.Interfaces;
+using System.Security.Claims;
 
 namespace SafeCityBackEnd.Controllers
 {
@@ -53,6 +54,32 @@ namespace SafeCityBackEnd.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        [HttpGet("officer/reports")]
+        [Authorize]
+        public async Task<IActionResult> GetReportsForOfficer()
+        {
+            var officerId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var result = await _mapService.GetOfficerReportsForMapAsync(officerId);
+            return Ok(result);
+        }
+
+        [HttpGet("officer/reports/details")]
+        [Authorize]
+        public async Task<IActionResult> GetReportDetailsForOfficer([FromQuery] string? type, [FromQuery] string? range)
+        {
+            try
+            {
+                var officerId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+                var result = await _mapService.GetOfficerReportDetailsForMapAsync(officerId, type, range);
+                return Ok(result);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
 
     }
 
