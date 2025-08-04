@@ -3,6 +3,7 @@ using System;
 using DataAccessLayer.DataContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DataAccessLayer.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250729130746_UpdateEscortGroup")]
+    partial class UpdateEscortGroup
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -559,45 +562,6 @@ namespace DataAccessLayer.Migrations
                     b.ToTable("commune");
                 });
 
-            modelBuilder.Entity("BusinessObject.Models.EscortGroupJoinRequest", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<Guid>("AccountId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("account_id");
-
-                    b.Property<int>("GroupId")
-                        .HasColumnType("integer")
-                        .HasColumnName("group_id");
-
-                    b.Property<bool?>("IsApproved")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_approved");
-
-                    b.Property<DateTime>("RequestedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("requested_at");
-
-                    b.Property<DateTime?>("ReviewedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("reviewed_at");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AccountId");
-
-                    b.HasIndex("GroupId", "AccountId")
-                        .IsUnique();
-
-                    b.ToTable("escort_group_join_request");
-                });
-
             modelBuilder.Entity("BusinessObject.Models.EscortJourneyGroup", b =>
                 {
                     b.Property<int>("Id")
@@ -660,6 +624,12 @@ namespace DataAccessLayer.Migrations
                     b.Property<int>("GroupId")
                         .HasColumnType("integer")
                         .HasColumnName("group_id");
+
+                    b.Property<bool>("IsApproved")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_approved");
 
                     b.Property<bool>("IsOnline")
                         .ValueGeneratedOnAdd()
@@ -1276,25 +1246,6 @@ namespace DataAccessLayer.Migrations
                     b.Navigation("Province");
                 });
 
-            modelBuilder.Entity("BusinessObject.Models.EscortGroupJoinRequest", b =>
-                {
-                    b.HasOne("BusinessObject.Models.Account", "Account")
-                        .WithMany("GroupJoinRequests")
-                        .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("BusinessObject.Models.EscortJourneyGroup", "Group")
-                        .WithMany("JoinRequests")
-                        .HasForeignKey("GroupId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Account");
-
-                    b.Navigation("Group");
-                });
-
             modelBuilder.Entity("BusinessObject.Models.EscortJourneyGroup", b =>
                 {
                     b.HasOne("BusinessObject.Models.Account", "Leader")
@@ -1428,8 +1379,6 @@ namespace DataAccessLayer.Migrations
 
                     b.Navigation("Comments");
 
-                    b.Navigation("GroupJoinRequests");
-
                     b.Navigation("IncidentReports");
 
                     b.Navigation("JoinedEscortGroups");
@@ -1473,8 +1422,6 @@ namespace DataAccessLayer.Migrations
 
             modelBuilder.Entity("BusinessObject.Models.EscortJourneyGroup", b =>
                 {
-                    b.Navigation("JoinRequests");
-
                     b.Navigation("Members");
                 });
 

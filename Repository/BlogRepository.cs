@@ -37,6 +37,8 @@ namespace Repository
                     Content = b.Content,
                     Type = b.Type,
                     AuthorName = b.Author.FullName,
+                    CommentNumber = b.Comments.Count(),
+                    LikeNumber = b.Likes.Count(),
                     CreatedAt = b.CreatedAt,
                     MediaUrls = b.Media.OrderBy(m => m.MediaSlot).Select(m => m.FileUrl).ToList(),
                     BlogModeration = b.Moderation
@@ -109,11 +111,39 @@ namespace Repository
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<BlogResponseForOfficerDto>> GetBlogsForOfficerAsync(int communeId)
+        public async Task<IEnumerable<BlogResponseForOfficerDto>> GetBlogsForOfficerAsync(int communeId, BlogFilterForOfficerRequest filter)
         {
-            var blogs = await _context.Set<Blog>()
+            var query = _context.Set<Blog>()
                 .Where(b => b.CommuneId == communeId)
-                .OrderByDescending(b => b.CreatedAt)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(filter.Keyword))
+            {
+                query = query.Where(b => b.Title.ToLower().Contains(filter.Keyword.ToLower()));
+            }
+
+            if (filter.Type.HasValue)
+            {
+                query = query.Where(b => b.Type == filter.Type.Value);
+            }
+
+            if (filter.SortOption.Equals("newest"))
+            {
+                query = query.OrderByDescending(b => b.CreatedAt);
+            }
+            else if (filter.SortOption.Equals("oldest"))
+            {
+                query = query.OrderBy(b => b.CreatedAt);
+            }
+            else // default sort: pinned > not approved > approved
+            {
+                query = query
+                    .OrderByDescending(b => b.Pinned)
+                    .ThenBy(b => b.IsApproved)
+                    .ThenByDescending(b => b.CreatedAt);
+            }
+
+            return await query
                 .Select(b => new BlogResponseForOfficerDto
                 {
                     Id = b.Id,
@@ -121,10 +151,11 @@ namespace Repository
                     AuthorName = b.Author.FullName,
                     Type = b.Type,
                     CreatedAt = b.CreatedAt,
+                    IsApproved = b.IsApproved,
+                    IsVisible = b.IsVisible,
+                    Pinned = b.Pinned
                 })
                 .ToListAsync();
-
-            return blogs;
         }
 
         public async Task<IEnumerable<BlogResponseDto>> GetBlogsByFilterAsync(BlogFilterDto filter, Guid currentUserId)
@@ -172,6 +203,32 @@ namespace Repository
             return blogs;
         }
 
+        public async Task<IEnumerable<BlogResponseDto>> GetBlogsFirstRequestAsync(Guid currentUserId)
+        {
+            var blogs = await _context.Blogs
+                .Where(b => b.IsVisible && b.IsApproved)
+                .OrderByDescending(b => b.CreatedAt)
+                .Select(b => new BlogResponseDto
+                {
+                    Id = b.Id,
+                    Title = b.Title,
+                    Content = b.Content,
+                    AuthorName = b.Author.FullName,
+                    CommuneName = b.Commune.Name,
+                    ProvinceName = b.Commune.Province.Name,
+                    Pinned = b.Pinned,
+                    Type = b.Type,
+                    AvaterUrl = b.Author.ImageUrl,
+                    CreatedAt = b.CreatedAt,
+                    TotalLike = b.Likes.Count,
+                    TotalComment = b.Comments.Count,
+                    IsLike = b.Likes.Any(l => l.UserId == currentUserId)
+                })
+                .Take(10)
+                .ToListAsync();
+
+            return blogs;
+        }
     }
 
 }

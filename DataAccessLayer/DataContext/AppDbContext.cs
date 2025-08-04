@@ -35,7 +35,9 @@ namespace DataAccessLayer.DataContext
         public DbSet<BlogMedia> BlogMedias { get; set; }
         public DbSet<BlogModeration> BlogModerations { get; set; }
         public DbSet<Province> Provinces { get; set; }
-
+        public DbSet<EscortJourneyGroup> EscortJourneyGroups { get; set; }
+        public DbSet<EscortJourneyGroupMember> EscortJourneyGroupMembers { get; set; }
+        public DbSet<EscortGroupJoinRequest> EscortGroupJoinRequests { get; set; }
 
 
 
@@ -260,6 +262,57 @@ namespace DataAccessLayer.DataContext
             modelBuilder.Entity<Blog>()
                 .HasIndex(b => b.Title)
                 .HasMethod("GIN");
+
+            modelBuilder.Entity<EscortJourneyGroup>(entity =>
+            {
+                entity.HasOne(g => g.Leader)
+                      .WithMany(a => a.LedEscortGroups)     
+                      .HasForeignKey(g => g.LeaderId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasIndex(g => g.GroupCode)
+                      .IsUnique();
+
+                entity.Property(g => g.MaxMemberNumber)
+                      .HasConversion<string>();
+            });
+
+            modelBuilder.Entity<EscortJourneyGroupMember>(entity =>
+            {
+                entity.HasOne(m => m.Group)
+                      .WithMany(g => g.Members)
+                      .HasForeignKey(m => m.GroupId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(m => m.Account)
+                      .WithMany(a => a.JoinedEscortGroups)     
+                      .HasForeignKey(m => m.AccountId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasIndex(m => new { m.GroupId, m.AccountId })
+                      .IsUnique();
+
+                entity.Property(m => m.Role)
+                      .HasConversion<string>();
+
+                entity.Property(m => m.IsOnline).HasDefaultValue(false);
+            });
+
+            modelBuilder.Entity<EscortGroupJoinRequest>(entity =>
+            {
+                entity.HasOne(r => r.Group)
+                      .WithMany(g => g.JoinRequests)
+                      .HasForeignKey(r => r.GroupId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(r => r.Account)
+                      .WithMany(a => a.GroupJoinRequests)
+                      .HasForeignKey(r => r.AccountId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasIndex(r => new { r.GroupId, r.AccountId }).IsUnique();
+            });
+
 
             base.OnModelCreating(modelBuilder);
         }

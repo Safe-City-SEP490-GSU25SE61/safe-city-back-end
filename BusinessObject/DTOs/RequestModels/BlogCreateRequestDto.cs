@@ -26,6 +26,6 @@ namespace BusinessObject.DTOs.RequestModels
 
         [Required(ErrorMessage = "Commune is required.")]
         public int CommuneId { get; set; }
-        public List<IFormFile>? MediaFiles { get; set; }
+        public List<IFormFile> MediaFiles { get; set; } = new List<IFormFile>();
     }
 }

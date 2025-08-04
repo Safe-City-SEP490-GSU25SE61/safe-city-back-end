@@ -47,7 +47,7 @@ namespace SafeCityBackEnd.Controllers
         }
 
         [HttpPatch("approve/{id}")]
-        [Authorize(Roles = "Officer")]
+        //[Authorize(Roles = "Officer")]
         public async Task<IActionResult> Approve(int id, bool isApproved, bool isPinned)
         {
             try
@@ -119,16 +119,17 @@ namespace SafeCityBackEnd.Controllers
         }
 
         [HttpGet("officer")]
-        public async Task<IActionResult> GetBlogsByCommune()
+        public async Task<IActionResult> GetBlogsByCommune([FromQuery] BlogFilterForOfficerRequest filter)
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim == null)
                 return CustomErrorHandler.SimpleError("User ID claim not found.", 401);
 
             var userId = Guid.Parse(userIdClaim.Value);
+
             try
             {
-                var blogs = await _blogService.GetBlogsForOfficerAsync(userId);
+                var blogs = await _blogService.GetBlogsForOfficerAsync(userId, filter);
                 return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Get blogs for officer successfully", blogs);
             }
             catch (Exception ex)
@@ -136,6 +137,7 @@ namespace SafeCityBackEnd.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
 
         [HttpGet("officer/{id}")]
         public async Task<IActionResult> GetBlogModerationById(int id)
@@ -152,7 +154,7 @@ namespace SafeCityBackEnd.Controllers
         }
 
         [HttpGet("user")]
-        public async Task<IActionResult> GetBlogsByFilter([FromQuery] BlogFilterDto filter)
+        public async Task<IActionResult> GetBlogsByFilter([FromQuery] BlogFilterDto filter, bool isFirstRequest)
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim == null)
@@ -162,8 +164,27 @@ namespace SafeCityBackEnd.Controllers
 
             try
             {
-                var result = await _blogService.GetBlogsByFilterAsync(filter, userId);
-                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Get blogs with filter successfully", result);
+                if (isFirstRequest)
+                {
+                    var result1 = await _blogService.GetFirstRequestDataAsync(userId);
+                    return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Get blogs successfully", result1);
+                }
+                var result2 = await _blogService.GetBlogsByFilterAsync(filter, userId);
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Get blogs with filter successfully", result2);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpPatch("{id}/visibility")]
+        public async Task<IActionResult> UpdateVisibility(int id, bool isVisible)
+        {
+            try
+            {
+                await _blogService.UpdateBlogVisibilityAsync(id, isVisible);
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Update blog successfully", $"Blog visibility updated to {(isVisible ? "visible" : "hidden")}." );
             }
             catch (Exception ex)
             {

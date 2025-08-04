@@ -40,7 +40,7 @@ namespace BusinessObject.Models
         public bool IsApproved { get; set; } = false;
 
         [Column("is_visible")]
-        public bool IsVisible { get; set; } = true;
+        public bool IsVisible { get; set; } = false;
 
         [Column("created_at")]
         public DateTime CreatedAt { get; set; }

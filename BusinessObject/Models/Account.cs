@@ -84,6 +84,9 @@ namespace BusinessObject.Models
         public ICollection<Payment>? Payments { get; set; }
         public ICollection<IncidentReport> IncidentReports { get; set; }
         public ICollection<IncidentReport> VerifiedIncidentReports { get; set; }
+        public ICollection<EscortJourneyGroup> LedEscortGroups { get; set; }
+        public ICollection<EscortJourneyGroupMember> JoinedEscortGroups { get; set; }
+        public ICollection<EscortGroupJoinRequest> GroupJoinRequests { get; set; }
         public ICollection<Note> Notes { get; set; }
         public ICollection<Blog> Blogs { get; set; }
         public ICollection<Comment> Comments { get; set; }
