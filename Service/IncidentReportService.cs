@@ -757,23 +757,30 @@ namespace Service
             if (report.CommuneId == model.NewDistrictId)
                 throw new InvalidOperationException("Báo cáo đã thuộc khu vực này.");
 
+            var oldCommune = await _communeRepo.GetByIdAsync(report.CommuneId ?? 0);
+
             report.CommuneId = model.NewDistrictId;
 
             report.VerifiedBy = officerId;
 
             await _reportRepo.UpdateAsync(report);
 
+           
+            var transferNote = $"Chuyển khu vực từ {(oldCommune?.Name ?? "null")} sang {newDistrict.Name}.";
             if (!string.IsNullOrWhiteSpace(model.Note))
             {
-                var note = new Note
-                {
-                    OfficerId = officerId,
-                    ReportId = reportId,
-                    Content = model.Note,
-                    CreatedAt = DateTime.UtcNow
-                };
-                await _noteRepo.CreateAsync(note);
+                transferNote += $" Ghi chú: {model.Note}";
             }
+
+            var note = new Note
+            {
+                OfficerId = officerId,
+                ReportId = reportId,
+                Content = transferNote,
+                CreatedAt = DateTime.UtcNow
+            };
+            await _noteRepo.CreateAsync(note);
+
 
             var updated = await _reportRepo.GetByIdAsync(reportId);
             return ToResponseModel(updated!);
@@ -878,6 +885,224 @@ namespace Service
 
             return results;
         }
+
+        public async Task<ReportStatisticsResponse> GetSystemReportStatisticsAsync(string? range)
+        {
+            var allReports = await _reportRepo.GetAllAsync();
+
+            if (!string.IsNullOrWhiteSpace(range))
+            {
+                if (!ValidRanges.Contains(range.ToLower()))
+                    throw new ArgumentException("Giá trị 'range' không hợp lệ. Hợp lệ: day, week, month, year");
+
+                DateTime fromDate = range.ToLower() switch
+                {
+                    "day" => DateTime.UtcNow.AddDays(-1),
+                    "week" => DateTime.UtcNow.AddDays(-7),
+                    "month" => DateTime.UtcNow.AddMonths(-1),
+                    "year" => DateTime.UtcNow.AddYears(-1),
+                    _ => DateTime.MinValue
+                };
+
+                allReports = allReports
+                    .Where(r => r.CreatedAt >= fromDate) 
+                    .ToList();
+            }
+
+            var total = allReports.Count();
+
+            var reportsByStatus = allReports
+                .GroupBy(r => r.Status.ToLower())
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            var reportsByCommune = allReports
+                .Where(r => r.Commune != null)
+                .GroupBy(r => r.Commune.Name)
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            var topCommune = reportsByCommune
+                .OrderByDescending(x => x.Value)
+                .FirstOrDefault();
+
+            var reportsByType = allReports
+                .GroupBy(r => r.Type)
+                .ToDictionary(
+                    g => IncidentTypeHelper.GetAllDisplayValues()
+                            .FirstOrDefault(t => t.Value == g.Key.ToString()).DisplayName ?? g.Key.ToString(),
+                    g => g.Count());
+
+            var reportsBySubType = new Dictionary<string, Dictionary<string, int>>();
+
+            foreach (var typeGroup in allReports.GroupBy(r => r.Type))
+            {
+                var type = IncidentTypeHelper.GetAllDisplayValues()
+                    .FirstOrDefault(t => t.Value == typeGroup.Key.ToString()).DisplayName ?? typeGroup.Key.ToString();
+
+                Dictionary<string, int> subTypeCounts = typeGroup.Key switch
+                {
+                    IncidentType.Traffic => typeGroup
+                        .GroupBy(r => r.TrafficSubCategory?.ToString() ?? "Unknown")
+                        .ToDictionary(
+                            g => IncidentTypeHelper.GetDisplayValues<TrafficSubCategory>()
+                                .FirstOrDefault(x => x.Value == g.Key).DisplayName ?? g.Key,
+                            g => g.Count()),
+
+                    IncidentType.Security => typeGroup
+                        .GroupBy(r => r.SecuritySubCategory?.ToString() ?? "Unknown")
+                        .ToDictionary(
+                            g => IncidentTypeHelper.GetDisplayValues<SecuritySubCategory>()
+                                .FirstOrDefault(x => x.Value == g.Key).DisplayName ?? g.Key,
+                            g => g.Count()),
+
+                    IncidentType.Infrastructure => typeGroup
+                        .GroupBy(r => r.InfrastructureSubCategory?.ToString() ?? "Unknown")
+                        .ToDictionary(
+                            g => IncidentTypeHelper.GetDisplayValues<InfrastructureSubCategory>()
+                                .FirstOrDefault(x => x.Value == g.Key).DisplayName ?? g.Key,
+                            g => g.Count()),
+
+                    IncidentType.Environment => typeGroup
+                        .GroupBy(r => r.EnvironmentSubCategory?.ToString() ?? "Unknown")
+                        .ToDictionary(
+                            g => IncidentTypeHelper.GetDisplayValues<EnvironmentSubCategory>()
+                                .FirstOrDefault(x => x.Value == g.Key).DisplayName ?? g.Key,
+                            g => g.Count()),
+
+                    IncidentType.Other => typeGroup
+                        .GroupBy(r => r.OtherSubCategory?.ToString() ?? "Unknown")
+                        .ToDictionary(
+                            g => IncidentTypeHelper.GetDisplayValues<OtherSubCategory>()
+                                .FirstOrDefault(x => x.Value == g.Key).DisplayName ?? g.Key,
+                            g => g.Count()),
+
+                    _ => new Dictionary<string, int>()
+                };
+
+                reportsBySubType[type] = subTypeCounts;
+            }
+
+            return new ReportStatisticsResponse
+            {
+                TotalReports = total,
+                ReportsByStatus = reportsByStatus,
+                ReportsByCommune = reportsByCommune,
+                TopCommuneName = topCommune.Key ?? "N/A",
+                TopCommuneCount = topCommune.Value,
+                ReportsByType = reportsByType,
+                ReportsBySubType = reportsBySubType
+            };
+        }
+
+        public async Task<ReportStatisticsResponse> GetOfficerStatisticsAsync(Guid officerId, string? range)
+        {
+            var officer = await _accountRepo.GetByIdAsync(officerId);
+            if (officer == null)
+                throw new KeyNotFoundException("Không tìm thấy tài khoản.");
+
+            if (officer.Role?.Name?.ToLower() != "officer")
+                throw new UnauthorizedAccessException("Bạn không có quyền truy cập chức năng này.");
+
+            if (officer.CommuneId == null)
+                throw new InvalidOperationException("Bạn chưa được gán khu vực quản lý.");
+
+            var reports = (await _reportRepo.GetAllAsync())
+                .Where(r => r.CommuneId == officer.CommuneId)
+                .ToList();
+
+            if (!string.IsNullOrWhiteSpace(range))
+            {
+                if (!ValidRanges.Contains(range.ToLower()))
+                    throw new ArgumentException("Giá trị 'range' không hợp lệ. Hợp lệ: day, week, month, year");
+
+                var fromDate = range.ToLower() switch
+                {
+                    "day" => DateTime.UtcNow.AddDays(-1),
+                    "week" => DateTime.UtcNow.AddDays(-7),
+                    "month" => DateTime.UtcNow.AddMonths(-1),
+                    "year" => DateTime.UtcNow.AddYears(-1),
+                    _ => DateTime.MinValue
+                };
+
+                reports = reports.Where(r => r.CreatedAt >= fromDate).ToList();
+            }
+
+            var total = reports.Count;
+
+            var reportsByStatus = reports
+                .GroupBy(r => r.Status.ToLower())
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            var reportsByType = reports
+                .GroupBy(r => r.Type)
+                .ToDictionary(
+                    g => IncidentTypeHelper.GetAllDisplayValues()
+                        .FirstOrDefault(t => t.Value == g.Key.ToString()).DisplayName ?? g.Key.ToString(),
+                    g => g.Count());
+
+            var reportsBySubType = new Dictionary<string, Dictionary<string, int>>();
+
+            foreach (var typeGroup in reports.GroupBy(r => r.Type))
+            {
+                var type = IncidentTypeHelper.GetAllDisplayValues()
+                    .FirstOrDefault(t => t.Value == typeGroup.Key.ToString()).DisplayName ?? typeGroup.Key.ToString();
+
+                Dictionary<string, int> subTypeCounts = typeGroup.Key switch
+                {
+                    IncidentType.Traffic => typeGroup
+                        .GroupBy(r => r.TrafficSubCategory?.ToString() ?? "Unknown")
+                        .ToDictionary(
+                            g => IncidentTypeHelper.GetDisplayValues<TrafficSubCategory>()
+                                .FirstOrDefault(x => x.Value == g.Key).DisplayName ?? g.Key,
+                            g => g.Count()),
+
+                    IncidentType.Security => typeGroup
+                        .GroupBy(r => r.SecuritySubCategory?.ToString() ?? "Unknown")
+                        .ToDictionary(
+                            g => IncidentTypeHelper.GetDisplayValues<SecuritySubCategory>()
+                                .FirstOrDefault(x => x.Value == g.Key).DisplayName ?? g.Key,
+                            g => g.Count()),
+
+                    IncidentType.Infrastructure => typeGroup
+                        .GroupBy(r => r.InfrastructureSubCategory?.ToString() ?? "Unknown")
+                        .ToDictionary(
+                            g => IncidentTypeHelper.GetDisplayValues<InfrastructureSubCategory>()
+                                .FirstOrDefault(x => x.Value == g.Key).DisplayName ?? g.Key,
+                            g => g.Count()),
+
+                    IncidentType.Environment => typeGroup
+                        .GroupBy(r => r.EnvironmentSubCategory?.ToString() ?? "Unknown")
+                        .ToDictionary(
+                            g => IncidentTypeHelper.GetDisplayValues<EnvironmentSubCategory>()
+                                .FirstOrDefault(x => x.Value == g.Key).DisplayName ?? g.Key,
+                            g => g.Count()),
+
+                    IncidentType.Other => typeGroup
+                        .GroupBy(r => r.OtherSubCategory?.ToString() ?? "Unknown")
+                        .ToDictionary(
+                            g => IncidentTypeHelper.GetDisplayValues<OtherSubCategory>()
+                                .FirstOrDefault(x => x.Value == g.Key).DisplayName ?? g.Key,
+                            g => g.Count()),
+
+                    _ => new Dictionary<string, int>()
+                };
+
+                reportsBySubType[type] = subTypeCounts;
+            }
+
+            return new ReportStatisticsResponse
+            {
+                TotalReports = total,
+                ReportsByStatus = reportsByStatus,
+                ReportsByCommune = null,
+                TopCommuneName = null,
+                TopCommuneCount = null,
+                ReportsByType = reportsByType,
+                ReportsBySubType = reportsBySubType
+            };
+        }
+
+
+
 
 
     }

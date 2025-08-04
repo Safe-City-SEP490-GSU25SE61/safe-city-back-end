@@ -258,6 +258,56 @@ namespace SafeCityBackEnd.Controllers
             }
         }
 
+        [HttpGet("statistics")]
+        [Authorize(Roles = "Admin,Officer")]
+        public async Task<IActionResult> GetReportStatistics([FromQuery] string? range)
+        {
+            try
+            {
+                var stats = await _reportService.GetSystemReportStatisticsAsync(range);
+                return Ok(stats);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+        [HttpGet("statistics/officer")]
+        [Authorize(Roles = "Officer")]
+        public async Task<IActionResult> GetOfficerStatistics([FromQuery] string? range)
+        {
+            try
+            {
+                var officerId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+                var result = await _reportService.GetOfficerStatisticsAsync(officerId, range);
+
+                return CustomSuccessHandler.ResponseBuilder(
+                    HttpStatusCode.OK,
+                    "Thống kê báo cáo trong khu vực quản lý",
+                    result);
+            }
+            catch (ArgumentException ex)
+            {
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.BadRequest, ex.Message, null);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.BadRequest, ex.Message, null);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.NotFound, ex.Message, null);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.Forbidden, ex.Message, null);
+            }
+            catch (Exception)
+            {
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.InternalServerError, "Đã xảy ra lỗi không xác định.", null);
+            }
+        }
+
 
 
 
