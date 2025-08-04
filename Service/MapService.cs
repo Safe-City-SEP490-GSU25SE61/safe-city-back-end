@@ -44,8 +44,8 @@ namespace Service
 
         public async Task<MapReportResponse> GetReportsForMapAsync(int communeId, string? type, string? range)
         {
-            // 1. Tính khoảng thời gian
-            DateTime from = DateTime.UtcNow.AddDays(-7); // default
+
+            DateTime from = DateTime.UtcNow.AddHours(-1); 
             if (!string.IsNullOrWhiteSpace(range))
             {
                 var normalized = range.ToLower();
@@ -194,7 +194,7 @@ namespace Service
                 throw new InvalidOperationException("Không xác định được khu vực của cán bộ.");
 
             var communeId = officer.CommuneId.Value;
-            DateTime from = DateTime.UtcNow.AddDays(-7); 
+            DateTime from = DateTime.UtcNow.AddHours(-1); 
 
             if (!string.IsNullOrWhiteSpace(range))
             {
