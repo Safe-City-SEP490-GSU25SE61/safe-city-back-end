@@ -48,6 +48,11 @@ namespace BusinessObject.DTOs.ResponseModels
 
         public string? Range { get; set; }
     }
+    public class OfficerReportFilterQuery
+    {
+        public IncidentType? Type { get; set; }
+        public string? Range { get; set; }
+    }
 
 
 }
