@@ -10,9 +10,9 @@ namespace Service.Interfaces
     public interface IMapService
     {
         Task<IEnumerable<MapCommuneDTO>> GetAllCommunePolygonsAsync();
-        Task<MapReportResponse> GetReportsForMapAsync(int communeId, string? type, string? range);
+        Task<MapReportResponse> GetReportsForMapAsync(int communeId);
 
-        Task<MapReportDetailDTO?> GetReportDetailForMapAsync(Guid reportId);
+        Task<IEnumerable<MapReportDetailDTO>> GetReportDetailsForMapAsync(int communeId, string? type, string? range);
 
     }
 

@@ -36,8 +36,6 @@ namespace BusinessObject.DTOs.ResponseModels
     }
     public class MapReportResponse
     {
-        public int Total { get; set; }
-        public IEnumerable<MapReportDTO> Items { get; set; }
         public Dictionary<string, int>? ReportsByType { get; set; }
         public Dictionary<string, int>? ReportsByCommune { get; set; }
     }

@@ -19,7 +19,7 @@ namespace SafeCityBackEnd.Controllers
         }
 
         [HttpGet("communes")]
-        [AllowAnonymous]
+        //[AllowAnonymous]
         public async Task<IActionResult> GetCommunePolygons()
         {
             var result = await _mapService.GetAllCommunePolygonsAsync();
@@ -27,12 +27,21 @@ namespace SafeCityBackEnd.Controllers
         }
 
         [HttpGet("reports")]
-        //[AllowAnonymous]
-        public async Task<IActionResult> GetReportsForMap([FromQuery] MapReportFilterQuery query)
+        public async Task<IActionResult> GetReportsForMap([FromQuery] int communeId)
+        {
+            var result = await _mapService.GetReportsForMapAsync(communeId);
+            return Ok(result);
+        }
+
+
+
+
+        [HttpGet("reports/details")]
+        public async Task<IActionResult> GetReportDetails([FromQuery] MapReportFilterQuery query)
         {
             try
             {
-                var result = await _mapService.GetReportsForMapAsync(
+                var result = await _mapService.GetReportDetailsForMapAsync(
                     query.CommuneId,
                     query.Type?.ToString(),
                     query.Range
@@ -43,20 +52,6 @@ namespace SafeCityBackEnd.Controllers
             {
                 return BadRequest(new { message = ex.Message });
             }
-        }
-
-
-
-
-        [HttpGet("reports/{id:Guid}/detail")]
-        [AllowAnonymous]
-        public async Task<IActionResult> GetReportDetailForMap(Guid id)
-        {
-            var result = await _mapService.GetReportDetailForMapAsync(id);
-            if (result == null)
-                return NotFound(new { message = "Không tìm thấy báo cáo." });
-
-            return Ok(result);
         }
 
     }

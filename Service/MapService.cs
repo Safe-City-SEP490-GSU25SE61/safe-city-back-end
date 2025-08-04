@@ -34,11 +34,50 @@ namespace Service
                 {
                     Id = c.Id,
                     Name = c.Name,
-                    Polygon = c.PolygonData
+                    Polygon = c.PolygonData 
                 });
         }
 
-        public async Task<MapReportResponse> GetReportsForMapAsync(int communeId, string? type, string? range)
+        public async Task<MapReportResponse> GetReportsForMapAsync(int communeId)
+        {
+            var allReports = (await _reportRepo.GetAllAsync())
+                .Where(r =>
+                    r.CommuneId == communeId &&
+                    !string.IsNullOrWhiteSpace(r.Status) &&
+                    ValidStatuses.Contains(r.Status.Trim().ToLower()))
+                .ToList();
+
+            var from = DateTime.UtcNow.AddDays(-7);
+            var reports = allReports
+                .Where(r => r.OccurredAt >= from)
+                .ToList();
+
+
+            var reportsByType = reports
+                .GroupBy(r => r.Type)
+                .ToDictionary(
+                    g => IncidentTypeHelper.GetAllDisplayValues()
+                        .FirstOrDefault(x => x.Value == g.Key.ToString()).DisplayName ?? g.Key.ToString(),
+                    g => g.Count());
+
+            var commune = await _communeRepo.GetByIdAsync(communeId);
+
+
+            var reportsByCommune = new Dictionary<string, int>
+            {
+                [commune?.Name ?? "Không rõ"] = reports.Count
+            };
+
+
+            return new MapReportResponse
+            {
+                ReportsByType = reportsByType,
+                ReportsByCommune = reportsByCommune
+            };
+        }
+
+
+        public async Task<IEnumerable<MapReportDetailDTO>> GetReportDetailsForMapAsync(int communeId, string? type, string? range)
         {
             var reports = (await _reportRepo.GetAllAsync())
                 .Where(r =>
@@ -47,26 +86,29 @@ namespace Service
                     ValidStatuses.Contains(r.Status.Trim().ToLower()))
                 .ToList();
 
-
-
             IncidentType? parsedType = null;
             if (!string.IsNullOrWhiteSpace(type))
             {
                 if (!Enum.TryParse<IncidentType>(type, true, out var incidentType))
-                    throw new ArgumentException("Loại sự cố không hợp lệ.");
+                {
+                    var validTypes = IncidentTypeHelper.GetAllDisplayValues()
+                        .Select(t => t.DisplayName)
+                        .ToList();
+                    throw new ArgumentException($"Loại sự cố không hợp lệ. Các loại hợp lệ gồm: {string.Join(", ", validTypes)}");
+                }
+
                 parsedType = incidentType;
                 reports = reports.Where(r => r.Type == incidentType).ToList();
             }
 
             DateTime from = DateTime.UtcNow.AddHours(-1); 
-
             if (!string.IsNullOrWhiteSpace(range))
             {
-                var normalizedRange = range.ToLower();
-                if (!ValidRanges.Contains(normalizedRange))
+                var normalized = range.ToLower();
+                if (!ValidRanges.Contains(normalized))
                     throw new ArgumentException("Giá trị 'range' không hợp lệ. Hợp lệ: hour, day, week");
 
-                from = normalizedRange switch
+                from = normalized switch
                 {
                     "hour" => DateTime.UtcNow.AddHours(-1),
                     "day" => DateTime.UtcNow.AddDays(-1),
@@ -80,52 +122,16 @@ namespace Service
             var commune = await _communeRepo.GetByIdAsync(communeId);
             if (commune != null)
             {
-                commune.TotalReportedIncidents = reports.Count;
-                await _communeRepo.UpdateAsync(commune);
-            }
-
-            var items = reports.Select(r => new MapReportDTO
-            {
-                Id = r.Id,
-                Type = IncidentTypeHelper.GetAllDisplayValues()
-                    .FirstOrDefault(x => x.Value == r.Type.ToString()).DisplayName ?? r.Type.ToString(),
-                Status = r.Status
-            }).ToList();
-
-            var reportsByType = reports
-                .GroupBy(r => r.Type)
-                .ToDictionary(
-                    g => IncidentTypeHelper.GetAllDisplayValues()
-                        .FirstOrDefault(x => x.Value == g.Key.ToString()).DisplayName ?? g.Key.ToString(),
-                    g => g.Count());
-
-            var reportsByCommune = new Dictionary<string, int>
-            {
-                [commune?.Name ?? "Không rõ"] = (await _reportRepo.GetAllAsync())
+                commune.TotalReportedIncidents = (await _reportRepo.GetAllAsync())
                     .Count(r =>
                         r.CommuneId == communeId &&
                         !string.IsNullOrWhiteSpace(r.Status) &&
                         ValidStatuses.Contains(r.Status.Trim().ToLower()) &&
-                        r.OccurredAt >= from)
-            };
+                        r.OccurredAt >= from);
+                await _communeRepo.UpdateAsync(commune);
+            }
 
-
-            return new MapReportResponse
-            {
-                Total = reports.Count,
-                Items = items,
-                ReportsByType = reportsByType,
-                ReportsByCommune = reportsByCommune
-            };
-        }
-
-
-        public async Task<MapReportDetailDTO?> GetReportDetailForMapAsync(Guid reportId)
-        {
-            var report = await _reportRepo.GetByIdAsync(reportId);
-            if (report == null) return null;
-
-            return new MapReportDetailDTO
+            return reports.OrderByDescending(r => r.OccurredAt).Select(report => new MapReportDetailDTO
             {
                 Id = report.Id,
                 CommuneId = report.CommuneId,
@@ -145,8 +151,9 @@ namespace Service
                 Lng = report.Lng,
                 OccurredAt = DateTimeHelper.ToVietnamTime(report.OccurredAt),
                 Status = report.Status
-            };
+            }).ToList();
         }
+
 
     }
 
