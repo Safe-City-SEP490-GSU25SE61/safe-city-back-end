@@ -42,20 +42,41 @@ namespace Service
                 });
         }
 
-        public async Task<MapReportResponse> GetReportsForMapAsync(int communeId)
+        public async Task<MapReportResponse> GetReportsForMapAsync(int communeId, string? type, string? range)
         {
-            var allReports = (await _reportRepo.GetAllAsync())
+
+            DateTime from = DateTime.UtcNow.AddHours(-1); 
+            if (!string.IsNullOrWhiteSpace(range))
+            {
+                var normalized = range.ToLower();
+                if (!ValidRanges.Contains(normalized))
+                    throw new ArgumentException("Giá trị 'range' không hợp lệ. Hợp lệ: hour, day, week");
+
+                from = normalized switch
+                {
+                    "hour" => DateTime.UtcNow.AddHours(-1),
+                    "day" => DateTime.UtcNow.AddDays(-1),
+                    "week" => DateTime.UtcNow.AddDays(-7),
+                    _ => from
+                };
+            }
+
+            var rawReports = (await _reportRepo.GetAllAsync())
                 .Where(r =>
                     r.CommuneId == communeId &&
                     !string.IsNullOrWhiteSpace(r.Status) &&
-                    ValidStatuses.Contains(r.Status.Trim().ToLower()))
+                    ValidStatuses.Contains(r.Status.Trim().ToLower()) &&
+                    r.OccurredAt >= from)
                 .ToList();
 
-            var from = DateTime.UtcNow.AddDays(-7);
-            var reports = allReports
-                .Where(r => r.OccurredAt >= from)
-                .ToList();
+            if (!string.IsNullOrWhiteSpace(type))
+            {
+                if (!Enum.TryParse<IncidentType>(type, true, out var parsedType))
+                    throw new ArgumentException("Loại sự cố không hợp lệ.");
+                rawReports = rawReports.Where(r => r.Type == parsedType).ToList();
+            }
 
+            var reports = rawReports;
 
             var reportsByType = reports
                 .GroupBy(r => r.Type)
@@ -64,14 +85,19 @@ namespace Service
                         .FirstOrDefault(x => x.Value == g.Key.ToString()).DisplayName ?? g.Key.ToString(),
                     g => g.Count());
 
+            var totalReportsSameCommune = (await _reportRepo.GetAllAsync())
+                .Where(r =>
+                    r.CommuneId == communeId &&
+                    !string.IsNullOrWhiteSpace(r.Status) &&
+                    ValidStatuses.Contains(r.Status.Trim().ToLower()) &&
+                    r.OccurredAt >= from)
+                .Count();
+
             var commune = await _communeRepo.GetByIdAsync(communeId);
-
-
             var reportsByCommune = new Dictionary<string, int>
             {
-                [commune?.Name ?? "Không rõ"] = reports.Count
+                [commune?.Name ?? "Không rõ"] = totalReportsSameCommune
             };
-
 
             return new MapReportResponse
             {
@@ -79,6 +105,8 @@ namespace Service
                 ReportsByCommune = reportsByCommune
             };
         }
+
+
 
 
         public async Task<IEnumerable<MapReportDetailDTO>> GetReportDetailsForMapAsync(int communeId, string? type, string? range)
@@ -159,20 +187,46 @@ namespace Service
         }
 
 
-        public async Task<MapReportResponse> GetOfficerReportsForMapAsync(Guid officerId)
+        public async Task<MapReportResponse> GetOfficerReportsForMapAsync(Guid officerId, string? type, string? range)
         {
             var officer = await _accountRepo.GetByIdAsync(officerId);
             if (officer == null || officer.CommuneId == null)
-                throw new InvalidOperationException("Không tìm thấy khu vực của cán bộ.");
+                throw new InvalidOperationException("Không xác định được khu vực của cán bộ.");
 
             var communeId = officer.CommuneId.Value;
+            DateTime from = DateTime.UtcNow.AddHours(-1); 
 
-            var reports = (await _reportRepo.GetAllAsync())
+            if (!string.IsNullOrWhiteSpace(range))
+            {
+                var normalized = range.ToLower();
+                if (!ValidRanges.Contains(normalized))
+                    throw new ArgumentException("Giá trị 'range' không hợp lệ. Hợp lệ: hour, day, week");
+
+                from = normalized switch
+                {
+                    "hour" => DateTime.UtcNow.AddHours(-1),
+                    "day" => DateTime.UtcNow.AddDays(-1),
+                    "week" => DateTime.UtcNow.AddDays(-7),
+                    _ => from
+                };
+            }
+
+            var rawReports = (await _reportRepo.GetAllAsync())
                 .Where(r =>
                     r.CommuneId == communeId &&
                     !string.IsNullOrWhiteSpace(r.Status) &&
-                    OfficerStatuses.Contains(r.Status.Trim().ToLower()))
+                    OfficerStatuses.Contains(r.Status.Trim().ToLower()) &&
+                    r.OccurredAt >= from)
                 .ToList();
+
+            if (!string.IsNullOrWhiteSpace(type))
+            {
+                if (!Enum.TryParse<IncidentType>(type, true, out var parsedType))
+                    throw new ArgumentException("Loại sự cố không hợp lệ.");
+                rawReports = rawReports.Where(r => r.Type == parsedType).ToList();
+            }
+
+            var reports = rawReports;
 
             var reportsByType = reports
                 .GroupBy(r => r.Type)
@@ -182,7 +236,6 @@ namespace Service
                     g => g.Count());
 
             var commune = await _communeRepo.GetByIdAsync(communeId);
-
             var reportsByCommune = new Dictionary<string, int>
             {
                 [commune?.Name ?? "Không rõ"] = reports.Count
@@ -194,6 +247,8 @@ namespace Service
                 ReportsByCommune = reportsByCommune
             };
         }
+
+
 
 
         public async Task<IEnumerable<MapReportDetailDTO>> GetOfficerReportDetailsForMapAsync(Guid officerId, string? type, string? range)
