@@ -193,7 +193,6 @@ namespace Service
 
                     _ => null
                 },
-                Description = report.Description,
                 Address = report.Address,
                 Lat = report.Lat,
                 Lng = report.Lng,
@@ -345,7 +344,6 @@ namespace Service
 
                         _ => null
                     },
-                    Description = report.Description,
                     Address = report.Address,
                     Lat = report.Lat,
                     Lng = report.Lng,
