@@ -27,7 +27,6 @@ namespace BusinessObject.DTOs.ResponseModels
         public int? CommuneId { get; set; }
         public string Type { get; set; }
         public string? SubCategory { get; set; }
-        public string Description { get; set; }
         public string Address { get; set; }
         public decimal? Lat { get; set; }
         public decimal? Lng { get; set; }

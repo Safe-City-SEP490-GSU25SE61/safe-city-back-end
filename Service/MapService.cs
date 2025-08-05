@@ -18,7 +18,7 @@ namespace Service
         private readonly IAccountRepository _accountRepo;
 
         private static readonly string[] ValidStatuses = { "verified", "solved" };
-        private static readonly string[] ValidRanges = { "hour", "day", "week" };
+        private static readonly string[] ValidRanges = { "week", "month", "quarter" };
         private static readonly string[] OfficerStatuses = { "pending", "verified", "solved" };
 
 
@@ -45,19 +45,19 @@ namespace Service
         public async Task<MapReportResponse> GetReportsForMapAsync(int communeId, string? type, string? range)
         {
 
-            DateTime from = DateTime.UtcNow.AddHours(-1); 
+            DateTime from = DateTime.UtcNow.AddDays(-7); 
             if (!string.IsNullOrWhiteSpace(range))
             {
                 var normalized = range.ToLower();
                 if (!ValidRanges.Contains(normalized))
-                    throw new ArgumentException("Giá trị 'range' không hợp lệ. Hợp lệ: hour, day, week");
+                    throw new ArgumentException("Giá trị 'range' không hợp lệ. Hợp lệ: week, month, quarter");
 
                 from = normalized switch
                 {
-                    "hour" => DateTime.UtcNow.AddHours(-1),
-                    "day" => DateTime.UtcNow.AddDays(-1),
                     "week" => DateTime.UtcNow.AddDays(-7),
-                    _ => from
+                    "month" => DateTime.UtcNow.AddMonths(-1),
+                    "quarter" => DateTime.UtcNow.AddMonths(-3),
+                    _ => DateTime.UtcNow.AddDays(-7) 
                 };
             }
 
@@ -133,19 +133,19 @@ namespace Service
                 reports = reports.Where(r => r.Type == incidentType).ToList();
             }
 
-            DateTime from = DateTime.UtcNow.AddHours(-1); 
+            DateTime from = DateTime.UtcNow.AddDays(-7); 
             if (!string.IsNullOrWhiteSpace(range))
             {
                 var normalized = range.ToLower();
                 if (!ValidRanges.Contains(normalized))
-                    throw new ArgumentException("Giá trị 'range' không hợp lệ. Hợp lệ: hour, day, week");
+                    throw new ArgumentException("Giá trị 'range' không hợp lệ. Hợp lệ: week, month, quarter");
 
                 from = normalized switch
                 {
-                    "hour" => DateTime.UtcNow.AddHours(-1),
-                    "day" => DateTime.UtcNow.AddDays(-1),
                     "week" => DateTime.UtcNow.AddDays(-7),
-                    _ => DateTime.UtcNow.AddHours(-1)
+                    "month" => DateTime.UtcNow.AddMonths(-1),
+                    "quarter" => DateTime.UtcNow.AddMonths(-3),
+                    _ => DateTime.UtcNow.AddDays(-7) 
                 };
             }
 
@@ -167,17 +167,32 @@ namespace Service
             {
                 Id = report.Id,
                 CommuneId = report.CommuneId,
-                Type = report.Type.ToString(),
+                Type = IncidentTypeHelper.GetAllDisplayValues()
+                .FirstOrDefault(t => t.Value == report.Type.ToString()).DisplayName ?? "Không xác định",
                 SubCategory = report.Type switch
                 {
-                    IncidentType.Traffic => report.TrafficSubCategory?.ToString(),
-                    IncidentType.Security => report.SecuritySubCategory?.ToString(),
-                    IncidentType.Infrastructure => report.InfrastructureSubCategory?.ToString(),
-                    IncidentType.Environment => report.EnvironmentSubCategory?.ToString(),
-                    IncidentType.Other => report.OtherSubCategory?.ToString(),
+                    IncidentType.Traffic => IncidentTypeHelper
+                        .GetDisplayValues<TrafficSubCategory>()
+                        .FirstOrDefault(x => x.Value == report.TrafficSubCategory?.ToString()).DisplayName,
+
+                    IncidentType.Security => IncidentTypeHelper
+                        .GetDisplayValues<SecuritySubCategory>()
+                        .FirstOrDefault(x => x.Value == report.SecuritySubCategory?.ToString()).DisplayName,
+
+                    IncidentType.Infrastructure => IncidentTypeHelper
+                        .GetDisplayValues<InfrastructureSubCategory>()
+                        .FirstOrDefault(x => x.Value == report.InfrastructureSubCategory?.ToString()).DisplayName,
+
+                    IncidentType.Environment => IncidentTypeHelper
+                        .GetDisplayValues<EnvironmentSubCategory>()
+                        .FirstOrDefault(x => x.Value == report.EnvironmentSubCategory?.ToString()).DisplayName,
+
+                    IncidentType.Other => IncidentTypeHelper
+                        .GetDisplayValues<OtherSubCategory>()
+                        .FirstOrDefault(x => x.Value == report.OtherSubCategory?.ToString()).DisplayName,
+
                     _ => null
                 },
-                Description = report.Description,
                 Address = report.Address,
                 Lat = report.Lat,
                 Lng = report.Lng,
@@ -194,20 +209,20 @@ namespace Service
                 throw new InvalidOperationException("Không xác định được khu vực của cán bộ.");
 
             var communeId = officer.CommuneId.Value;
-            DateTime from = DateTime.UtcNow.AddHours(-1); 
+            DateTime from = DateTime.UtcNow.AddDays(-7); 
 
             if (!string.IsNullOrWhiteSpace(range))
             {
                 var normalized = range.ToLower();
                 if (!ValidRanges.Contains(normalized))
-                    throw new ArgumentException("Giá trị 'range' không hợp lệ. Hợp lệ: hour, day, week");
+                    throw new ArgumentException("Giá trị 'range' không hợp lệ. Hợp lệ: week, month, quarter");
 
                 from = normalized switch
                 {
-                    "hour" => DateTime.UtcNow.AddHours(-1),
-                    "day" => DateTime.UtcNow.AddDays(-1),
                     "week" => DateTime.UtcNow.AddDays(-7),
-                    _ => from
+                    "month" => DateTime.UtcNow.AddMonths(-1),
+                    "quarter" => DateTime.UtcNow.AddMonths(-3),
+                    _ => DateTime.UtcNow.AddDays(-7) 
                 };
             }
 
@@ -279,19 +294,19 @@ namespace Service
                 reports = reports.Where(r => r.Type == incidentType).ToList();
             }
 
-            DateTime from = DateTime.UtcNow.AddHours(-1);
+            DateTime from = DateTime.UtcNow.AddDays(-7);
             if (!string.IsNullOrWhiteSpace(range))
             {
                 var normalized = range.ToLower();
                 if (!ValidRanges.Contains(normalized))
-                    throw new ArgumentException("Giá trị 'range' không hợp lệ. Hợp lệ: hour, day, week");
+                    throw new ArgumentException("Giá trị 'range' không hợp lệ. Hợp lệ: week, month, quarter");
 
                 from = normalized switch
                 {
-                    "hour" => DateTime.UtcNow.AddHours(-1),
-                    "day" => DateTime.UtcNow.AddDays(-1),
                     "week" => DateTime.UtcNow.AddDays(-7),
-                    _ => from
+                    "month" => DateTime.UtcNow.AddMonths(-1),
+                    "quarter" => DateTime.UtcNow.AddMonths(-3),
+                    _ => DateTime.UtcNow.AddDays(-7) 
                 };
             }
 
@@ -303,17 +318,32 @@ namespace Service
                 {
                     Id = report.Id,
                     CommuneId = report.CommuneId,
-                    Type = report.Type.ToString(),
+                    Type = IncidentTypeHelper.GetAllDisplayValues()
+                    .FirstOrDefault(t => t.Value == report.Type.ToString()).DisplayName ?? "Không xác định",
                     SubCategory = report.Type switch
                     {
-                        IncidentType.Traffic => report.TrafficSubCategory?.ToString(),
-                        IncidentType.Security => report.SecuritySubCategory?.ToString(),
-                        IncidentType.Infrastructure => report.InfrastructureSubCategory?.ToString(),
-                        IncidentType.Environment => report.EnvironmentSubCategory?.ToString(),
-                        IncidentType.Other => report.OtherSubCategory?.ToString(),
+                        IncidentType.Traffic => IncidentTypeHelper
+                            .GetDisplayValues<TrafficSubCategory>()
+                            .FirstOrDefault(x => x.Value == report.TrafficSubCategory?.ToString()).DisplayName,
+
+                        IncidentType.Security => IncidentTypeHelper
+                            .GetDisplayValues<SecuritySubCategory>()
+                            .FirstOrDefault(x => x.Value == report.SecuritySubCategory?.ToString()).DisplayName,
+
+                        IncidentType.Infrastructure => IncidentTypeHelper
+                            .GetDisplayValues<InfrastructureSubCategory>()
+                            .FirstOrDefault(x => x.Value == report.InfrastructureSubCategory?.ToString()).DisplayName,
+
+                        IncidentType.Environment => IncidentTypeHelper
+                            .GetDisplayValues<EnvironmentSubCategory>()
+                            .FirstOrDefault(x => x.Value == report.EnvironmentSubCategory?.ToString()).DisplayName,
+
+                        IncidentType.Other => IncidentTypeHelper
+                            .GetDisplayValues<OtherSubCategory>()
+                            .FirstOrDefault(x => x.Value == report.OtherSubCategory?.ToString()).DisplayName,
+
                         _ => null
                     },
-                    Description = report.Description,
                     Address = report.Address,
                     Lat = report.Lat,
                     Lng = report.Lng,
