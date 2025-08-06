@@ -39,8 +39,9 @@ namespace BusinessObject.Models
         public bool IsAnonymous { get; set; }
 
         [Column("status")]
-        public string Status { get; set; }  
-
+        public string Status { get; set; }
+        [Column("is_visible_on_map")]
+        public bool IsVisibleOnMap { get; set; } = true;
         [Column("created_at")]
         public DateTime CreatedAt { get; set; }
 

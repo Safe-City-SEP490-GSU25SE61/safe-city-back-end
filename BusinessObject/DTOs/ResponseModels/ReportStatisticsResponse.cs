@@ -17,6 +17,8 @@ namespace BusinessObject.DTOs.ResponseModels
         public string TopCommuneName { get; set; }
 
         public int? TopCommuneCount { get; set; }
+        public int VisibleReports { get; set; }
+        public int HiddenReports { get; set; }
 
         public Dictionary<string, int> ReportsByType { get; set; }
 

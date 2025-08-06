@@ -240,6 +240,9 @@ namespace DataAccessLayer.DataContext
             modelBuilder.Entity<IncidentReport>()
                 .Property(r => r.PriorityLevel)
                 .HasConversion<string>();
+            modelBuilder.Entity<IncidentReport>()
+                .Property(r => r.IsVisibleOnMap)
+                .HasDefaultValue(true);
 
             modelBuilder.Entity<Commune>()
                 .HasOne(c => c.Province)
