@@ -66,6 +66,7 @@ namespace Service
                     r.CommuneId == communeId &&
                     !string.IsNullOrWhiteSpace(r.Status) &&
                     ValidStatuses.Contains(r.Status.Trim().ToLower()) &&
+                    r.IsVisibleOnMap &&
                     r.OccurredAt >= from)
                 .ToList();
 
@@ -96,8 +97,9 @@ namespace Service
             var commune = await _communeRepo.GetByIdAsync(communeId);
             var reportsByCommune = new Dictionary<string, int>
             {
-                [commune?.Name ?? "Không rõ"] = totalReportsSameCommune
+                [commune?.Name ?? "Không rõ"] = rawReports.Count(r => r.CommuneId == communeId && r.IsVisibleOnMap)
             };
+
 
             return new MapReportResponse
             {
@@ -115,7 +117,8 @@ namespace Service
                 .Where(r =>
                     r.CommuneId == communeId &&
                     !string.IsNullOrWhiteSpace(r.Status) &&
-                    ValidStatuses.Contains(r.Status.Trim().ToLower()))
+                    ValidStatuses.Contains(r.Status.Trim().ToLower()) &&
+                    r.IsVisibleOnMap)
                 .ToList();
 
             IncidentType? parsedType = null;
@@ -159,6 +162,7 @@ namespace Service
                         r.CommuneId == communeId &&
                         !string.IsNullOrWhiteSpace(r.Status) &&
                         ValidStatuses.Contains(r.Status.Trim().ToLower()) &&
+                        r.IsVisibleOnMap &&
                         r.OccurredAt >= from);
                 await _communeRepo.UpdateAsync(commune);
             }

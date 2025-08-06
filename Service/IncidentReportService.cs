@@ -139,7 +139,7 @@ namespace Service
                 VideoUrl = uploadedVideoUrl,
                 CommuneId = communeId,
                 PriorityLevel = model.PriorityLevel,
-
+                IsVisibleOnMap = true,
             };
             if (string.IsNullOrWhiteSpace(model.SubCategory))
                 throw new InvalidOperationException("Bạn cần chọn phân loại chi tiết.");
@@ -358,6 +358,11 @@ namespace Service
             {
                 report.StatusMessage = model.Message;
             }
+            if (model.IsVisibleOnMap.HasValue)
+            {
+                report.IsVisibleOnMap = model.IsVisibleOnMap.Value;
+            }
+
             await _reportRepo.UpdateAsync(report);
 
 
@@ -366,13 +371,9 @@ namespace Service
                 var account = await _accountRepo.GetByIdAsync(report.UserId);
                 if (account != null)
                 {
-                    int rewardPoint = _configuration.GetValue<int>("Reward:VerifiedReportPoint", 10);
-                    int newTotal = account.TotalPoint + rewardPoint;
-                    await _mediator.Publish(new PointChangedEvent
-                    {
-                        UserId = account.Id,
-                        NewTotalPoint = newTotal
-                    });
+                    int rewardPoint = _configuration.GetValue<int>("Reward:VerifiedReportPoint", 100);
+                    account.TotalPoint += rewardPoint;
+                    await _accountRepo.UpdateOfficerAsync(account);
 
                 }
             }
@@ -421,6 +422,7 @@ namespace Service
                 Address = report.Address,
                 Status = report.Status,
                 IsAnonymous = report.IsAnonymous,
+                IsVisibleOnMap = report.IsVisibleOnMap,
                 OccurredAt = DateTimeHelper.ToVietnamTime(report.OccurredAt),
                 CreatedAt = DateTimeHelper.ToVietnamTime(report.CreatedAt),
                 VerifiedByName = report.Verifier?.FullName,
@@ -889,7 +891,8 @@ namespace Service
         public async Task<ReportStatisticsResponse> GetSystemReportStatisticsAsync(string? range)
         {
             var allReports = await _reportRepo.GetAllAsync();
-
+            var visibleCount = allReports.Count(r => r.IsVisibleOnMap);
+            var hiddenCount = allReports.Count(r => !r.IsVisibleOnMap);
             if (!string.IsNullOrWhiteSpace(range))
             {
                 if (!ValidRanges.Contains(range.ToLower()))
@@ -989,7 +992,9 @@ namespace Service
                 TopCommuneName = topCommune.Key ?? "N/A",
                 TopCommuneCount = topCommune.Value,
                 ReportsByType = reportsByType,
-                ReportsBySubType = reportsBySubType
+                ReportsBySubType = reportsBySubType,
+                VisibleReports = visibleCount,
+                HiddenReports = hiddenCount
             };
         }
 
@@ -1008,6 +1013,8 @@ namespace Service
             var reports = (await _reportRepo.GetAllAsync())
                 .Where(r => r.CommuneId == officer.CommuneId)
                 .ToList();
+            var visibleCount = reports.Count(r => r.IsVisibleOnMap);
+            var hiddenCount = reports.Count(r => !r.IsVisibleOnMap);
 
             if (!string.IsNullOrWhiteSpace(range))
             {
@@ -1097,7 +1104,9 @@ namespace Service
                 TopCommuneName = null,
                 TopCommuneCount = null,
                 ReportsByType = reportsByType,
-                ReportsBySubType = reportsBySubType
+                ReportsBySubType = reportsBySubType,
+                VisibleReports = visibleCount,
+                HiddenReports = hiddenCount
             };
         }
 
