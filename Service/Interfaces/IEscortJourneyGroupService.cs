@@ -15,7 +15,7 @@ namespace Service.Interfaces
         Task ReviewJoinRequestAsync(int requestId, bool approve);
         Task<List<PendingRequestDto>> GetPendingRequestsByGroupIdAsync(int groupId);
         Task<List<EscortGroupDto>> GetGroupsByAccountIdAsync(Guid accountId);
-        Task DeleteGroupByIdAsync(int groupId);
-        Task<List<(string Name, int Value)>> GetAvailableGroupCreationOptionsAsync(Guid accountId);
+        Task DeleteGroupByIdAsync(string groupCode);
+        Task<GroupWaitingRoomDto?> GetGroupWaitingRoomAsync(int groupId);
     }
 }

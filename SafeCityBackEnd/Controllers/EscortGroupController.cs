@@ -45,22 +45,6 @@ namespace SafeCityBackEnd.Controllers
             }
         }
 
-        [HttpGet("group-creation-options")]
-        public async Task<IActionResult> GetGroupCreationOptions()
-        {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim == null)
-                return CustomErrorHandler.SimpleError("User ID claim not found.", 401);
-
-            var userId = Guid.Parse(userIdClaim.Value);
-            var options = await _groupService.GetAvailableGroupCreationOptionsAsync(userId);
-
-            return Ok(new
-            {
-                maxOptions = options.Select(o => new { name = o.Item1, value = o.Item2 })
-            });
-        }
-
 
 
         [HttpPost("join-code")]
@@ -129,8 +113,26 @@ namespace SafeCityBackEnd.Controllers
             }
         }
 
+
+        [HttpGet("{groupId}/waiting-room")]
+        public async Task<IActionResult> GetGroupWaitingRoom(int groupId)
+        {
+            try
+            {
+                var result = await _groupService.GetGroupWaitingRoomAsync(groupId);
+                if (result == null)
+                    return NotFound(new { message = "Group not found." });
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Get data successfully.", result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+
         [HttpDelete]
-        public async Task<IActionResult> DeleteGroup(int groupId)
+        public async Task<IActionResult> DeleteGroup(string groupCode)
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim == null)
@@ -139,7 +141,7 @@ namespace SafeCityBackEnd.Controllers
             var userId = Guid.Parse(userIdClaim.Value);
             try
             {
-                await _groupService.DeleteGroupByIdAsync(groupId);
+                await _groupService.DeleteGroupByIdAsync(groupCode);
                 return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Delete successfully.", null);
             }
             catch (Exception ex)

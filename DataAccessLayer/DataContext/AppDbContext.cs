@@ -38,6 +38,11 @@ namespace DataAccessLayer.DataContext
         public DbSet<EscortJourneyGroup> EscortJourneyGroups { get; set; }
         public DbSet<EscortJourneyGroupMember> EscortJourneyGroupMembers { get; set; }
         public DbSet<EscortGroupJoinRequest> EscortGroupJoinRequests { get; set; }
+        public DbSet<EscortJourney> EscortJourneys { get; set; }
+        public DbSet<EscortJourneyWatcher> EscortJourneyWatchers { get; set; }
+        public DbSet<SosAlert> SosAlerts { get; set; }
+        public DbSet<CurrentUserLocation> CurrentUserLocations { get; set; }
+        public DbSet<LocationHistory> LocationHistories { get; set; }
 
 
 
@@ -275,9 +280,6 @@ namespace DataAccessLayer.DataContext
 
                 entity.HasIndex(g => g.GroupCode)
                       .IsUnique();
-
-                entity.Property(g => g.MaxMemberNumber)
-                      .HasConversion<string>();
             });
 
             modelBuilder.Entity<EscortJourneyGroupMember>(entity =>
@@ -316,6 +318,67 @@ namespace DataAccessLayer.DataContext
                 entity.HasIndex(r => new { r.GroupId, r.AccountId }).IsUnique();
             });
 
+            modelBuilder.Entity<EscortJourney>()
+                .HasOne(e => e.CreatedInGroup)
+                .WithMany(g => g.Journeys)
+                .HasForeignKey(e => e.CreatedInGroupId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<EscortJourney>()
+                .HasOne(e => e.User)
+                .WithMany(a => a.CreatedEscortJourneys)
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // EscortJourneyWatcher
+            modelBuilder.Entity<EscortJourneyWatcher>()
+                .HasOne(w => w.EscortJourney)
+                .WithMany(j => j.Watchers)
+                .HasForeignKey(w => w.EscortJourneyId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<EscortJourneyWatcher>()
+                .HasOne(w => w.Watcher)
+                .WithMany(a => a.WatchedJourneys)
+                .HasForeignKey(w => w.WatcherId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<EscortJourneyWatcher>()
+                .HasIndex(w => new { w.EscortJourneyId, w.WatcherId })
+                .IsUnique();
+
+            // SosAlert
+            modelBuilder.Entity<SosAlert>()
+                .HasOne(s => s.EscortJourney)
+                .WithMany(j => j.SosAlerts)
+                .HasForeignKey(s => s.EscortJourneyId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<SosAlert>()
+                .HasOne(s => s.Sender)
+                .WithMany(a => a.SosAlerts)
+                .HasForeignKey(s => s.SenderId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // CurrentUserLocation
+            modelBuilder.Entity<CurrentUserLocation>()
+                .HasOne(c => c.EscortJourney)
+                .WithMany(j => j.CurrentUserLocations)
+                .HasForeignKey(c => c.EscortJourneyId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<CurrentUserLocation>()
+                .HasOne(c => c.User)
+                .WithOne(a => a.CurrentLocation)
+                .HasForeignKey<CurrentUserLocation>(c => c.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // LocationHistory
+            modelBuilder.Entity<LocationHistory>()
+                .HasOne(h => h.EscortJourney)
+                .WithMany(j => j.LocationHistories)
+                .HasForeignKey(h => h.EscortJourneyId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             base.OnModelCreating(modelBuilder);
         }

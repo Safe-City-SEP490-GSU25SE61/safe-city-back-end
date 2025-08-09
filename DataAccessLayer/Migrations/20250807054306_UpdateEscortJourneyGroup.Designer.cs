@@ -3,6 +3,7 @@ using System;
 using DataAccessLayer.DataContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,13 +12,15 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DataAccessLayer.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250807054306_UpdateEscortJourneyGroup")]
+    partial class UpdateEscortJourneyGroup
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.17")
+                .HasAnnotation("ProductVersion", "8.0.16")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -748,8 +751,9 @@ namespace DataAccessLayer.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("leader_id");
 
-                    b.Property<int>("MaxMemberNumber")
-                        .HasColumnType("integer")
+                    b.Property<string>("MaxMemberNumber")
+                        .IsRequired()
+                        .HasColumnType("character varying(64)")
                         .HasColumnName("max_member_number");
 
                     b.Property<string>("Name")
@@ -888,12 +892,6 @@ namespace DataAccessLayer.Migrations
                     b.Property<bool>("IsAnonymous")
                         .HasColumnType("boolean")
                         .HasColumnName("is_anonymous");
-
-                    b.Property<bool>("IsVisibleOnMap")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(true)
-                        .HasColumnName("is_visible_on_map");
 
                     b.Property<decimal?>("Lat")
                         .HasColumnType("numeric")

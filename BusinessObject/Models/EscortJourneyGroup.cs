@@ -27,7 +27,7 @@ namespace BusinessObject.Models
         public string GroupCode { get; set; }
 
         [Column("max_member_number")]
-        public GroupMemberLimitTier MaxMemberNumber { get; set; }
+        public int MaxMemberNumber { get; set; } = 10;
 
         [Column("created_at")]
         public DateTime CreatedAt { get; set; }
@@ -37,6 +37,7 @@ namespace BusinessObject.Models
 
         public Account Leader { get; set; }
         public ICollection<EscortJourneyGroupMember> Members { get; set; }
+        public ICollection<EscortJourney> Journeys { get; set; }
         public ICollection<EscortGroupJoinRequest> JoinRequests { get; set; }
     }
 }
