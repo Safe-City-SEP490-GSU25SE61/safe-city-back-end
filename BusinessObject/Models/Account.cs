@@ -87,6 +87,10 @@ namespace BusinessObject.Models
         public ICollection<EscortJourneyGroup> LedEscortGroups { get; set; }
         public ICollection<EscortJourneyGroupMember> JoinedEscortGroups { get; set; }
         public ICollection<EscortGroupJoinRequest> GroupJoinRequests { get; set; }
+        public ICollection<EscortJourney> CreatedEscortJourneys { get; set; }
+        public ICollection<EscortJourneyWatcher> WatchedJourneys { get; set; }
+        public ICollection<SosAlert> SosAlerts { get; set; }
+        public CurrentUserLocation CurrentLocation { get; set; }
         public ICollection<Note> Notes { get; set; }
         public ICollection<Blog> Blogs { get; set; }
         public ICollection<Comment> Comments { get; set; }

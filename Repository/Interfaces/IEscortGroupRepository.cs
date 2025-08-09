@@ -4,13 +4,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using BusinessObject.DTOs.ResponseModels;
 
 namespace Repository.Interfaces
 {
     public interface IEscortGroupRepository
     {
         Task<int> CreateGroupAsync(EscortJourneyGroup group);
-        Task DeleteGroupByIdAsync(int groupId);
+        Task DeleteGroupByIdAsync(string groupCode);
         Task<int?> GetGroupIdByCodeAsync(string groupCode);
         Task<bool> IsGroupCodeExistsAsync(string groupCode);
         Task<int> GetGroupCountByAccountIdAsync(Guid accountId);
@@ -19,6 +20,7 @@ namespace Repository.Interfaces
         Task<List<EscortJourneyGroup>> GetGroupsByUserIdAsync(Guid userId);
         Task<int> GetMemberCountAsync(int groupId);
         Task<List<EscortJourneyGroup>> GetGroupsByAccountIdAsync(Guid accountId);
+        Task<GroupWaitingRoomDto?> GetGroupWithLeaderAndMembersAsync(int groupId);
 
     }
 }

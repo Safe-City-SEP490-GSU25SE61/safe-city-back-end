@@ -2,6 +2,7 @@
 using BusinessObject.DTOs.ResponseModels;
 using BusinessObject.Enums;
 using BusinessObject.Models;
+using Repository;
 using Repository.Interfaces;
 using Service.Interfaces;
 using System;
@@ -19,9 +20,6 @@ namespace Service
         private readonly ISubscriptionRepository _subscriptionRepository;
         private readonly IEscortGroupJoinRequestRepository _groupJoinRequestRepository;
 
-        private const int FreeTierMaxGroups = 3;
-        private const int PremiumTierMaxGroups = 10;
-
         public EscortJourneyGroupService(IEscortGroupRepository repository, IAccountRepository accountRepository,
             ISubscriptionRepository subscriptionRepository, IEscortGroupJoinRequestRepository groupJoinRequestRepository)
         {
@@ -34,7 +32,7 @@ namespace Service
         public async Task CreateGroupAsync(Guid accountId, CreateEscortJourneyGroupRequest request)
         {
             int currentGroups = await _groupRepository.GetGroupCountByAccountIdAsync(accountId);
-            int maxAllowed = await DetermineGroupLimit(accountId);
+            int maxAllowed = 5;
 
             if (currentGroups >= maxAllowed)
                 throw new InvalidOperationException("Bạn đã đạt giới hạn số nhóm có thể tham gia.");
@@ -49,7 +47,6 @@ namespace Service
             {
                 Name = request.Name,
                 GroupCode = groupCode,
-                MaxMemberNumber = request.MemberLimitTier,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
                 LeaderId = accountId
@@ -76,7 +73,7 @@ namespace Service
                 throw new InvalidOperationException("Bạn đã gửi yêu cầu tham gia nhóm này.");
 
             int currentGroups = await _groupRepository.GetGroupCountByAccountIdAsync(accountId);
-            int maxAllowed = await DetermineGroupLimit(accountId);
+            int maxAllowed = 5;
 
             if (currentGroups >= maxAllowed)
                 throw new InvalidOperationException("Bạn đã đạt giới hạn số nhóm có thể tham gia.");
@@ -136,45 +133,23 @@ namespace Service
                 Id = g.Id,
                 Name = g.Name,
                 MaxMemberNumber = (int)g.MaxMemberNumber,
-                MemberCount = g.Members.Count
+                MemberCount = g.Members.Count,
+                Role = (g.LeaderId == accountId ? GroupMemberRole.Leader : GroupMemberRole.Member).ToString(),
             }).ToList();
         }
 
-        public async Task DeleteGroupByIdAsync(int groupId)
+        public async Task<GroupWaitingRoomDto?> GetGroupWaitingRoomAsync(int groupId)
         {
-            await _groupRepository.DeleteGroupByIdAsync(groupId);
-        }
+            var group = await _groupRepository.GetGroupWithLeaderAndMembersAsync(groupId);
+            if (group == null) return null;
 
-        public async Task<List<(string Name, int Value)>> GetAvailableGroupCreationOptionsAsync(Guid accountId)
-        {
-            var subscription = await _subscriptionRepository.GetActiveByUserIdAsync(accountId);
-
-            GroupMemberLimitTier[] availableOptions;
-
-            if (subscription != null)
-            {
-                availableOptions = new[] { GroupMemberLimitTier.Free, GroupMemberLimitTier.Premium };
-            }
-            else
-            {
-                availableOptions = new[] { GroupMemberLimitTier.Free };
-            }
-
-            return availableOptions
-                .Select(x => (x.ToString(), (int)x))
-                .ToList();
+            return group;
         }
 
 
-
-        public async Task<int> DetermineGroupLimit(Guid accountId)
+        public async Task DeleteGroupByIdAsync(string groupCode)
         {
-            var subscription = await _subscriptionRepository.GetActiveByUserIdAsync(accountId);
-            if (subscription == null)
-            {
-                return FreeTierMaxGroups;
-            }
-            return PremiumTierMaxGroups;
+            await _groupRepository.DeleteGroupByIdAsync(groupCode);
         }
 
         private string GenerateRandomCode()

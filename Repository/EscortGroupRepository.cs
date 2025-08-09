@@ -1,4 +1,5 @@
-﻿using BusinessObject.Models;
+﻿using BusinessObject.DTOs.ResponseModels;
+using BusinessObject.Models;
 using DataAccessLayer.DataContext;
 using Microsoft.EntityFrameworkCore;
 using Repository.Interfaces;
@@ -26,10 +27,10 @@ namespace Repository
             return group.Id;
         }
 
-        public async Task DeleteGroupByIdAsync(int groupId)
+        public async Task DeleteGroupByIdAsync(string groupCode)
         {
             var group = await _context.EscortJourneyGroups      
-        .       FirstOrDefaultAsync(g => g.Id == groupId);
+        .       FirstOrDefaultAsync(g => g.GroupCode.Equals(groupCode));
 
             if (group == null)
                 throw new Exception("Group not found");
@@ -87,6 +88,29 @@ namespace Repository
                 .Where(g => g.Members.Any(m => m.AccountId == accountId))
                 .Include(g => g.Members)
                 .ToListAsync();
+        }
+
+        public async Task<GroupWaitingRoomDto?> GetGroupWithLeaderAndMembersAsync(int groupId)
+        {
+            return await _context.EscortJourneyGroups
+                .Select(g => new GroupWaitingRoomDto
+                {
+                    Id = g.Id,
+                    Name = g.Name,
+                    GroupCode = g.GroupCode,
+                    MaxMemberNumber = g.MaxMemberNumber,
+                    CurrentMemberCount = g.Members.Count,
+                    LeaderName = g.Leader.FullName,
+                    CreatedAt = g.CreatedAt,
+                    Members = g.Members.Select(m => new EscortGroupMemberDto
+                    {
+                        Id = m.Id,
+                        FullName = m.Account.FullName,
+                        AvatarUrl = m.Account.ImageUrl ?? "unavailable avatar",
+                        Role = m.Role,                      
+                    })
+                })
+                .FirstOrDefaultAsync(g => g.Id == groupId);
         }
 
     }
