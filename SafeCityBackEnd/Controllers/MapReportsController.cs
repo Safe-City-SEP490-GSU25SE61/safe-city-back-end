@@ -28,16 +28,30 @@ namespace SafeCityBackEnd.Controllers
         }
 
         [HttpGet("reports")]
-        public async Task<IActionResult> GetReportsForMap([FromQuery] int communeId)
+        //[AllowAnonymous]
+        public async Task<IActionResult> GetReportsForMap([FromQuery] MapReportFilterQuery query)
         {
-            var result = await _mapService.GetReportsForMapAsync(communeId);
-            return Ok(result);
+            try
+            {
+                var result = await _mapService.GetReportsForMapAsync(
+                    query.CommuneId,
+                    query.Type?.ToString(),
+                    query.Range
+                );
+                return Ok(result);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
 
 
 
+
         [HttpGet("reports/details")]
+        //[AllowAnonymous]
         public async Task<IActionResult> GetReportDetails([FromQuery] MapReportFilterQuery query)
         {
             try
@@ -54,18 +68,25 @@ namespace SafeCityBackEnd.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
-
         [HttpGet("officer/reports")]
-        [Authorize]
-        public async Task<IActionResult> GetReportsForOfficer()
+        //[Authorize]
+        public async Task<IActionResult> GetReportsForOfficer([FromQuery] string? type, [FromQuery] string? range)
         {
-            var officerId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-            var result = await _mapService.GetOfficerReportsForMapAsync(officerId);
-            return Ok(result);
+            try
+            {
+                var officerId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+                var result = await _mapService.GetOfficerReportsForMapAsync(officerId, type, range);
+                return Ok(result);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
+
         [HttpGet("officer/reports/details")]
-        [Authorize]
+        //[Authorize]
         public async Task<IActionResult> GetReportDetailsForOfficer([FromQuery] string? type, [FromQuery] string? range)
         {
             try

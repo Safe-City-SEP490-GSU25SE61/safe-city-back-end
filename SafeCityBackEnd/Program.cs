@@ -65,6 +65,8 @@ builder.Services.AddScoped<IIncidentReportService, IncidentReportService>();
 builder.Services.AddScoped<IIncidentReportRepository, IncidentReportRepository>();
 builder.Services.AddScoped<INoteRepository, NoteRepository>();
 builder.Services.AddScoped<IMapService, MapService>();
+builder.Services.AddHostedService<AchievementCronJob>();
+builder.Services.AddHostedService<ReputationResetCronJob>();
 
 
 

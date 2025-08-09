@@ -3,6 +3,7 @@ using System;
 using DataAccessLayer.DataContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DataAccessLayer.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250806150833_IsVisibleOnMap")]
+    partial class IsVisibleOnMap
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -559,57 +562,6 @@ namespace DataAccessLayer.Migrations
                     b.ToTable("commune");
                 });
 
-            modelBuilder.Entity("BusinessObject.Models.CurrentUserLocation", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("BatteryLevel")
-                        .HasColumnType("integer")
-                        .HasColumnName("battery_level");
-
-                    b.Property<int>("EscortJourneyId")
-                        .HasColumnType("integer")
-                        .HasColumnName("escort_journey_id");
-
-                    b.Property<decimal?>("Heading")
-                        .HasColumnType("numeric")
-                        .HasColumnName("heading");
-
-                    b.Property<DateTime>("LastUpdated")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_updated");
-
-                    b.Property<decimal>("Latitude")
-                        .HasColumnType("numeric")
-                        .HasColumnName("latitude");
-
-                    b.Property<decimal>("Longitude")
-                        .HasColumnType("numeric")
-                        .HasColumnName("longitude");
-
-                    b.Property<decimal?>("Speed")
-                        .HasColumnType("numeric")
-                        .HasColumnName("speed");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("EscortJourneyId");
-
-                    b.HasIndex("UserId")
-                        .IsUnique();
-
-                    b.ToTable("current_user_location");
-                });
-
             modelBuilder.Entity("BusinessObject.Models.EscortGroupJoinRequest", b =>
                 {
                     b.Property<int>("Id")
@@ -649,83 +601,6 @@ namespace DataAccessLayer.Migrations
                     b.ToTable("escort_group_join_request");
                 });
 
-            modelBuilder.Entity("BusinessObject.Models.EscortJourney", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime?>("ArrivalTime")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("arrival_time");
-
-                    b.Property<int?>("CreatedInGroupId")
-                        .HasColumnType("integer")
-                        .HasColumnName("created_in_group_id");
-
-                    b.Property<bool>("DeviationAlertSent")
-                        .HasColumnType("boolean")
-                        .HasColumnName("deviation_alert_sent");
-
-                    b.Property<decimal?>("EndLatitude")
-                        .HasColumnType("numeric")
-                        .HasColumnName("end_latitude");
-
-                    b.Property<decimal?>("EndLongitude")
-                        .HasColumnType("numeric")
-                        .HasColumnName("end_longitude");
-
-                    b.Property<string>("EndPoint")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("end_point");
-
-                    b.Property<DateTime?>("ExpectedEndTime")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("expected_end_time");
-
-                    b.Property<DateTime?>("ExpectedTime")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("expected_time");
-
-                    b.Property<decimal?>("StartLatitude")
-                        .HasColumnType("numeric")
-                        .HasColumnName("start_latitude");
-
-                    b.Property<decimal?>("StartLongitude")
-                        .HasColumnType("numeric")
-                        .HasColumnName("start_longitude");
-
-                    b.Property<string>("StartPoint")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("start_point");
-
-                    b.Property<DateTime?>("StartTime")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("start_time");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("status");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatedInGroupId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("escort_journey");
-                });
-
             modelBuilder.Entity("BusinessObject.Models.EscortJourneyGroup", b =>
                 {
                     b.Property<int>("Id")
@@ -748,8 +623,9 @@ namespace DataAccessLayer.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("leader_id");
 
-                    b.Property<int>("MaxMemberNumber")
-                        .HasColumnType("integer")
+                    b.Property<string>("MaxMemberNumber")
+                        .IsRequired()
+                        .HasColumnType("text")
                         .HasColumnName("max_member_number");
 
                     b.Property<string>("Name")
@@ -811,42 +687,6 @@ namespace DataAccessLayer.Migrations
                         .IsUnique();
 
                     b.ToTable("escort_journey_group_member");
-                });
-
-            modelBuilder.Entity("BusinessObject.Models.EscortJourneyWatcher", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("AddedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("added_at");
-
-                    b.Property<int>("EscortJourneyId")
-                        .HasColumnType("integer")
-                        .HasColumnName("escort_journey_id");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("status");
-
-                    b.Property<Guid>("WatcherId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("watcher_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("WatcherId");
-
-                    b.HasIndex("EscortJourneyId", "WatcherId")
-                        .IsUnique();
-
-                    b.ToTable("escort_journey_watcher");
                 });
 
             modelBuilder.Entity("BusinessObject.Models.IncidentReport", b =>
@@ -958,38 +798,6 @@ namespace DataAccessLayer.Migrations
                     b.HasIndex("VerifiedBy");
 
                     b.ToTable("incident_report");
-                });
-
-            modelBuilder.Entity("BusinessObject.Models.LocationHistory", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<int>("EscortJourneyId")
-                        .HasColumnType("integer")
-                        .HasColumnName("escort_journey_id");
-
-                    b.Property<decimal>("Latitude")
-                        .HasColumnType("numeric")
-                        .HasColumnName("latitude");
-
-                    b.Property<decimal>("Longitude")
-                        .HasColumnType("numeric")
-                        .HasColumnName("longitude");
-
-                    b.Property<DateTime>("RecordedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("recorded_at");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("EscortJourneyId");
-
-                    b.ToTable("location_history");
                 });
 
             modelBuilder.Entity("BusinessObject.Models.Note", b =>
@@ -1315,44 +1123,6 @@ namespace DataAccessLayer.Migrations
                     b.ToTable("role");
                 });
 
-            modelBuilder.Entity("BusinessObject.Models.SosAlert", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("EscortJourneyId")
-                        .HasColumnType("integer")
-                        .HasColumnName("escort_journey_id");
-
-                    b.Property<decimal>("Lat")
-                        .HasColumnType("numeric")
-                        .HasColumnName("lat");
-
-                    b.Property<decimal>("Lng")
-                        .HasColumnType("numeric")
-                        .HasColumnName("lng");
-
-                    b.Property<Guid>("SenderId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("sender_id");
-
-                    b.Property<DateTime>("Timestamp")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("timestamp");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("EscortJourneyId");
-
-                    b.HasIndex("SenderId");
-
-                    b.ToTable("sos_alert");
-                });
-
             modelBuilder.Entity("BusinessObject.Models.Subscription", b =>
                 {
                     b.Property<int>("Id")
@@ -1515,25 +1285,6 @@ namespace DataAccessLayer.Migrations
                     b.Navigation("Province");
                 });
 
-            modelBuilder.Entity("BusinessObject.Models.CurrentUserLocation", b =>
-                {
-                    b.HasOne("BusinessObject.Models.EscortJourney", "EscortJourney")
-                        .WithMany("CurrentUserLocations")
-                        .HasForeignKey("EscortJourneyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("BusinessObject.Models.Account", "User")
-                        .WithOne("CurrentLocation")
-                        .HasForeignKey("BusinessObject.Models.CurrentUserLocation", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("EscortJourney");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("BusinessObject.Models.EscortGroupJoinRequest", b =>
                 {
                     b.HasOne("BusinessObject.Models.Account", "Account")
@@ -1551,24 +1302,6 @@ namespace DataAccessLayer.Migrations
                     b.Navigation("Account");
 
                     b.Navigation("Group");
-                });
-
-            modelBuilder.Entity("BusinessObject.Models.EscortJourney", b =>
-                {
-                    b.HasOne("BusinessObject.Models.EscortJourneyGroup", "CreatedInGroup")
-                        .WithMany("Journeys")
-                        .HasForeignKey("CreatedInGroupId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("BusinessObject.Models.Account", "User")
-                        .WithMany("CreatedEscortJourneys")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("CreatedInGroup");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("BusinessObject.Models.EscortJourneyGroup", b =>
@@ -1601,25 +1334,6 @@ namespace DataAccessLayer.Migrations
                     b.Navigation("Group");
                 });
 
-            modelBuilder.Entity("BusinessObject.Models.EscortJourneyWatcher", b =>
-                {
-                    b.HasOne("BusinessObject.Models.EscortJourney", "EscortJourney")
-                        .WithMany("Watchers")
-                        .HasForeignKey("EscortJourneyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("BusinessObject.Models.Account", "Watcher")
-                        .WithMany("WatchedJourneys")
-                        .HasForeignKey("WatcherId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("EscortJourney");
-
-                    b.Navigation("Watcher");
-                });
-
             modelBuilder.Entity("BusinessObject.Models.IncidentReport", b =>
                 {
                     b.HasOne("BusinessObject.Models.Commune", "Commune")
@@ -1643,17 +1357,6 @@ namespace DataAccessLayer.Migrations
                     b.Navigation("User");
 
                     b.Navigation("Verifier");
-                });
-
-            modelBuilder.Entity("BusinessObject.Models.LocationHistory", b =>
-                {
-                    b.HasOne("BusinessObject.Models.EscortJourney", "EscortJourney")
-                        .WithMany("LocationHistories")
-                        .HasForeignKey("EscortJourneyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("EscortJourney");
                 });
 
             modelBuilder.Entity("BusinessObject.Models.Note", b =>
@@ -1705,25 +1408,6 @@ namespace DataAccessLayer.Migrations
                     b.Navigation("Payment");
                 });
 
-            modelBuilder.Entity("BusinessObject.Models.SosAlert", b =>
-                {
-                    b.HasOne("BusinessObject.Models.EscortJourney", "EscortJourney")
-                        .WithMany("SosAlerts")
-                        .HasForeignKey("EscortJourneyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("BusinessObject.Models.Account", "Sender")
-                        .WithMany("SosAlerts")
-                        .HasForeignKey("SenderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("EscortJourney");
-
-                    b.Navigation("Sender");
-                });
-
             modelBuilder.Entity("BusinessObject.Models.Subscription", b =>
                 {
                     b.HasOne("BusinessObject.Models.Package", "Package")
@@ -1753,11 +1437,6 @@ namespace DataAccessLayer.Migrations
 
                     b.Navigation("Comments");
 
-                    b.Navigation("CreatedEscortJourneys");
-
-                    b.Navigation("CurrentLocation")
-                        .IsRequired();
-
                     b.Navigation("GroupJoinRequests");
 
                     b.Navigation("IncidentReports");
@@ -1770,13 +1449,9 @@ namespace DataAccessLayer.Migrations
 
                     b.Navigation("Payments");
 
-                    b.Navigation("SosAlerts");
-
                     b.Navigation("Subscriptions");
 
                     b.Navigation("VerifiedIncidentReports");
-
-                    b.Navigation("WatchedJourneys");
                 });
 
             modelBuilder.Entity("BusinessObject.Models.Achievement", b =>
@@ -1805,22 +1480,9 @@ namespace DataAccessLayer.Migrations
                     b.Navigation("IncidentReports");
                 });
 
-            modelBuilder.Entity("BusinessObject.Models.EscortJourney", b =>
-                {
-                    b.Navigation("CurrentUserLocations");
-
-                    b.Navigation("LocationHistories");
-
-                    b.Navigation("SosAlerts");
-
-                    b.Navigation("Watchers");
-                });
-
             modelBuilder.Entity("BusinessObject.Models.EscortJourneyGroup", b =>
                 {
                     b.Navigation("JoinRequests");
-
-                    b.Navigation("Journeys");
 
                     b.Navigation("Members");
                 });

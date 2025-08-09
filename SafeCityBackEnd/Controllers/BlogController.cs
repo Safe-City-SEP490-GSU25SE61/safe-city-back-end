@@ -170,7 +170,8 @@ namespace SafeCityBackEnd.Controllers
                     return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Get blogs successfully", result1);
                 }
                 var result2 = await _blogService.GetBlogsByFilterAsync(filter, userId);
-                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Get blogs with filter successfully", result2);
+                var wrapped = new { blogs = result2 };
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Get blogs with filter successfully", wrapped);
             }
             catch (Exception ex)
             {
