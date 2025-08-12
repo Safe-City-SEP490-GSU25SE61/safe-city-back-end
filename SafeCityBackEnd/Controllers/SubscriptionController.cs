@@ -42,7 +42,7 @@ namespace SafeCityBackEnd.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine("Transaction error: " + ex.Message);
-                return StatusCode(500, CustomErrorHandler.SimpleError("Internal server error.", 500));
+                return CustomErrorHandler.SimpleError(ex.Message, 500);
             }
         }
 

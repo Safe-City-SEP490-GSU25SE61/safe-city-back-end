@@ -29,7 +29,11 @@ namespace Repository
                     RemainingTime = "0d 0h 0m"
                 };
 
-            var subscription = user.Subscriptions.FirstOrDefault(s => s.IsActive);
+            var subscription = await _context.Subscriptions
+                .Where(s => s.UserId == user.Id && s.IsActive && s.EndDate > DateTime.UtcNow)
+                .OrderByDescending(s => s.EndDate)
+                .FirstOrDefaultAsync();
+
 
             if (subscription == null)
                 return new CurrentSubscriptionResponseModel
@@ -64,8 +68,10 @@ namespace Repository
         public async Task<Subscription?> GetActiveByUserIdAsync(Guid userId)
         {
             return await _context.Subscriptions
-                .Include(s => s.Package)
-                .FirstOrDefaultAsync(s => s.UserId == userId && s.IsActive && s.EndDate > DateTime.UtcNow);
+               .Include(s => s.Package)
+               .Where(s => s.UserId == userId && s.IsActive && s.EndDate > DateTime.UtcNow)
+               .OrderByDescending(s => s.EndDate)
+               .FirstOrDefaultAsync();
         }
 
         public async Task AddAsync(Subscription subscription)

@@ -49,6 +49,9 @@ namespace Service
 
         public async Task<CreatePaymentResult> CreatePaymentAsync(Guid userId, int packageId, string returnUrl, string cancelUrl)
         {
+            var existedSubs = await _subscriptionRepo.GetActiveByUserIdAsync(userId);
+            if (existedSubs != null)
+                throw new Exception("Bạn đang trong thời gian hiệu lực của gói Premium.");
             var package = await _packageRepo.GetByIdAsync(packageId);
             if (package == null || !package.IsActive)
                 throw new Exception("Invalid package");
