@@ -79,6 +79,7 @@ public class UserRepository : IUserRepository
             .Include(a => a.CitizenIdentityCard)
             .Include(a => a.Subscriptions).ThenInclude(s => s.Package)
             .Include(a => a.Achievement)
+            .Include(a => a.Commune).ThenInclude(c => c.Province)
             .FirstOrDefaultAsync(a => a.Id == id);
     }
 

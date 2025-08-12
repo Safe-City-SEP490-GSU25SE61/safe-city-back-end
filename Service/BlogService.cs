@@ -26,6 +26,7 @@ namespace Service
         private readonly BlogModerationService _blogModerationService;
         private readonly IAccountRepository _accountRepository;
         private readonly IProvinceRepository _provinceRepository;
+        private readonly ISubscriptionRepository _subscriptionRepository;
 
         public BlogService(
             IBlogRepository blogRepository,
@@ -35,7 +36,8 @@ namespace Service
             IBlogModerationRepository blogModerationRepository,
             BlogModerationService blogModerationService,
             IAccountRepository accountRepository,
-            IProvinceRepository provinceRepository)
+            IProvinceRepository provinceRepository,
+            ISubscriptionRepository subscriptionRepository)
         {
             _blogRepository = blogRepository;
             _likeRepository = likeRepository;
@@ -45,9 +47,10 @@ namespace Service
             _blogModerationService = blogModerationService;
             _accountRepository = accountRepository;
             _provinceRepository = provinceRepository;
+            _subscriptionRepository = subscriptionRepository;
         }
 
-        public async Task LikeAsync(Guid userId, int postId)
+        public async Task Like(Guid userId, int postId)
         {
             var existedlike = await _likeRepository.GetAsync(userId, postId);
             if (existedlike != null)
@@ -64,12 +67,12 @@ namespace Service
             }
         }
 
-        public async Task<IEnumerable<BlogResponseDto>> GetCreatedBlogsByUserAsync(Guid userId)
+        public async Task<IEnumerable<BlogResponseDto>> GetCreatedBlogsByUser(Guid userId)
         {
             return await _blogRepository.GetCreatedBlogsByUserAsync(userId);
         }
 
-        public async Task ApproveBlogAsync(int blogId, bool isApproved, bool isPinned)
+        public async Task ApproveBlog(int blogId, bool isApproved, bool isPinned)
         {
             var blog = await _blogRepository.GetByIdAsync(blogId);
             if (blog == null)
@@ -83,7 +86,7 @@ namespace Service
             await _blogRepository.UpdateAsync(blog);
         }
 
-        public async Task TogglePinnedAsync(int blogId, bool pinned)
+        public async Task TogglePinned(int blogId, bool pinned)
         {
             var blog = await _blogRepository.GetByIdAsync(blogId);
             if (blog == null)
@@ -95,7 +98,7 @@ namespace Service
             await _blogRepository.UpdateAsync(blog);
         }
 
-        public async Task<BlogResponseDto> CreateBlogAsync(BlogCreateRequestDto request, Guid authorId)
+        public async Task<BlogResponseDto> CreateBlog(BlogCreateRequestDto request, Guid authorId)
         {
             var images = request.MediaFiles?.Where(f => f.ContentType.StartsWith("image")).ToList() ?? new();
             var videos = request.MediaFiles?.Where(f => f.ContentType.StartsWith("video")).ToList() ?? new();
@@ -173,7 +176,7 @@ namespace Service
             };
         }
 
-        public async Task<IEnumerable<BlogResponseDto>> GetBlogsByCommuneAsync(int CommuneId, Guid currentUserId)
+        public async Task<IEnumerable<BlogResponseDto>> GetBlogsByCommune(int CommuneId, Guid currentUserId)
         {
             var blogs = await _blogRepository.GetVisibleByCommuneAsync(CommuneId, currentUserId);
 
@@ -185,7 +188,7 @@ namespace Service
             return blogs;
         }
 
-        public async Task<IEnumerable<BlogResponseForOfficerDto>> GetBlogsForOfficerAsync(Guid userId, BlogFilterForOfficerRequest filter)
+        public async Task<IEnumerable<BlogResponseForOfficerDto>> GetBlogsForOfficer(Guid userId, BlogFilterForOfficerRequest filter)
         {
             var user = await _accountRepository.GetByIdAsync(userId);
             var communeId = user.CommuneId ?? -1;
@@ -194,12 +197,12 @@ namespace Service
         }
 
 
-        public async Task<BlogModerationResponseDto> GetBlogModerationAsync(int id)
+        public async Task<BlogModerationResponseDto> GetBlogModeration(int id)
         {
             return await _blogRepository.GetDetailByIdAsync(id);
         }
 
-        public async Task<IEnumerable<BlogResponseDto>> GetBlogsByFilterAsync(BlogFilterDto filter, Guid currentUserId)
+        public async Task<FollowingRequestBlogResponseDto> GetBlogsByFilter(BlogFilterDto filter, Guid currentUserId)
         {
             var blogs = await _blogRepository.GetBlogsByFilterAsync(filter, currentUserId);
 
@@ -208,10 +211,14 @@ namespace Service
                 blog.MediaUrls = await _mediaRepository.GetUrlsByPostIdAsync(blog.Id);
             }
 
-            return blogs;
+            return new FollowingRequestBlogResponseDto
+            {
+                Blogs = await _blogRepository.GetBlogsFirstRequestAsync(currentUserId),
+                IsPremium = await _subscriptionRepository.GetActiveByUserIdAsync(currentUserId) != null,
+            };
         }
 
-        public async Task UpdateBlogVisibilityAsync(int blogId, bool isVisible)
+        public async Task UpdateBlogVisibility(int blogId, bool isVisible)
         {
             var blog = await _blogRepository.GetByIdAsync(blogId);
 
@@ -221,12 +228,13 @@ namespace Service
             await _blogRepository.UpdateAsync(blog);
         }
 
-        public async Task<FirstRequestBlogResponseDto> GetFirstRequestDataAsync(Guid currentUserId)
+        public async Task<FirstRequestBlogResponseDto> GetFirstRequestData(Guid currentUserId)
         {
             return new FirstRequestBlogResponseDto
             {
                 Provinces = await _provinceRepository.GetAllProAsync(),
-                Blogs = await _blogRepository.GetBlogsFirstRequestAsync(currentUserId)
+                Blogs = await _blogRepository.GetBlogsFirstRequestAsync(currentUserId),
+                IsPremium = await _subscriptionRepository.GetActiveByUserIdAsync(currentUserId) != null,
             };
         }
 
