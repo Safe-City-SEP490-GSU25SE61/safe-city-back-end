@@ -21,6 +21,7 @@ namespace Service.Interfaces
         Task<FollowingRequestBlogResponseDto> GetBlogsByFilter(BlogFilterDto filter, Guid currentUserId);
         Task UpdateBlogVisibility(int blogId, bool isVisible);
         Task<FirstRequestBlogResponseDto> GetFirstRequestData(Guid currentUserId);
+        Task<object> GetBlogMetricsAsync(int? communeId, string? startMonth, string? endMonth, int? monthsBack);
 
     }
 

@@ -23,9 +23,10 @@ namespace Service
         private readonly IMailService _mailService;
         private readonly IRoleRepository _roleRepository;
         private readonly ISubscriptionRepository _subscriptionRepository;
+        private readonly ICommuneRepository _communeRepository;
         public AccountService(IAccountRepository accountRepository, IUserRepository userRepository, 
             IMailService mailService, IRoleRepository roleRepository,IIdentityCardRepository identityCardRepository,
-            ISubscriptionRepository subscriptionRepository)
+            ISubscriptionRepository subscriptionRepository, ICommuneRepository communeRepository)
         {
             _accountRepository = accountRepository;
             _userRepository = userRepository;
@@ -33,6 +34,7 @@ namespace Service
             _identityCardRepository = identityCardRepository;
             _roleRepository = roleRepository;
             _subscriptionRepository = subscriptionRepository;
+            _communeRepository = communeRepository;
         }
         public async Task AddAsync(AddAccountRequestModel userDto)
         {
@@ -178,6 +180,53 @@ namespace Service
             var subscription = await _subscriptionRepository.GetCurrentSubscriptionAsync(updated);
             return updated.ToAccountResponseModel(subscription);
 
+        }
+        public async Task<object> GetAppUserStatisticsAsync()
+        {
+
+            var allRoles = await _roleRepository.GetAllAsync();
+            var allAccounts = await _accountRepository.GetAllAsync();
+            var allCommunes = await _communeRepository.GetAllAsync();
+
+            var totalUsers = allAccounts.Count();
+            var activeUsers = allAccounts.Count(a => string.Equals(a.Status, "active", StringComparison.OrdinalIgnoreCase));
+            var inactiveUsers = allAccounts.Count(a => string.Equals(a.Status, "inactive", StringComparison.OrdinalIgnoreCase));
+
+
+            var roleStats = allRoles.Select(r => new
+            {
+                role = r.Name,
+                total = allAccounts.Count(a => a.RoleId == r.Id),
+                active = allAccounts.Count(a => a.RoleId == r.Id && a.Status.Equals("active", StringComparison.OrdinalIgnoreCase)),
+                inactive = allAccounts.Count(a => a.RoleId == r.Id && a.Status.Equals("inactive", StringComparison.OrdinalIgnoreCase))
+            }).ToList();
+
+
+            var officerRole = allRoles.FirstOrDefault(r => r.Name.Equals("Officer", StringComparison.OrdinalIgnoreCase));
+            var officerStatsByCommune = new List<object>();
+
+            if (officerRole != null)
+            {
+                officerStatsByCommune = allCommunes.Select(c => new
+                {
+                    commune = c.Name,
+                    total = allAccounts.Count(a => a.RoleId == officerRole.Id && a.CommuneId == c.Id),
+                    active = allAccounts.Count(a => a.RoleId == officerRole.Id && a.CommuneId == c.Id && a.Status.Equals("active", StringComparison.OrdinalIgnoreCase)),
+                    inactive = allAccounts.Count(a => a.RoleId == officerRole.Id && a.CommuneId == c.Id && a.Status.Equals("inactive", StringComparison.OrdinalIgnoreCase))
+                }).ToList<object>();
+            }
+
+            return new
+            {
+                appUsers = new
+                {
+                    total = totalUsers,
+                    active = activeUsers,
+                    inactive = inactiveUsers
+                },
+                roles = roleStats,
+                officersByCommune = officerStatsByCommune
+            };
         }
 
     }

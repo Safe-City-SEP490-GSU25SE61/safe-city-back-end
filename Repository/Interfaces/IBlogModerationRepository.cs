@@ -10,6 +10,7 @@ namespace Repository.Interfaces
     public interface IBlogModerationRepository
     {
         Task AddAsync(BlogModeration moderation);
+        Task<IEnumerable<BlogModeration>> GetAllAsync();
     }
 
 }
