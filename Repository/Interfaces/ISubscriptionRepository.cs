@@ -14,6 +14,8 @@ namespace Repository.Interfaces
         Task AddAsync(Subscription subscription);
         Task<CurrentSubscriptionResponseModel?> GetCurrentSubscriptionAsync(Account user);
         Task UpdateAsync(Subscription subscription);
+        Task<IEnumerable<Subscription>> GetAllAsync();
+
     }
 
 }

@@ -15,6 +15,9 @@ namespace Service.Interfaces
         Task<IEnumerable<MapReportDetailDTO>> GetReportDetailsForMapAsync(int communeId, string? type, string? range);
         Task<MapReportResponse> GetOfficerReportsForMapAsync(Guid officerId, string? type, string? range);
         Task<IEnumerable<MapReportDetailDTO>> GetOfficerReportDetailsForMapAsync(Guid officerId, string? type, string? range);
+        Task<MapReportDetailsWithPolygonDTO> GetOfficerReportDetailsWithPolygonAsync(Guid officerId, string? type, string? range);
+        Task<MapReportResponse> GetAdminReportsForMapAsync(int communeId, string? type, string? range);
+        Task<MapReportDetailsWithPolygonDTO> GetAdminReportDetailsWithPolygonAsync(int communeId, string? type, string? range);
 
     }
 

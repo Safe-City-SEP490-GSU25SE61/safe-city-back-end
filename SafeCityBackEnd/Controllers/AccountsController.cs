@@ -118,6 +118,25 @@ namespace SafeCityBackEnd.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+        //[Authorize]
+        [HttpGet("metrics/app-users")]
+        [SwaggerOperation(Summary = "Get statistics of app users (total, active, inactive) and role statistics")]
+        public async Task<IActionResult> GetAppUserStatistics()
+        {
+            try
+            {
+                var stats = await _accountService.GetAppUserStatisticsAsync();
+                return CustomSuccessHandler.ResponseBuilder(
+                    HttpStatusCode.OK,
+                    "Get app user and role statistics successfully",
+                    stats
+                );
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
 
     }
 }
