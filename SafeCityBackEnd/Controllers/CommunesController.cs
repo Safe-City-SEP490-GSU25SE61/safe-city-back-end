@@ -147,7 +147,7 @@ public class CommunesController : ControllerBase
         return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Lịch sử phân công officer", history);
     }
     [HttpGet("metrics")]
-    //[Authorize]
+    [Authorize]
     public async Task<IActionResult> GetCommuneMetrics()
     {
         try

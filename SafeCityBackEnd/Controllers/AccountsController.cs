@@ -118,7 +118,7 @@ namespace SafeCityBackEnd.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
-        //[Authorize]
+        [Authorize]
         [HttpGet("metrics/app-users")]
         [SwaggerOperation(Summary = "Get statistics of app users (total, active, inactive) and role statistics")]
         public async Task<IActionResult> GetAppUserStatistics()

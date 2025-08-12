@@ -130,6 +130,20 @@ namespace SafeCityBackEnd.Controllers
                 return CustomErrorHandler.SimpleError("Internal server error: " + ex.Message, 500);
             }
         }
+        [HttpGet("admin/metrics")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetAdminMetrics([FromQuery] string? startMonth,[FromQuery] string? endMonth,[FromQuery] int? monthsBack)
+        {
+            try
+            {
+                var stats = await _paymentService.GetAdminRevenueMetricsAsync(startMonth, endMonth, monthsBack);
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Fetched revenue & subscription metrics.", stats);
+            }
+            catch (Exception ex)
+            {
+                return CustomErrorHandler.SimpleError("Internal server error: " + ex.Message, 500);
+            }
+        }
 
 
     }

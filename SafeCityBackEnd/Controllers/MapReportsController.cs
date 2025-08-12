@@ -115,7 +115,7 @@ namespace SafeCityBackEnd.Controllers
         }
 
         [HttpGet("officer/reports/details/polygon")]
-        [AllowAnonymous] // hoặc [Authorize(Roles="Officer")]
+        [AllowAnonymous] //[Authorize(Roles="Officer")]
         public async Task<IActionResult> GetReportDetailsForOfficerPolygon([FromQuery] string? type, [FromQuery] string? range)
         {
             try
@@ -132,7 +132,7 @@ namespace SafeCityBackEnd.Controllers
 
 
         [HttpGet("admin/reports")]
-        [AllowAnonymous] // hoặc [Authorize(Roles="Admin")]
+        [AllowAnonymous] //[Authorize(Roles="Admin")]
         public async Task<IActionResult> GetReportsForAdmin([FromQuery] int communeId, [FromQuery] string? type, [FromQuery] string? range)
         {
             try
@@ -148,7 +148,7 @@ namespace SafeCityBackEnd.Controllers
 
 
         [HttpGet("admin/reports/details")]
-        [AllowAnonymous] // hoặc [Authorize(Roles="Admin")]
+        [AllowAnonymous] //[Authorize(Roles="Admin")]
         public async Task<IActionResult> GetReportDetailsForAdmin([FromQuery] int communeId, [FromQuery] string? type, [FromQuery] string? range)
         {
             try

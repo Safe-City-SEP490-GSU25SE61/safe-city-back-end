@@ -229,6 +229,12 @@ namespace Repository
 
             return blogs;
         }
+        public async Task<IEnumerable<Blog>> GetAllAsync()
+        {
+            return await _context.Blogs
+                .Include(b => b.Moderation)
+                .ToListAsync();
+        }
     }
 
 }

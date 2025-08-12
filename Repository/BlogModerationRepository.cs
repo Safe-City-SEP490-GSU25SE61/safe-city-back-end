@@ -1,5 +1,6 @@
 ﻿using BusinessObject.Models;
 using DataAccessLayer.DataContext;
+using Microsoft.EntityFrameworkCore;
 using Repository.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -22,6 +23,10 @@ namespace Repository
         {
             _context.BlogModerations.Add(moderation);
             await _context.SaveChangesAsync();
+        }
+        public async Task<IEnumerable<BlogModeration>> GetAllAsync()
+        {
+            return await _context.BlogModerations.ToListAsync();
         }
     }
 
