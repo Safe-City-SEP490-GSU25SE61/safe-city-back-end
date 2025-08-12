@@ -10,5 +10,12 @@ namespace BusinessObject.DTOs.ResponseModels
     {
         public IEnumerable<ProvinceDto> Provinces { get; set; }
         public IEnumerable<BlogResponseDto> Blogs { get; set; }
+        public bool IsPremium { get; set; }
+    }
+
+    public class FollowingRequestBlogResponseDto
+    {
+        public IEnumerable<BlogResponseDto> Blogs { get; set; }
+        public bool IsPremium { get; set; }
     }
 }

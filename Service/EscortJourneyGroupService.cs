@@ -35,7 +35,7 @@ namespace Service
             int maxAllowed = 5;
 
             if (currentGroups >= maxAllowed)
-                throw new InvalidOperationException("Bạn đã đạt giới hạn số nhóm có thể tham gia.");
+                throw new InvalidOperationException("Bạn chỉ có thể tham gia tối đa 5 nhóm.");
 
             string groupCode;
             do
@@ -69,6 +69,8 @@ namespace Service
             var groupId = await _groupRepository.GetGroupIdByCodeAsync(code)
                          ?? throw new KeyNotFoundException("Không tìm thấy nhóm.");
 
+            if (await _groupRepository.IsAlreadyInGroupAsync(accountId, groupId))
+                throw new InvalidOperationException("Bạn đã tham gia nhóm này.");
             if (await _groupJoinRequestRepository.ExistsAsync(accountId, groupId))
                 throw new InvalidOperationException("Bạn đã gửi yêu cầu tham gia nhóm này.");
 
@@ -76,7 +78,7 @@ namespace Service
             int maxAllowed = 5;
 
             if (currentGroups >= maxAllowed)
-                throw new InvalidOperationException("Bạn đã đạt giới hạn số nhóm có thể tham gia.");
+                throw new InvalidOperationException("Bạn chỉ có thể tham gia tối đa 5 nhóm.");
 
             var request = new EscortGroupJoinRequest
             {

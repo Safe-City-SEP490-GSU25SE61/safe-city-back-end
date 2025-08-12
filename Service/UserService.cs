@@ -48,6 +48,8 @@ public class UserService : IUserService
             IsBiometricEnabled = user.IsBiometricEnabled,
             IdNumber = user.CitizenIdentityCard.IdNumber,
             Address = user.CitizenIdentityCard.Address,
+            Commune = user.Commune != null ? user.Commune.Name : null,
+            Province = user.Commune != null ? user.Commune.Province.Name : null,
             IssueDate = user.CitizenIdentityCard.IssueDate,
             ExpiryDate = user.CitizenIdentityCard.ExpiryDate,
             PlaceOfIssue = user.CitizenIdentityCard.PlaceOfIssue,

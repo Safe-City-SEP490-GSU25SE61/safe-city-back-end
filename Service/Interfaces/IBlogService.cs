@@ -10,17 +10,17 @@ namespace Service.Interfaces
 {
     public interface IBlogService
     {
-        Task LikeAsync(Guid userId, int postId);
-        Task ApproveBlogAsync(int blogId, bool isApproved, bool isPinned);
-        Task TogglePinnedAsync(int blogId, bool pinned);
-        Task<BlogResponseDto> CreateBlogAsync(BlogCreateRequestDto request, Guid authorId);
-        Task<IEnumerable<BlogResponseDto>> GetBlogsByCommuneAsync(int districtId, Guid currentUserId);
-        Task<IEnumerable<BlogResponseDto>> GetCreatedBlogsByUserAsync(Guid userId);
-        Task<IEnumerable<BlogResponseForOfficerDto>> GetBlogsForOfficerAsync(Guid userId, BlogFilterForOfficerRequest filter);
-        Task<BlogModerationResponseDto> GetBlogModerationAsync(int id);
-        Task<IEnumerable<BlogResponseDto>> GetBlogsByFilterAsync(BlogFilterDto filter, Guid currentUserId);
-        Task UpdateBlogVisibilityAsync(int blogId, bool isVisible);
-        Task<FirstRequestBlogResponseDto> GetFirstRequestDataAsync(Guid currentUserId);
+        Task Like(Guid userId, int postId);
+        Task ApproveBlog(int blogId, bool isApproved, bool isPinned);
+        Task TogglePinned(int blogId, bool pinned);
+        Task<BlogResponseDto> CreateBlog(BlogCreateRequestDto request, Guid authorId);
+        Task<IEnumerable<BlogResponseDto>> GetBlogsByCommune(int districtId, Guid currentUserId);
+        Task<IEnumerable<BlogResponseDto>> GetCreatedBlogsByUser(Guid userId);
+        Task<IEnumerable<BlogResponseForOfficerDto>> GetBlogsForOfficer(Guid userId, BlogFilterForOfficerRequest filter);
+        Task<BlogModerationResponseDto> GetBlogModeration(int id);
+        Task<FollowingRequestBlogResponseDto> GetBlogsByFilter(BlogFilterDto filter, Guid currentUserId);
+        Task UpdateBlogVisibility(int blogId, bool isVisible);
+        Task<FirstRequestBlogResponseDto> GetFirstRequestData(Guid currentUserId);
 
     }
 

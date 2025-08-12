@@ -36,6 +36,7 @@ builder.Services.AddScoped<IIdentityCardRepository, IdentityCardRepository>();
 builder.Services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IPayosTransactionRepository, PayosTransactionRepository>();
+builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
 builder.Services.AddScoped<IBlogRepository, BlogRepository>();
 builder.Services.AddScoped<IBlogLikeRepository, BlogLikeRepository>();
 builder.Services.AddScoped<IBlogMediaRepository, BlogMediaRepository>();

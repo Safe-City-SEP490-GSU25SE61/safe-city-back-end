@@ -11,6 +11,8 @@ public class UserProfileResponseModel
     public bool IsBiometricEnabled { get; set; }
     public string IdNumber { get; set; }
     public string Address { get; set; }
+    public string? Commune { get; set; }
+    public string? Province { get; set; }
     public DateTime IssueDate { get; set; }
     public DateTime? ExpiryDate { get; set; }
     public string PlaceOfIssue { get; set; }
