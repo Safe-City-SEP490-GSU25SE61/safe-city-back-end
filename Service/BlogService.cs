@@ -213,7 +213,7 @@ namespace Service
 
             return new FollowingRequestBlogResponseDto
             {
-                Blogs = await _blogRepository.GetBlogsFirstRequestAsync(currentUserId),
+                Blogs = blogs,
                 IsPremium = await _subscriptionRepository.GetActiveByUserIdAsync(currentUserId) != null,
             };
         }
