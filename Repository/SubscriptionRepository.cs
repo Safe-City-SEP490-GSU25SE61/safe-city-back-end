@@ -65,7 +65,7 @@ namespace Repository
         {
             return await _context.Subscriptions
                 .Include(s => s.Package)
-                .FirstOrDefaultAsync(s => s.UserId == userId && s.IsActive);
+                .FirstOrDefaultAsync(s => s.UserId == userId && s.IsActive && s.EndDate > DateTime.UtcNow);
         }
 
         public async Task AddAsync(Subscription subscription)

@@ -19,12 +19,10 @@ namespace SafeCityBackEnd.Controllers
     public class BlogController : ControllerBase
     {
         private readonly IBlogService _blogService;
-        private readonly BlogModerationService _blogModerationService;
 
-        public BlogController(IBlogService blogService, BlogModerationService blogModerationService)
+        public BlogController(IBlogService blogService)
         {
             _blogService = blogService;
-            _blogModerationService = blogModerationService;
         }
 
         [HttpPost]
@@ -37,7 +35,7 @@ namespace SafeCityBackEnd.Controllers
             var authorId = Guid.Parse(userIdClaim.Value);
             try
             {
-                var result = await _blogService.CreateBlogAsync(request, authorId);
+                var result = await _blogService.CreateBlog(request, authorId);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -52,7 +50,7 @@ namespace SafeCityBackEnd.Controllers
         {
             try
             {
-                await _blogService.ApproveBlogAsync(id, isApproved, isPinned);
+                await _blogService.ApproveBlog(id, isApproved, isPinned);
                 return Ok();
             }
             catch (Exception ex)
@@ -60,25 +58,6 @@ namespace SafeCityBackEnd.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
-
-        //[HttpGet("user/commune/{communeId}")]
-        //public async Task<IActionResult> GetByDistrict(int communeId)
-        //{
-        //    var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-        //    if (userIdClaim == null)
-        //        return CustomErrorHandler.SimpleError("User ID claim not found.", 401);
-
-        //    var userId = Guid.Parse(userIdClaim.Value);
-        //    try
-        //    {
-        //        var result = await _blogService.GetBlogsByCommuneAsync(communeId, userId);
-        //        return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Get blogs by district successfully", result);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return BadRequest(new { message = ex.Message });
-        //    }
-        //}
 
         [HttpPost("like/{postId}")]
         public async Task<IActionResult> LikePost(int postId)
@@ -90,7 +69,7 @@ namespace SafeCityBackEnd.Controllers
             var userId = Guid.Parse(userIdClaim.Value);
             try
             {
-                await _blogService.LikeAsync(userId, postId);
+                await _blogService.Like(userId, postId);
                 return Ok();
             }
             catch (Exception ex)
@@ -109,7 +88,7 @@ namespace SafeCityBackEnd.Controllers
             var userId = Guid.Parse(userIdClaim.Value);
             try
             {
-                var blogs = await _blogService.GetCreatedBlogsByUserAsync(userId);
+                var blogs = await _blogService.GetCreatedBlogsByUser(userId);
                 return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Get blog history successfully", blogs);
             }
             catch (Exception ex)
@@ -129,7 +108,7 @@ namespace SafeCityBackEnd.Controllers
 
             try
             {
-                var blogs = await _blogService.GetBlogsForOfficerAsync(userId, filter);
+                var blogs = await _blogService.GetBlogsForOfficer(userId, filter);
                 return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Get blogs for officer successfully", blogs);
             }
             catch (Exception ex)
@@ -144,7 +123,7 @@ namespace SafeCityBackEnd.Controllers
         {
             try
             {
-                var blog = await _blogService.GetBlogModerationAsync(id);
+                var blog = await _blogService.GetBlogModeration(id);
                 return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Get blog moderation successfully", blog);
             }
             catch (Exception ex)
@@ -166,12 +145,11 @@ namespace SafeCityBackEnd.Controllers
             {
                 if (isFirstRequest)
                 {
-                    var result1 = await _blogService.GetFirstRequestDataAsync(userId);
+                    var result1 = await _blogService.GetFirstRequestData(userId);
                     return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Get blogs successfully", result1);
                 }
-                var result2 = await _blogService.GetBlogsByFilterAsync(filter, userId);
-                var wrapped = new { blogs = result2 };
-                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Get blogs with filter successfully", wrapped);
+                var result2 = await _blogService.GetBlogsByFilter(filter, userId);
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Get blogs with filter successfully", result2);
             }
             catch (Exception ex)
             {
@@ -184,7 +162,7 @@ namespace SafeCityBackEnd.Controllers
         {
             try
             {
-                await _blogService.UpdateBlogVisibilityAsync(id, isVisible);
+                await _blogService.UpdateBlogVisibility(id, isVisible);
                 return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Update blog successfully", $"Blog visibility updated to {(isVisible ? "visible" : "hidden")}." );
             }
             catch (Exception ex)
@@ -192,22 +170,6 @@ namespace SafeCityBackEnd.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
-
-
-        //[HttpPost("test")]
-        //[AllowAnonymous]
-        //public async Task<IActionResult> Test([FromBody] string content, string title, BlogType type)
-        //{
-        //    try
-        //    {
-        //        var blogs = await _blogModerationService.ModerateBlogAsync(title, content, type);
-        //        return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Get blog history successfully", blogs);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return BadRequest(new { message = ex.Message });
-        //    }
-        //}
 
     }
 }

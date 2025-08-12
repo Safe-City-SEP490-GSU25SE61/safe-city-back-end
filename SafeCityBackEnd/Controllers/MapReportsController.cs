@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using SafeCityBackEnd.Helpers;
 using Service.Interfaces;
 using System.Security.Claims;
 
@@ -13,10 +14,12 @@ namespace SafeCityBackEnd.Controllers
     public class MapReportsController : ControllerBase
     {
         private readonly IMapService _mapService;
+        private readonly ISubscriptionService _subscriptionService;
 
-        public MapReportsController(IMapService mapService)
+        public MapReportsController(IMapService mapService, ISubscriptionService subscriptionService)
         {
             _mapService = mapService;
+            _subscriptionService = subscriptionService;
         }
 
         [HttpGet("communes")]
@@ -54,14 +57,24 @@ namespace SafeCityBackEnd.Controllers
         //[AllowAnonymous]
         public async Task<IActionResult> GetReportDetails([FromQuery] MapReportFilterQuery query)
         {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+                return CustomErrorHandler.SimpleError("User ID claim not found.", 401);
+
+            var userId = Guid.Parse(userIdClaim.Value);
             try
             {
-                var result = await _mapService.GetReportDetailsForMapAsync(
+                if (await _subscriptionService.IsSubscribed(userId))
+                {
+                    var result = await _mapService.GetReportDetailsForMapAsync(
                     query.CommuneId,
                     query.Type?.ToString(),
                     query.Range
-                );
-                return Ok(result);
+                    );
+                    return Ok(result);
+                }
+                return Ok(new { IsPremium = false});
+                
             }
             catch (ArgumentException ex)
             {
