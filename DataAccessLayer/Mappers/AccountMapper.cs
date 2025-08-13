@@ -34,7 +34,7 @@ namespace DataAccessLayer.Mappers
             };
         }
 
-        public static OfficerResponseModel ToOfficerResponseModel(this Account model, CurrentSubscriptionResponseModel? subscription)
+        public static OfficerResponseModel ToOfficerResponseModel(this Account model)
         {
             return new OfficerResponseModel
             {
