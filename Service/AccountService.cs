@@ -133,8 +133,12 @@ namespace Service
         public async Task<IEnumerable<AccountResponseModel>> GetAllAsync()
         {
             var result = await _accountRepository.GetAllAsync();
-            var responseModels = await Task.WhenAll(result.Select(async x =>
-                x.ToAccountResponseModel(await _subscriptionRepository.GetCurrentSubscriptionAsync(x))));
+            var responseModels = new List<AccountResponseModel>();
+            foreach (var x in result)
+            {
+                var sub = await _subscriptionRepository.GetCurrentSubscriptionAsync(x);
+                responseModels.Add(x.ToAccountResponseModel(sub));
+            }
             return responseModels;
         }
 
@@ -142,7 +146,7 @@ namespace Service
         {
             var result = await _accountRepository.GetAllOfficerAsync();
             var responseModels = await Task.WhenAll(result.Select(async x =>
-               x.ToOfficerResponseModel(await _subscriptionRepository.GetCurrentSubscriptionAsync(x))));
+               x.ToOfficerResponseModel()));
             return responseModels;
         }
 
