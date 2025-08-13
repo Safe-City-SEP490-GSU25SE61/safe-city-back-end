@@ -21,6 +21,8 @@ namespace Service.Interfaces
         Task<IEnumerable<GroupedAssignOfficerChangeDTO>> GetHistoryByAccountIdAsync(Guid accountId);
         Task<bool> UnassignDistrictFromOfficerAsync(Guid accountId);
         Task<IEnumerable<CommuneForCitizenDTO>> GetAllForCitizenAsync(int provinceId);
+        Task<object> GetStatisticsAsync();
+
     }
 
 }

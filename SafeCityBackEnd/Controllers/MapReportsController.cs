@@ -23,7 +23,7 @@ namespace SafeCityBackEnd.Controllers
         }
 
         [HttpGet("communes")]
-        //[AllowAnonymous]
+        [AllowAnonymous]
         public async Task<IActionResult> GetCommunePolygons()
         {
             var result = await _mapService.GetAllCommunePolygonsAsync();
@@ -31,7 +31,7 @@ namespace SafeCityBackEnd.Controllers
         }
 
         [HttpGet("reports")]
-        //[AllowAnonymous]
+        [AllowAnonymous]
         public async Task<IActionResult> GetReportsForMap([FromQuery] MapReportFilterQuery query)
         {
             try
@@ -54,7 +54,7 @@ namespace SafeCityBackEnd.Controllers
 
 
         [HttpGet("reports/details")]
-        //[AllowAnonymous]
+        [AllowAnonymous]
         public async Task<IActionResult> GetReportDetails([FromQuery] MapReportFilterQuery query)
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
@@ -82,7 +82,7 @@ namespace SafeCityBackEnd.Controllers
             }
         }
         [HttpGet("officer/reports")]
-        //[Authorize]
+        [AllowAnonymous]
         public async Task<IActionResult> GetReportsForOfficer([FromQuery] string? type, [FromQuery] string? range)
         {
             try
@@ -99,13 +99,61 @@ namespace SafeCityBackEnd.Controllers
 
 
         [HttpGet("officer/reports/details")]
-        //[Authorize]
+        [AllowAnonymous]
         public async Task<IActionResult> GetReportDetailsForOfficer([FromQuery] string? type, [FromQuery] string? range)
         {
             try
             {
                 var officerId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
                 var result = await _mapService.GetOfficerReportDetailsForMapAsync(officerId, type, range);
+                return Ok(result);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpGet("officer/reports/details/polygon")]
+        [AllowAnonymous] //[Authorize(Roles="Officer")]
+        public async Task<IActionResult> GetReportDetailsForOfficerPolygon([FromQuery] string? type, [FromQuery] string? range)
+        {
+            try
+            {
+                var officerId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+                var result = await _mapService.GetOfficerReportDetailsWithPolygonAsync(officerId, type, range);
+                return Ok(result);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+
+        [HttpGet("admin/reports")]
+        [AllowAnonymous] //[Authorize(Roles="Admin")]
+        public async Task<IActionResult> GetReportsForAdmin([FromQuery] int communeId, [FromQuery] string? type, [FromQuery] string? range)
+        {
+            try
+            {
+                var result = await _mapService.GetAdminReportsForMapAsync(communeId, type, range);
+                return Ok(result);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+
+        [HttpGet("admin/reports/details")]
+        [AllowAnonymous] //[Authorize(Roles="Admin")]
+        public async Task<IActionResult> GetReportDetailsForAdmin([FromQuery] int communeId, [FromQuery] string? type, [FromQuery] string? range)
+        {
+            try
+            {
+                var result = await _mapService.GetAdminReportDetailsWithPolygonAsync(communeId, type, range);
                 return Ok(result);
             }
             catch (ArgumentException ex)

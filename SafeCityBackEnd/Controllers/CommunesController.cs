@@ -146,6 +146,24 @@ public class CommunesController : ControllerBase
         var history = await _districtService.GetHistoryByAccountIdAsync(accountId);
         return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Lịch sử phân công officer", history);
     }
+    [HttpGet("metrics")]
+    [Authorize]
+    public async Task<IActionResult> GetCommuneMetrics()
+    {
+        try
+        {
+            var stats = await _districtService.GetStatisticsAsync();
+            return CustomSuccessHandler.ResponseBuilder(
+                HttpStatusCode.OK,
+                "Get commune statistics successfully",
+                stats
+            );
+        }
+        catch (Exception ex)
+        {
+            return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.BadRequest, ex.Message, null);
+        }
+    }
 
 
 }

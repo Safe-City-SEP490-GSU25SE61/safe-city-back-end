@@ -21,6 +21,7 @@ namespace Repository.Interfaces
         Task<IEnumerable<BlogResponseForOfficerDto>> GetBlogsForOfficerAsync(int communeId, BlogFilterForOfficerRequest filter);
         Task<IEnumerable<BlogResponseDto>> GetBlogsByFilterAsync(BlogFilterDto filter, Guid currentUserId);
         Task<IEnumerable<BlogResponseDto>> GetBlogsFirstRequestAsync(Guid currentUserId);
+        Task<IEnumerable<Blog>> GetAllAsync();
     }
 
 }

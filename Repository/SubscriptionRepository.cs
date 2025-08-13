@@ -85,5 +85,14 @@ namespace Repository
             _context.Subscriptions.Update(subscription);
             await _context.SaveChangesAsync();
         }
+        public async Task<IEnumerable<Subscription>> GetAllAsync()
+        {
+            return await _context.Subscriptions
+                .Include(s => s.Package)
+                .Include(s => s.Account)
+                .Include(s => s.Payment)
+                .ToListAsync();
+        }
+
     }
 }

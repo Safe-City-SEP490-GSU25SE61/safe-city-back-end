@@ -16,6 +16,8 @@ namespace Service.Interfaces
         Task ConfirmWebhookAsync(string webhookUrl);
         Task<IEnumerable<PaymentHistoryResponseModel>> GetUserPaymentHistoryAsync(Guid userId);
         Task<IEnumerable<AdminPaymentHistoryResponseModel>> GetAllPaymentHistoryForAdminAsync();
+        Task<object> GetAdminRevenueMetricsAsync(string? startMonth, string? endMonth, int? monthsBack);
+
 
     }
 }

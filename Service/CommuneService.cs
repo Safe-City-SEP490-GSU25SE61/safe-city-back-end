@@ -227,6 +227,48 @@ namespace Service
 
             return true;
         }
+        public async Task<object> GetStatisticsAsync()
+        {
+            var communes = await _communeRepository.GetAllAsync();
+            var accounts = await _accountRepository.GetAllAsync();
+
+
+            var total = communes.Count();
+            var active = communes.Count(c => c.IsActive);
+            var inactive = total - active;
+
+
+            var withPolygon = communes.Count(c => !string.IsNullOrWhiteSpace(c.PolygonData));
+            var withoutPolygon = total - withPolygon;
+
+            var activeOfficerByCommune = accounts
+                .Where(a => a.RoleId == 3 && string.Equals(a.Status, "active", StringComparison.OrdinalIgnoreCase) && a.CommuneId != null)
+                .GroupBy(a => a.CommuneId!.Value)
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            var communesWithOfficer = activeOfficerByCommune.Count; 
+            var communesWithoutOfficer = total - communesWithOfficer;
+
+            return new
+            {
+                communes = new
+                {
+                    total,
+                    active,
+                    inactive
+                },
+                polygonCoverage = new
+                {
+                    withPolygon,
+                    withoutPolygon
+                },
+                officerAssignment = new
+                {
+                    communesWithOfficer,
+                    communesWithoutOfficer
+                }
+            };
+        }
 
 
     }

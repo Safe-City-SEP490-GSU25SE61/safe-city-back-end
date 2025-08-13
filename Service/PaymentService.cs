@@ -252,6 +252,135 @@ namespace Service
             });
         }
 
+        public async Task<object> GetAdminRevenueMetricsAsync(string? startMonth, string? endMonth, int? monthsBack)
+        {
+
+            var payments = await _paymentRepo.GetAllAsync();
+            var subs = await _subscriptionRepo.GetAllAsync();
+            var pkgs = await _packageRepo.GetAllAsync();
+
+
+            static DateTime? ParseMonth(string? ym)
+            {
+                if (string.IsNullOrWhiteSpace(ym)) return null;
+                if (DateTime.TryParseExact(ym, "yyyy-MM", null, System.Globalization.DateTimeStyles.None, out var d))
+                    return new DateTime(d.Year, d.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+                return null;
+            }
+
+            var start = ParseMonth(startMonth);
+            var end = ParseMonth(endMonth);
+
+
+            if (!start.HasValue || !end.HasValue)
+            {
+                var today = DateTime.UtcNow;
+                var lastDayThisMonth = new DateTime(today.Year, today.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+                int back = monthsBack.GetValueOrDefault(6);
+                start = lastDayThisMonth.AddMonths(-back + 1);
+                end = lastDayThisMonth; 
+            }
+
+ 
+            var months = new List<DateTime>();
+            var cursor = new DateTime(start.Value.Year, start.Value.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+            var endMonthStart = new DateTime(end.Value.Year, end.Value.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+            while (cursor <= endMonthStart)
+            {
+                months.Add(cursor);
+                cursor = cursor.AddMonths(1);
+            }
+
+
+            static bool InMonth(DateTime? dt, DateTime monthStart)
+            {
+                if (!dt.HasValue) return false;
+                var ms = new DateTime(monthStart.Year, monthStart.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+                var me = ms.AddMonths(1);
+                return dt.Value >= ms && dt.Value < me;
+            }
+
+
+            var paidPayments = payments
+                .Where(p => string.Equals(p.Status, "Paid", StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+ 
+            bool InRange(DateTime? dt) =>
+                (!dt.HasValue ? false : dt.Value >= months.First() && dt.Value < months.Last().AddMonths(1));
+
+            var paidInRange = paidPayments.Where(p => InRange(p.PaidAt)).ToList();
+            var revenueTotal = paidInRange.Sum(p => p.Amount);
+
+            var revenueByPackage = paidInRange
+                .GroupBy(p => p.Subscription?.Package?.Name ?? $"Package#{p.Subscription?.PackageId}")
+                .Select(g => new { package = g.Key, revenue = g.Sum(x => x.Amount), orders = g.Count() })
+                .OrderByDescending(x => x.revenue)
+                .ToList();
+
+
+            var totalSubscriptions = subs.Count();
+            var activeSubscriptions = subs.Count(s => s.IsActive);
+            var uniqueSubscribers = subs.Select(s => s.UserId).Distinct().Count();
+            var newSubscriptionsInRange = subs.Count(s => InRange(s.StartDate));
+
+
+            var monthlyRevenue = months.Select(m => new {
+                month = m.ToString("yyyy-MM"),
+                amount = paidPayments.Where(p => InMonth(p.PaidAt, m)).Sum(p => p.Amount),
+                orders = paidPayments.Count(p => InMonth(p.PaidAt, m))
+            }).ToList();
+
+            var monthlyNewSubs = months.Select(m => new {
+                month = m.ToString("yyyy-MM"),
+                count = subs.Count(s => InMonth(s.StartDate, m))
+            }).ToList();
+
+
+            var thisMonth = months.Last();
+            var prevMonth = thisMonth.AddMonths(-1);
+
+            decimal revThis = monthlyRevenue.FirstOrDefault(x => x.month == thisMonth.ToString("yyyy-MM"))?.amount ?? 0;
+            decimal revPrev = monthlyRevenue.FirstOrDefault(x => x.month == prevMonth.ToString("yyyy-MM"))?.amount ?? 0;
+
+            int newThis = monthlyNewSubs.FirstOrDefault(x => x.month == thisMonth.ToString("yyyy-MM"))?.count ?? 0;
+            int newPrev = monthlyNewSubs.FirstOrDefault(x => x.month == prevMonth.ToString("yyyy-MM"))?.count ?? 0;
+
+            decimal Pct(decimal now, decimal before) => before == 0 ? (now > 0 ? 100 : 0) : Math.Round(((now - before) / before) * 100m, 2);
+
+            var comparison = new
+            {
+                thisMonth = thisMonth.ToString("yyyy-MM"),
+                prevMonth = prevMonth.ToString("yyyy-MM"),
+                revenue = new { current = revThis, previous = revPrev, changePct = Pct(revThis, revPrev) },
+                newSubscriptions = new { current = newThis, previous = newPrev, changePct = Pct(newThis, newPrev) }
+            };
+
+            return new
+            {
+                range = new { startMonth = months.First().ToString("yyyy-MM"), endMonth = months.Last().ToString("yyyy-MM") },
+                revenue = new
+                {
+                    total = revenueTotal,
+                    byPackage = revenueByPackage
+                },
+                subscriptions = new
+                {
+                    total = totalSubscriptions,
+                    active = activeSubscriptions,
+                    uniqueSubscribers = uniqueSubscribers,
+                    newInRange = newSubscriptionsInRange
+                },
+                monthly = new
+                {
+                    revenue = monthlyRevenue,
+                    newSubscriptions = monthlyNewSubs,
+                    comparison
+                }
+            };
+        }
+
+
 
     }
 }

@@ -170,6 +170,20 @@ namespace SafeCityBackEnd.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+        [HttpGet("admin/metrics")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetBlogMetrics([FromQuery] int? communeId,[FromQuery] string? startMonth,[FromQuery] string? endMonth,[FromQuery] int? monthsBack)
+        {
+            try
+            {
+                var stats = await _blogService.GetBlogMetricsAsync(communeId, startMonth, endMonth, monthsBack);
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Fetched blog metrics.", stats);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
 
     }
 }
