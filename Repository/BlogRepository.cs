@@ -158,6 +158,15 @@ namespace Repository
                 .ToListAsync();
         }
 
+        public async Task<int> GetBlogsPinnedNumberAsync(int communeId)
+        {
+            return await _context.Set<Blog>()
+                .Where(b => b.CommuneId == communeId && b.Pinned)
+                .Take(4)
+                .CountAsync();
+
+        }
+
         public async Task<IEnumerable<BlogResponseDto>> GetBlogsByFilterAsync(BlogFilterDto filter, Guid currentUserId)
         {
             var query = _context.Blogs

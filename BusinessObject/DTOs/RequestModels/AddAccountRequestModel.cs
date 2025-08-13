@@ -46,7 +46,7 @@ namespace BusinessObject.DTOs.RequestModels
 
         [JsonPropertyName("idNumber")]
         [Required(ErrorMessage = "ID number is required")]
-        [RegularExpression(@"^[0-9]{9,12}$", ErrorMessage = "ID number must be 9 to 12 digits")]
+        [RegularExpression(@"^([0-9]{9}|[0-9]{12})$", ErrorMessage = "ID number must be exactly 9 or 12 digits")]
         public string idNumber { get; set; } = string.Empty;
 
         [JsonPropertyName("issueDate")]

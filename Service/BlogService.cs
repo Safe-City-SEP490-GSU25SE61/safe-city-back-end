@@ -1,6 +1,7 @@
 ﻿using BusinessObject.DTOs.RequestModels;
 using BusinessObject.DTOs.ResponseModels;
 using BusinessObject.Models;
+using Service.Helpers;
 using DataAccessLayer.DataContext;
 using Google;
 using Microsoft.EntityFrameworkCore;
@@ -69,7 +70,12 @@ namespace Service
 
         public async Task<IEnumerable<BlogResponseDto>> GetCreatedBlogsByUser(Guid userId)
         {
-            return await _blogRepository.GetCreatedBlogsByUserAsync(userId);
+            var blogs = await _blogRepository.GetCreatedBlogsByUserAsync(userId);
+            foreach (var blog in blogs)
+            {
+                blog.CreatedAt = DateTimeHelper.ToVietnamTime(blog.CreatedAt);
+            }
+            return blogs;
         }
 
         public async Task ApproveBlog(int blogId, bool isApproved, bool isPinned)
@@ -79,6 +85,13 @@ namespace Service
                 throw new KeyNotFoundException("Blog not found.");
 
             blog.IsApproved = isApproved;
+            if (isApproved && isPinned)
+            {
+                var pinnedCount = await _blogRepository.GetBlogsPinnedNumberAsync(blog.CommuneId);
+                if (pinnedCount >= 3)
+                    throw new Exception("Số lượng bài ghim tối đa là 3. Vui lòng bỏ ghim bớt trước khi ghim bài mới.");
+            }
+
             blog.Pinned = isApproved && isPinned;
             blog.IsVisible = isApproved;
             blog.UpdatedAt = DateTime.UtcNow;
@@ -192,14 +205,21 @@ namespace Service
         {
             var user = await _accountRepository.GetByIdAsync(userId);
             var communeId = user.CommuneId ?? -1;
-
-            return await _blogRepository.GetBlogsForOfficerAsync(communeId, filter);
+            var blogs = await _blogRepository.GetBlogsForOfficerAsync(communeId, filter);
+            foreach (var blog in blogs)
+            {
+                blog.CreatedAt = DateTimeHelper.ToVietnamTime(blog.CreatedAt);
+            }
+            return blogs;
         }
 
 
         public async Task<BlogModerationResponseDto> GetBlogModeration(int id)
         {
-            return await _blogRepository.GetDetailByIdAsync(id);
+            var blogModeration = await _blogRepository.GetDetailByIdAsync(id);
+            blogModeration.BlogModeration.CreatedAt = DateTimeHelper.ToVietnamTime(blogModeration.BlogModeration.CreatedAt);
+            blogModeration.CreatedAt = DateTimeHelper.ToVietnamTime(blogModeration.CreatedAt);
+            return blogModeration;
         }
 
         public async Task<FollowingRequestBlogResponseDto> GetBlogsByFilter(BlogFilterDto filter, Guid currentUserId)
@@ -209,6 +229,7 @@ namespace Service
             foreach (var blog in blogs)
             {
                 blog.MediaUrls = await _mediaRepository.GetUrlsByPostIdAsync(blog.Id);
+                blog.CreatedAt = DateTimeHelper.ToVietnamTime(blog.CreatedAt);
             }
 
             return new FollowingRequestBlogResponseDto
@@ -230,10 +251,16 @@ namespace Service
 
         public async Task<FirstRequestBlogResponseDto> GetFirstRequestData(Guid currentUserId)
         {
+            var blogs = await _blogRepository.GetBlogsFirstRequestAsync(currentUserId);
+
+            foreach (var blog in blogs)
+            {
+                blog.CreatedAt = DateTimeHelper.ToVietnamTime(blog.CreatedAt);
+            }
             return new FirstRequestBlogResponseDto
             {
                 Provinces = await _provinceRepository.GetAllProAsync(),
-                Blogs = await _blogRepository.GetBlogsFirstRequestAsync(currentUserId),
+                Blogs = blogs,
                 IsPremium = await _subscriptionRepository.GetActiveByUserIdAsync(currentUserId) != null,
             };
         }

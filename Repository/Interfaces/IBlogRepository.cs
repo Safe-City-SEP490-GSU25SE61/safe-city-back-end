@@ -14,6 +14,7 @@ namespace Repository.Interfaces
         Task<Blog?> GetByIdAsync(int id);
         Task<int> AddAsync(Blog blog);
         Task UpdateAsync(Blog blog);
+        Task<int> GetBlogsPinnedNumberAsync(int communeId);
         Task<BlogModerationResponseDto> GetDetailByIdAsync(int id);
         Task<IEnumerable<BlogResponseDto>> GetVisibleByCommuneAsync(int districtId, Guid currentUserId);
         Task<IEnumerable<BlogResponseDto>> GetCreatedBlogsByUserAsync(Guid userId);
