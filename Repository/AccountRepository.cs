@@ -121,6 +121,24 @@ namespace Repository.Repositories
             return account;
         }
 
+        
+        public async Task<List<Account>> GetByIdsAsync(IEnumerable<Guid> ids)
+        {
+            if (ids == null) return new List<Account>();
+            var list = ids.Distinct().ToList();
+            if (list.Count == 0) return new List<Account>();
+
+            return await _context.Accounts
+                .AsNoTracking()
+                .Where(a => list.Contains(a.Id))
+                .Select(a => new Account
+                {
+                    Id = a.Id,
+                    FullName = a.FullName,
+                    
+                })
+                .ToListAsync();
+        }
 
     }
 }

@@ -14,10 +14,14 @@ namespace BusinessObject.DTOs.RequestModels
         ErrorMessage = "Trạng thái không hợp lệ. Chỉ chấp nhận: verified, closed, malicious, solved.")]
         public string Status { get; set; }
         public string? Message { get; set; }
-        public bool? IsVisibleOnMap { get; set; } 
     }
     public class CancelReportRequestModel
     {
         public string? Message { get; set; }
+    }
+    public class UpdateReportVisibilityRequestModel
+    {
+        [Required]
+        public bool IsVisibleOnMap { get; set; }
     }
 }

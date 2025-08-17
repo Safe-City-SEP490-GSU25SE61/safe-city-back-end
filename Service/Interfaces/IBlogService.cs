@@ -11,7 +11,7 @@ namespace Service.Interfaces
     public interface IBlogService
     {
         Task Like(Guid userId, int postId);
-        Task ApproveBlog(int blogId, bool isApproved, bool isPinned);
+        Task ApproveBlog(int blogId, bool isApproved, bool isPinned, Guid officerId);
         Task TogglePinned(int blogId, bool pinned);
         Task<BlogResponseDto> CreateBlog(BlogCreateRequestDto request, Guid authorId);
         Task<IEnumerable<BlogResponseDto>> GetBlogsByCommune(int districtId, Guid currentUserId);

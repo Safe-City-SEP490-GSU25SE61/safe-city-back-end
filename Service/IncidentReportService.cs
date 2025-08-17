@@ -36,8 +36,8 @@ namespace Service
         private static readonly string[] ValidRanges = { "day", "week", "month", "year" };
         private static readonly string[] ValidStatuses = { "pending", "verified", "closed", "malicious","solved" };
         private static readonly string[] ValidCitizenStatuses = { "pending", "verified", "closed", "malicious", "solved", "cancelled" };
-
-        public IncidentReportService(IIncidentReportRepository reportRepo, INoteRepository noteRepo, IFirebaseStorageService storageService, IAccountRepository accountRepo, IAchievementRepository achievementRepo, IConfiguration configuration, ICommuneRepository communeRepo, IMediator mediator)
+        private readonly IPointHistoryService _pointHistory;
+        public IncidentReportService(IIncidentReportRepository reportRepo, INoteRepository noteRepo, IFirebaseStorageService storageService, IAccountRepository accountRepo, IAchievementRepository achievementRepo, IConfiguration configuration, ICommuneRepository communeRepo, IMediator mediator, IPointHistoryService pointHistory)
         {
             _reportRepo = reportRepo;
             _noteRepo = noteRepo;
@@ -47,6 +47,7 @@ namespace Service
             _configuration = configuration;
             _communeRepo = communeRepo;
             _mediator = mediator;
+            _pointHistory = pointHistory;
         }
 
         public async Task<ReportResponseModel> CreateAsync(CreateReportRequestModel model, Guid userId)
@@ -358,10 +359,6 @@ namespace Service
             {
                 report.StatusMessage = model.Message;
             }
-            if (model.IsVisibleOnMap.HasValue)
-            {
-                report.IsVisibleOnMap = model.IsVisibleOnMap.Value;
-            }
 
             await _reportRepo.UpdateAsync(report);
 
@@ -375,6 +372,16 @@ namespace Service
                     account.TotalPoint += rewardPoint;
                     await _accountRepo.UpdateOfficerAsync(account);
 
+                    await _pointHistory.LogAsync(
+                        userId: report.UserId,
+                        actorId: officerId,
+                        sourceType: "incident_report",
+                        sourceId: report.Id.ToString(),
+                        action: "report_verified",
+                        pointsDelta: rewardPoint,
+                        reputationDelta: 0,
+                        note: model.Message
+                    );
                 }
             }
             if (model.Status == "malicious")
@@ -384,6 +391,17 @@ namespace Service
                 {
                     reporter.ReputationPoint = Math.Max(0, reporter.ReputationPoint - 1);
                     await _accountRepo.UpdateOfficerAsync(reporter);
+
+                    await _pointHistory.LogAsync(
+                        userId: report.UserId,
+                        actorId: officerId,
+                        sourceType: "incident_report",
+                        sourceId: report.Id.ToString(),
+                        action: "report_malicious_penalty",
+                        pointsDelta: 0,
+                        reputationDelta: -1,
+                        note: model.Message
+                    );
                 }
             }
 
@@ -391,6 +409,18 @@ namespace Service
             return ToResponseModel(updated!);
         }
 
+        public async Task<ReportResponseModel> UpdateVisibilityAsync(Guid id, UpdateReportVisibilityRequestModel model)
+        {
+            var report = await _reportRepo.GetByIdAsync(id);
+            if (report == null) throw new KeyNotFoundException("Report not found");
+
+            report.IsVisibleOnMap = model.IsVisibleOnMap;
+
+            await _reportRepo.UpdateAsync(report);
+
+            var updated = await _reportRepo.GetByIdAsync(id);
+            return ToResponseModel(updated!);
+        }
 
 
         public async Task<ReportResponseModel> AddNoteAsync(Guid id, AddInternalNoteRequestModel model, Guid officerId)

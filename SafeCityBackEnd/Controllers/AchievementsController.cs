@@ -54,13 +54,13 @@ namespace SafeCityBackEnd.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> CreateAchievement([FromBody] AchievementConfigDTO dto)
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> CreateAchievement([FromForm] AchievementConfigDTO dto, IFormFile? image)
         {
             try
             {
-                var achievementId = await _achievementService.CreateAchievementAsync(dto);
+                var achievementId = await _achievementService.CreateAchievementAsync(dto, image); 
                 var createdAchievement = await _achievementService.GetAchievementByIdAsync(achievementId);
-
                 return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.Created, "Achievement created successfully", createdAchievement);
             }
             catch (Exception ex)
@@ -71,15 +71,13 @@ namespace SafeCityBackEnd.Controllers
 
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> UpdateAchievement(int id, [FromBody] AchievementConfigDTOForUpdate dto)
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> UpdateAchievement(int id, [FromForm] AchievementConfigDTOForUpdate dto, IFormFile? image)
         {
             try
             {
-
-                await _achievementService.UpdateAchievementAsync(id, dto);
-
+                await _achievementService.UpdateAchievementAsync(id, dto, image); 
                 var updatedAchievement = await _achievementService.GetAchievementByIdAsync(id);
-
                 return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Achievement updated successfully", updatedAchievement);
             }
             catch (Exception ex)
@@ -87,6 +85,7 @@ namespace SafeCityBackEnd.Controllers
                 return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.BadRequest, ex.Message, null);
             }
         }
+
 
 
 

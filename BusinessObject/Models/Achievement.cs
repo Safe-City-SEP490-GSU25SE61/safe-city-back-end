@@ -17,7 +17,8 @@ namespace BusinessObject.Models
 
         [Column("description")]
         public string Description { get; set; }
-
+        [Column("image_url")]
+        public string? ImageUrl { get; set; }
         [Column("min_point")]
         public int MinPoint { get; set; }
 

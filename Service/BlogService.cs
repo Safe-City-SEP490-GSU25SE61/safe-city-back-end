@@ -14,6 +14,7 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 
 namespace Service
 {
@@ -28,6 +29,8 @@ namespace Service
         private readonly IAccountRepository _accountRepository;
         private readonly IProvinceRepository _provinceRepository;
         private readonly ISubscriptionRepository _subscriptionRepository;
+        private readonly IPointHistoryService _pointHistory;
+        private readonly IConfiguration _configuration;
 
         public BlogService(
             IBlogRepository blogRepository,
@@ -38,7 +41,9 @@ namespace Service
             BlogModerationService blogModerationService,
             IAccountRepository accountRepository,
             IProvinceRepository provinceRepository,
-            ISubscriptionRepository subscriptionRepository)
+            ISubscriptionRepository subscriptionRepository,
+            IPointHistoryService pointHistory, 
+            IConfiguration configuration)
         {
             _blogRepository = blogRepository;
             _likeRepository = likeRepository;
@@ -49,6 +54,8 @@ namespace Service
             _accountRepository = accountRepository;
             _provinceRepository = provinceRepository;
             _subscriptionRepository = subscriptionRepository;
+            _pointHistory = pointHistory;
+            _configuration = configuration;
         }
 
         public async Task Like(Guid userId, int postId)
@@ -78,7 +85,7 @@ namespace Service
             return blogs;
         }
 
-        public async Task ApproveBlog(int blogId, bool isApproved, bool isPinned)
+        public async Task ApproveBlog(int blogId, bool isApproved, bool isPinned, Guid officerId)
         {
             var blog = await _blogRepository.GetByIdAsync(blogId);
             if (blog == null)
@@ -97,6 +104,27 @@ namespace Service
             blog.UpdatedAt = DateTime.UtcNow;
 
             await _blogRepository.UpdateAsync(blog);
+            if (isApproved)
+            {
+                int reward = _configuration.GetValue<int>("Reward:ApprovedBlogPoint", 50);
+                var author = await _accountRepository.GetByIdAsync(blog.AuthorId);
+                if (author != null)
+                {
+                    author.TotalPoint += reward;
+                    await _accountRepository.UpdateOfficerAsync(author);
+
+                    await _pointHistory.LogAsync(
+                        userId: blog.AuthorId,
+                        actorId: officerId,
+                        sourceType: "blog",
+                        sourceId: blog.Id.ToString(),
+                        action: "blog_approved",
+                        pointsDelta: reward,
+                        reputationDelta: 0,
+                        note: isPinned ? "Approved & pinned" : "Approved"
+                    );
+                }
+            }
         }
 
         public async Task TogglePinned(int blogId, bool pinned)

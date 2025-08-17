@@ -24,7 +24,7 @@ namespace Service.Interfaces
         Task<IEnumerable<GroupedReportResponseModel>> GetFilteredReportsForAdminAsync(string? range,string? status,bool includeRelated = false,string? sort = null,PriorityLevel? priorityFilter = null);
         Task<ReportStatisticsResponse> GetSystemReportStatisticsAsync(string? range);
         Task<ReportStatisticsResponse> GetOfficerStatisticsAsync(Guid officerId, string? range);
-
+        Task<ReportResponseModel> UpdateVisibilityAsync(Guid id, UpdateReportVisibilityRequestModel model);
     }
 }
 
