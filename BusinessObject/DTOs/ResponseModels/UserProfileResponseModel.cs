@@ -21,4 +21,5 @@ public class UserProfileResponseModel
     public int ReputationPoint { get; set; }
     public CurrentSubscriptionResponseModel? CurrentSubscription { get; set; }
     public string AchievementName { get; set; }
+    public string? AchievementImageUrl { get; set; }
 }

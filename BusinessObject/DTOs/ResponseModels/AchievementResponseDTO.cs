@@ -15,5 +15,6 @@ namespace BusinessObject.DTOs.ResponseModels
         public string Benefit { get; set; }
         public DateTime CreateAt { get; set; }
         public DateTime LastUpdated { get; set; }
+        public string? ImageUrl { get; set; }
     }
 }
