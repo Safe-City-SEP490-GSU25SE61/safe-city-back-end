@@ -99,6 +99,7 @@ namespace Service
                     throw new Exception("Số lượng bài ghim tối đa là 3. Vui lòng bỏ ghim bớt trước khi ghim bài mới.");
             }
 
+            blog.ApprovedBy = officerId;
             blog.Pinned = isApproved && isPinned;
             blog.IsVisible = isApproved;
             blog.UpdatedAt = DateTime.UtcNow;

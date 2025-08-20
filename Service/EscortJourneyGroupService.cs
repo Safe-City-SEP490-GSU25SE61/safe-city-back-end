@@ -1,7 +1,9 @@
-﻿using BusinessObject.DTOs.RequestModels;
+﻿using AutoMapper.Execution;
+using BusinessObject.DTOs.RequestModels;
 using BusinessObject.DTOs.ResponseModels;
 using BusinessObject.Enums;
 using BusinessObject.Models;
+using MediatR;
 using Repository;
 using Repository.Interfaces;
 using Service.Interfaces;
@@ -66,13 +68,15 @@ namespace Service
 
         public async Task JoinGroupAsync(Guid accountId, string code)
         {
-            var groupId = await _groupRepository.GetGroupIdByCodeAsync(code)
+            var group = await _groupRepository.GetGroupSettingsByCodeAsync(code)
                          ?? throw new KeyNotFoundException("Không tìm thấy nhóm.");
 
-            if (await _groupRepository.IsAlreadyInGroupAsync(accountId, groupId))
+            if (await _groupRepository.IsAlreadyInGroupAsync(accountId, group.Id))
                 throw new InvalidOperationException("Bạn đã tham gia nhóm này.");
-            if (await _groupJoinRequestRepository.ExistsAsync(accountId, groupId))
+            if (await _groupJoinRequestRepository.ExistsAsync(accountId, group.Id))
                 throw new InvalidOperationException("Bạn đã gửi yêu cầu tham gia nhóm này.");
+            if (!group.ReceiveRequest)
+                throw new InvalidOperationException("Bạn không thể gửi yêu cầu tham gia vào nhóm này.");
 
             int currentGroups = await _groupRepository.GetGroupCountByAccountIdAsync(accountId);
             int maxAllowed = 5;
@@ -80,14 +84,21 @@ namespace Service
             if (currentGroups >= maxAllowed)
                 throw new InvalidOperationException("Bạn chỉ có thể tham gia tối đa 5 nhóm.");
 
-            var request = new EscortGroupJoinRequest
+            if (group.AutoApprove)
             {
-                AccountId = accountId,
-                GroupId = groupId,
-                IsApproved = null,
-            };
+                await AddMemberToGroupAsync(accountId, group.Id, group.MaxMemberNumber);
+            }
+            else
+            {
+                var request = new EscortGroupJoinRequest
+                {
+                    AccountId = accountId,
+                    GroupId = group.Id,
+                    IsApproved = null,
+                };
 
-            await _groupJoinRequestRepository.AddAsync(request);
+                await _groupJoinRequestRepository.AddAsync(request);
+            }
         }
 
         public async Task ReviewJoinRequestAsync(int requestId, bool approve)
@@ -102,21 +113,25 @@ namespace Service
 
             if (approve)
             {
-                int currentMemberCount = await _groupRepository.GetMemberCountAsync(request.GroupId);
-                int maxAllowed = (int)request.Group.MaxMemberNumber;
-
-                if (currentMemberCount >= maxAllowed)
-                    throw new InvalidOperationException("Nhóm đã đầy.");
-
-                await _groupRepository.AddMemberAsync(new EscortJourneyGroupMember
-                {
-                    GroupId = request.GroupId,
-                    AccountId = request.AccountId,
-                    JoinedAt = DateTime.UtcNow
-                });
+                await AddMemberToGroupAsync(request.AccountId, request.GroupId, request.Group.MaxMemberNumber);
             }
 
             await _groupJoinRequestRepository.ReviewAsync(request);
+        }
+
+        private async Task AddMemberToGroupAsync(Guid userId, int groupId, int maxMemberNumber)
+        {
+            int currentMemberCount = await _groupRepository.GetMemberCountAsync(groupId);
+
+            if (currentMemberCount >= maxMemberNumber)
+                throw new InvalidOperationException("Nhóm đã đầy.");
+
+            await _groupRepository.AddMemberAsync(new EscortJourneyGroupMember
+            {
+                GroupId = groupId,
+                AccountId = userId,
+                JoinedAt = DateTime.UtcNow
+            });
         }
 
         public async Task<List<PendingRequestDto>> GetPendingRequestsByGroupIdAsync(int groupId)
@@ -140,18 +155,46 @@ namespace Service
             }).ToList();
         }
 
-        public async Task<GroupWaitingRoomDto?> GetGroupWaitingRoomAsync(int groupId)
+        public async Task<GroupWaitingRoomDto?> GetGroupWaitingRoomAsync(int groupId, Guid accountId)
         {
-            var group = await _groupRepository.GetGroupWithLeaderAndMembersAsync(groupId);
+            var group = await _groupRepository.GetGroupWithLeaderAndMembersAsync(groupId, accountId);
             if (group == null) return null;
 
             return group;
         }
 
+        public async Task UpdateGroupSettingsAsync(UpdateEscortGroupSettingsDTO groupSettings, Guid leaderId)
+        {
+            var groupId = await _groupRepository.GetGroupIdByGroupCodeAsync(groupSettings.groupCode);
+
+            if (groupId == null)
+                throw new Exception("Nhóm không tồn tại.");
+
+            var leader = await _groupRepository.GetLeaderUserIdAsync(groupId.Value);
+            if (leader != leaderId)
+                throw new Exception("Người dùng không đủ thẩm quyền để thực hiện thao tác này.");
+
+            await _groupRepository.UpdateGroupSettingsByCodeAsync(groupSettings);
+        }
+
+        public async Task KickMemberAsync(int memberId, Guid leaderId)
+        {
+            var groupId = await _groupRepository.GetGroupIdByMemberIdAsync(memberId);
+
+            if (groupId == null)
+                throw new Exception("Nhóm không tồn tại.");
+
+            var leader = await _groupRepository.GetLeaderUserIdAsync(groupId.Value);
+            if (leader != leaderId)
+                throw new Exception("Người dùng không đủ thẩm quyền để thực hiện thao tác này.");
+
+            await _groupRepository.RemoveGroupMemberByIdAsync(memberId);
+        }
+
 
         public async Task DeleteGroupByIdAsync(string groupCode)
         {
-            await _groupRepository.DeleteGroupByIdAsync(groupCode);
+            await _groupRepository.DeleteGroupByGroupCodeAsync(groupCode);
         }
 
         private string GenerateRandomCode()

@@ -117,12 +117,36 @@ namespace SafeCityBackEnd.Controllers
         [HttpGet("{groupId}/waiting-room")]
         public async Task<IActionResult> GetGroupWaitingRoom(int groupId)
         {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+                return CustomErrorHandler.SimpleError("User ID claim not found.", 401);
+
+            var userId = Guid.Parse(userIdClaim.Value);
             try
             {
-                var result = await _groupService.GetGroupWaitingRoomAsync(groupId);
+                var result = await _groupService.GetGroupWaitingRoomAsync(groupId, userId);
                 if (result == null)
                     return NotFound(new { message = "Group not found." });
                 return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Get data successfully.", result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpPut("settings")]
+        public async Task<IActionResult> UpdateGroupSettings(UpdateEscortGroupSettingsDTO groupSettings)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+                return CustomErrorHandler.SimpleError("User ID claim not found.", 401);
+
+            var userId = Guid.Parse(userIdClaim.Value);
+            try
+            {
+                await _groupService.UpdateGroupSettingsAsync(groupSettings, userId);
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Update settings successfully.", null);
             }
             catch (Exception ex)
             {
@@ -149,6 +173,27 @@ namespace SafeCityBackEnd.Controllers
                 return BadRequest(new { error = ex.Message });
             }
         }
+
+        [HttpDelete("member")]
+        public async Task<IActionResult> KickMember(int memberId)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+                return CustomErrorHandler.SimpleError("User ID claim not found.", 401);
+
+            var leaderId = Guid.Parse(userIdClaim.Value);
+            try
+            {
+                await _groupService.KickMemberAsync(memberId, leaderId);
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Member removed successfully.", null);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+
+        }
+
     }
 
 }

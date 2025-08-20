@@ -48,12 +48,13 @@ namespace SafeCityBackEnd.Controllers
         //[Authorize(Roles = "Officer")]
         public async Task<IActionResult> Approve(int id, bool isApproved, bool isPinned)
         {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+                return CustomErrorHandler.SimpleError("User ID claim not found.", 401);
+
+            var officerId = Guid.Parse(userIdClaim.Value);
             try
             {
-                var officerIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-                if (officerIdClaim == null)
-                    return CustomErrorHandler.SimpleError("User ID claim not found.", 401);
-                var officerId = Guid.Parse(officerIdClaim.Value);
                 await _blogService.ApproveBlog(id, isApproved, isPinned, officerId);
                 return Ok();
             }

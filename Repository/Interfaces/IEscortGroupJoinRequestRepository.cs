@@ -11,7 +11,7 @@ namespace Repository.Interfaces
     public interface IEscortGroupJoinRequestRepository
     {   
         Task<bool> ExistsAsync(Guid accountId, int groupId);
-        Task AddAsync(EscortGroupJoinRequest request);
+        Task<int> AddAsync(EscortGroupJoinRequest request);
         Task<List<PendingRequestDto>> GetPendingRequestsByGroupIdAsync(int groupId);
         Task<EscortGroupJoinRequest> GetByIdAsync(int requestId);
         Task ReviewAsync(EscortGroupJoinRequest request);

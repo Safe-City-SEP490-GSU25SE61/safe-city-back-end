@@ -1,19 +1,19 @@
 ﻿using BusinessObject.Enums;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace BusinessObject.DTOs.ResponseModels
 {
-    public class EscortJourneyGroupDto
+    public class EscortGroupSettingsDto
     {
         public int Id { get; set; }
-        public string Name { get; set; }
-        public string GroupCode { get; set; }
         public int MaxMemberNumber { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public bool AutoApprove { get; set; } 
+        public bool ReceiveRequest { get; set; } 
     }
 
     public class EscortGroupDto
@@ -30,6 +30,9 @@ namespace BusinessObject.DTOs.ResponseModels
         public int Id { get; set; }
         public string Name { get; set; }
         public string GroupCode { get; set; }
+        public bool AutoApprove { get; set; }
+        public bool ReceiveRequest { get; set; }
+        public bool IsLeader { get; set; }
         public int MaxMemberNumber { get; set; }
         public int CurrentMemberCount { get; set; }
         public string LeaderName { get; set; }
@@ -39,9 +42,11 @@ namespace BusinessObject.DTOs.ResponseModels
 
     public class EscortGroupMemberDto
     {
-        public int Id { get; set; }
-        public string FullName { get; set; }
-        public string AvatarUrl { get; set; }
+        public int? Id { get; set; }
+        public string? FullName { get; set; }
+        public string? Email { get; set; }
+        public string? AvatarUrl { get; set; }
+        public string EscortStatus { get; set; } = "default";
         public GroupMemberRole Role { get; set; }
         //public bool IsOnline { get; set; }
     }

@@ -29,6 +29,12 @@ namespace BusinessObject.Models
         [Column("max_member_number")]
         public int MaxMemberNumber { get; set; } = 10;
 
+        [Column("auto_approve")]
+        public bool AutoApprove { get; set; } = false;
+
+        [Column("receive_request")]
+        public bool ReceiveRequest { get; set; } = true;
+
         [Column("created_at")]
         public DateTime CreatedAt { get; set; }
 

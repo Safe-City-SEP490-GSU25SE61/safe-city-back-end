@@ -48,6 +48,9 @@ namespace BusinessObject.Models
         [Column("updated_at")]
         public DateTime UpdatedAt { get; set; }
 
+        [Column("approved_by")]
+        public Guid? ApprovedBy { get; set; }
+        public Account? ApprovedByAccount { get; set; }
         public Account Author { get; set; }
         public Commune Commune { get; set; }
         public BlogModeration Moderation { get; set; }

@@ -23,13 +23,14 @@ namespace Repository
         public async Task<bool> ExistsAsync(Guid accountId, int groupId)
         {
             return await _context.EscortGroupJoinRequests
-                .AnyAsync(r => r.AccountId == accountId && r.GroupId == groupId);
+                .AnyAsync(r => r.AccountId == accountId && r.GroupId == groupId && r.IsApproved == null);
         }
 
-        public async Task AddAsync(EscortGroupJoinRequest request)
+        public async Task<int> AddAsync(EscortGroupJoinRequest request)
         {
             _context.EscortGroupJoinRequests.Add(request);
             await _context.SaveChangesAsync();
+            return request.Id;
         }
         public async Task<EscortGroupJoinRequest?> GetByIdAsync(int requestId)
         {
