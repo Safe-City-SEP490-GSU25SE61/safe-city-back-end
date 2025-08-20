@@ -22,6 +22,7 @@ namespace Service.Interfaces
         Task UpdateBlogVisibility(int blogId, bool isVisible);
         Task<FirstRequestBlogResponseDto> GetFirstRequestData(Guid currentUserId);
         Task<object> GetBlogMetricsAsync(int? communeId, string? startMonth, string? endMonth, int? monthsBack);
+        Task<object> GetBlogMetricsOfficerAsync(Guid currentUserId, string? startMonth, string? endMonth, int? monthsBack);
 
     }
 

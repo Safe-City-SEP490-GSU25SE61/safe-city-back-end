@@ -34,6 +34,7 @@ namespace Service
         private static ICommuneRepository _communeRepo;
         private readonly IMediator _mediator;
         private static readonly string[] ValidRanges = { "day", "week", "month", "year" };
+        private static readonly string[] ValidRangesStatistic = { "week", "month", "quarter" };
         private static readonly string[] ValidStatuses = { "pending", "verified", "closed", "malicious","solved" };
         private static readonly string[] ValidCitizenStatuses = { "pending", "verified", "closed", "malicious", "solved", "cancelled" };
         private readonly IPointHistoryService _pointHistory;
@@ -925,16 +926,15 @@ namespace Service
             var hiddenCount = allReports.Count(r => !r.IsVisibleOnMap);
             if (!string.IsNullOrWhiteSpace(range))
             {
-                if (!ValidRanges.Contains(range.ToLower()))
-                    throw new ArgumentException("Giá trị 'range' không hợp lệ. Hợp lệ: day, week, month, year");
+                if (!ValidRangesStatistic.Contains(range.ToLower()))
+                    throw new ArgumentException("Giá trị 'range' không hợp lệ. Hợp lệ: week, month, quarter");
 
                 DateTime fromDate = range.ToLower() switch
                 {
-                    "day" => DateTime.UtcNow.AddDays(-1),
                     "week" => DateTime.UtcNow.AddDays(-7),
                     "month" => DateTime.UtcNow.AddMonths(-1),
-                    "year" => DateTime.UtcNow.AddYears(-1),
-                    _ => DateTime.MinValue
+                    "quarter" => DateTime.UtcNow.AddMonths(-3),
+                    _ => DateTime.UtcNow.AddDays(-7)
                 };
 
                 allReports = allReports
@@ -1048,16 +1048,15 @@ namespace Service
 
             if (!string.IsNullOrWhiteSpace(range))
             {
-                if (!ValidRanges.Contains(range.ToLower()))
-                    throw new ArgumentException("Giá trị 'range' không hợp lệ. Hợp lệ: day, week, month, year");
+                if (!ValidRangesStatistic.Contains(range.ToLower()))
+                    throw new ArgumentException("Giá trị 'range' không hợp lệ. Hợp lệ: week, month, quarter");
 
                 var fromDate = range.ToLower() switch
                 {
-                    "day" => DateTime.UtcNow.AddDays(-1),
                     "week" => DateTime.UtcNow.AddDays(-7),
                     "month" => DateTime.UtcNow.AddMonths(-1),
-                    "year" => DateTime.UtcNow.AddYears(-1),
-                    _ => DateTime.MinValue
+                    "quarter" => DateTime.UtcNow.AddMonths(-3),
+                    _ => DateTime.UtcNow.AddDays(-7)
                 };
 
                 reports = reports.Where(r => r.CreatedAt >= fromDate).ToList();

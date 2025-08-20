@@ -133,11 +133,11 @@ namespace SafeCityBackEnd.Controllers
 
         [HttpGet("admin/reports")]
         [AllowAnonymous] //[Authorize(Roles="Admin")]
-        public async Task<IActionResult> GetReportsForAdmin([FromQuery] int communeId, [FromQuery] string? type, [FromQuery] string? range)
+        public async Task<IActionResult> GetReportsForAdmin([FromQuery] string? type, [FromQuery] string? range)
         {
             try
             {
-                var result = await _mapService.GetAdminReportsForMapAsync(communeId, type, range);
+                var result = await _mapService.GetAdminReportsForMapAsync(type, range);
                 return Ok(result);
             }
             catch (ArgumentException ex)
@@ -153,7 +153,7 @@ namespace SafeCityBackEnd.Controllers
         {
             try
             {
-                var result = await _mapService.GetAdminReportDetailsWithPolygonAsync(communeId, type, range);
+                var result = await _mapService.GetAdminReportDetailsAdminAsync(communeId, type, range);
                 return Ok(result);
             }
             catch (ArgumentException ex)
