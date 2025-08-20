@@ -10,5 +10,6 @@ namespace Repository.Interfaces
     public interface IJourneyRepository
     {
         Task<EscortJourney> AddAsync(EscortJourney journey);
+        Task<EscortJourney> GetByUserIdAsync(Guid userId);
     }
 }

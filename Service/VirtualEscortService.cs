@@ -103,5 +103,9 @@ namespace Service
             return await _journeyRepository.AddAsync(journey);
         }
 
+        public async Task<EscortJourney> GetJourneyByUserIdAsync(Guid userId)
+        {
+            return await _journeyRepository.GetByUserIdAsync(userId);
+        }
     }
 }

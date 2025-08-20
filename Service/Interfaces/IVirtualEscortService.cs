@@ -11,5 +11,6 @@ namespace Service.Interfaces
     public interface IVirtualEscortService
     {
         Task<EscortJourney> CreateJourneyFromGoongResponseAsync(Guid userId, CreateJourneyDTO request);
+        Task<EscortJourney> GetJourneyByUserIdAsync(Guid userId);
     }
 }
