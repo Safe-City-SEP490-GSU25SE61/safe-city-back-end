@@ -188,6 +188,18 @@ namespace SafeCityBackEnd.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+        [HttpGet("admin/metrics/officer")]
+        [Authorize]
+        public async Task<IActionResult> GetBlogMetricsOfficer([FromQuery] string? startMonth,
+                                                [FromQuery] string? endMonth,
+                                                [FromQuery] int? monthsBack)
+        {
+            var userId = Guid.Parse(
+                User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value
+            );
+            var data = await _blogService.GetBlogMetricsOfficerAsync(userId, startMonth, endMonth, monthsBack);
+            return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "OK", data);
+        }
 
     }
 }

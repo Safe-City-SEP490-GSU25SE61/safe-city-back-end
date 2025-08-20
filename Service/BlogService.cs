@@ -426,6 +426,139 @@ namespace Service
                 }
             };
         }
+        public async Task<object> GetBlogMetricsOfficerAsync(Guid currentUserId, string? startMonth, string? endMonth, int? monthsBack)
+        {
+
+            var user = await _accountRepository.GetByIdAsync(currentUserId);
+            int? userCommuneId = user?.CommuneId;
+
+
+            static DateTime? ParseMonth(string? ym)
+            {
+                if (string.IsNullOrWhiteSpace(ym)) return null;
+                if (DateTime.TryParseExact(ym, "yyyy-MM", null, System.Globalization.DateTimeStyles.None, out var d))
+                    return new DateTime(d.Year, d.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+                return null;
+            }
+
+            var start = ParseMonth(startMonth);
+            var end = ParseMonth(endMonth);
+            if (!start.HasValue || !end.HasValue)
+            {
+                var monthStart = new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+                int back = Math.Max(1, monthsBack.GetValueOrDefault(6)); 
+                start = monthStart.AddMonths(-back + 1);
+                end = monthStart; 
+            }
+
+
+            static bool InRangeUtc(DateTime dtUtc, DateTime startMonthStartUtc, DateTime endMonthStartUtc)
+            {
+                var s = new DateTime(startMonthStartUtc.Year, startMonthStartUtc.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+                var e = new DateTime(endMonthStartUtc.Year, endMonthStartUtc.Month, 1, 0, 0, 0, DateTimeKind.Utc).AddMonths(1);
+                return dtUtc >= s && dtUtc < e;
+            }
+
+
+            var allBlogs = await _blogRepository.GetAllAsync();
+            var allModerations = await _blogModerationRepository.GetAllAsync();
+
+
+            var blogs = allBlogs
+                .Where(b => (!userCommuneId.HasValue || b.CommuneId == userCommuneId.Value)
+                         && InRangeUtc(b.CreatedAt, start!.Value, end!.Value))
+                .ToList();
+
+
+            var moderationByBlogId = allModerations
+                .GroupBy(m => m.BlogId)
+                .ToDictionary(g => g.Key, g => g.OrderByDescending(x => x.Id).First());
+
+            bool IsViolation(int blogId) =>
+                moderationByBlogId.TryGetValue(blogId, out var m)
+                && (!m.IsApproved || !string.IsNullOrWhiteSpace(m.ViolationsJson));
+
+
+            var totalCreated = blogs.Count;
+            var totalViolations = blogs.Count(b => IsViolation(b.Id));
+
+            var approved = blogs.Count(b => b.IsApproved);
+            var pending = blogs.Count(b => !b.IsApproved && !IsViolation(b.Id));
+            var hidden = blogs.Count(b => !b.IsVisible);
+            var visible = blogs.Count(b => b.IsVisible);
+            var pinned = blogs.Count(b => b.Pinned);
+
+
+            var byType = blogs
+                .GroupBy(b => b.Type.ToString())
+                .Select(g => new { type = g.Key, count = g.Count() })
+                .OrderByDescending(x => x.count)
+                .ToList();
+
+
+            var topAuthors = blogs
+                .GroupBy(b => b.AuthorId)
+                .Select(g => new { authorId = g.Key, count = g.Count() })
+                .OrderByDescending(x => x.count)
+                .Take(5)
+                .ToList();
+
+
+            var months = new List<DateTime>();
+            for (var cur = new DateTime(start.Value.Year, start.Value.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+                 cur <= new DateTime(end.Value.Year, end.Value.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+                 cur = cur.AddMonths(1))
+            {
+                months.Add(cur);
+            }
+
+            static bool InMonthUtc(DateTime dtUtc, DateTime monthStartUtc)
+            {
+                var ms = new DateTime(monthStartUtc.Year, monthStartUtc.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+                var me = ms.AddMonths(1);
+                return dtUtc >= ms && dtUtc < me;
+            }
+
+            var monthlyCreated = months.Select(m => new {
+                month = m.ToString("yyyy-MM"),
+                count = blogs.Count(b => InMonthUtc(b.CreatedAt, m))
+            }).ToList();
+
+            var monthlyViolations = months.Select(m => new {
+                month = m.ToString("yyyy-MM"),
+                count = blogs.Count(b => InMonthUtc(b.CreatedAt, m) && IsViolation(b.Id))
+            }).ToList();
+
+            return new
+            {
+                filter = new
+                {
+                    communeId = userCommuneId,                    
+                    startMonth = start.Value.ToString("yyyy-MM"),
+                    endMonth = end.Value.ToString("yyyy-MM")
+                },
+                totals = new
+                {
+                    created = totalCreated,
+                    violations = totalViolations
+                },
+                status = new
+                {
+                    approved,
+                    pending,
+                    visible,
+                    hidden,
+                    pinned
+                },
+                byType,
+                topAuthors,
+                monthly = new
+                {
+                    created = monthlyCreated,
+                    violations = monthlyViolations
+                }
+            };
+        }
 
     }
 
