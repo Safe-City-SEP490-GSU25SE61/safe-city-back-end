@@ -9,10 +9,12 @@ namespace SafeCityBackEnd.SignalR
     public sealed class JourneyHub : Hub
     {
         private readonly IVirtualEscortService _virtualEscortService;
+        private readonly ILogger<JourneyHub> _logger;
 
-        public JourneyHub(IVirtualEscortService virtualEscortService)
+        public JourneyHub(IVirtualEscortService virtualEscortService, ILogger<JourneyHub> logger)
         {
             _virtualEscortService = virtualEscortService;
+            _logger = logger;
         }
 
         public override async Task OnConnectedAsync()
@@ -20,6 +22,7 @@ namespace SafeCityBackEnd.SignalR
             var userIdClaim = Context.User?.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim == null)
             {
+                _logger.LogWarning("Connection aborted: missing userIdClaim");
                 Context.Abort();
                 return;
             }
@@ -28,10 +31,14 @@ namespace SafeCityBackEnd.SignalR
             var role = Context.GetHttpContext()?.Request.Query["role"].ToString();
             var memberId = Context.GetHttpContext()?.Request.Query["memberId"].ToString();
 
+            _logger.LogInformation("User {UserId} attempting to connect. Role={Role}, MemberId={MemberId}",
+                                   userId, role, memberId);
+
             var escort = await _virtualEscortService.GetJourneyByUserIdAsync(userId);
 
             if (string.IsNullOrEmpty(memberId))
             {
+                _logger.LogWarning("Connection aborted: memberId missing for User {UserId}", userId);
                 Context.Abort();
                 return;
             }
@@ -39,14 +46,17 @@ namespace SafeCityBackEnd.SignalR
             if (role == "leader")
             {
                 await Groups.AddToGroupAsync(Context.ConnectionId, $"journey-{escort.Id}-leader");
+                _logger.LogInformation("User {UserId} joined leader group journey-{JourneyId}", userId, escort.Id);
             }
             else
             {
                 await Groups.AddToGroupAsync(Context.ConnectionId, $"journey-{escort.Id}-followers");
+                _logger.LogInformation("User {UserId} joined followers group journey-{JourneyId}", userId, escort.Id);
             }
 
             await base.OnConnectedAsync();
         }
+
 
         public async Task UpdateLocation(double latitude, double longitude)
         {
