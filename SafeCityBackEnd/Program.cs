@@ -20,6 +20,7 @@ using MediatR;
 using BusinessObject.Events;
 using Service.EventHandlers;
 using System.Text.Json.Serialization;
+using SafeCityBackEnd.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,6 +45,8 @@ builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 builder.Services.AddScoped<IBlogModerationRepository, BlogModerationRepository>();
 builder.Services.AddScoped<IEscortGroupRepository, EscortGroupRepository>();
 builder.Services.AddScoped<IEscortGroupJoinRequestRepository, EscortGroupJoinRequestRepository>();
+builder.Services.AddScoped<IJourneyRepository, JourneyRepository>();
+builder.Services.AddScoped<IVirtualEscortService, VirtualEscortService>();
 builder.Services.AddScoped<IEscortJourneyGroupService, EscortJourneyGroupService>();
 builder.Services.AddScoped<IProvinceService, ProvinceService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
@@ -79,6 +82,8 @@ FirebaseApp.Create(new AppOptions()
 {
     Credential = GoogleCredential.FromFile(firebasePath)
 });
+
+builder.Services.AddSignalR();
 
 builder.Services.AddMediatR(cfg =>
 {
@@ -231,6 +236,6 @@ app.UseStaticFiles(new StaticFileOptions
 });
 
 app.MapControllers();
-
+app.MapHub<JourneyHub>("journey-hub");
 app.Run();
 

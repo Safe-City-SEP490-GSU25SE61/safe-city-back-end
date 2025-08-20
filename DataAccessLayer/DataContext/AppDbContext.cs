@@ -43,6 +43,7 @@ namespace DataAccessLayer.DataContext
         public DbSet<SosAlert> SosAlerts { get; set; }
         public DbSet<CurrentUserLocation> CurrentUserLocations { get; set; }
         public DbSet<LocationHistory> LocationHistories { get; set; }
+        public DbSet<Configuration> Configurations { get; set; }
 
 
 
@@ -172,6 +173,12 @@ namespace DataAccessLayer.DataContext
                 .WithMany(a => a.Blogs)
                 .HasForeignKey(b => b.AuthorId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Blog>()
+                .HasOne(b => b.ApprovedByAccount)             
+                .WithMany(a => a.ApprovedBlogs)               
+                .HasForeignKey(b => b.ApprovedBy)               
+                .OnDelete(DeleteBehavior.SetNull);             
 
             modelBuilder.Entity<Blog>()
                 .HasOne(b => b.Commune)
@@ -314,8 +321,6 @@ namespace DataAccessLayer.DataContext
                       .WithMany(a => a.GroupJoinRequests)
                       .HasForeignKey(r => r.AccountId)
                       .OnDelete(DeleteBehavior.Cascade);
-
-                entity.HasIndex(r => new { r.GroupId, r.AccountId }).IsUnique();
             });
 
             modelBuilder.Entity<EscortJourney>()
@@ -379,6 +384,10 @@ namespace DataAccessLayer.DataContext
                 .WithMany(j => j.LocationHistories)
                 .HasForeignKey(h => h.EscortJourneyId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Configuration>()
+               .HasIndex(c => new { c.Category, c.Key })
+               .IsUnique();
 
             base.OnModelCreating(modelBuilder);
         }

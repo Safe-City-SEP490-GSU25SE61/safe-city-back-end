@@ -93,6 +93,7 @@ namespace BusinessObject.Models
         public CurrentUserLocation CurrentLocation { get; set; }
         public ICollection<Note> Notes { get; set; }
         public ICollection<Blog> Blogs { get; set; }
+        public ICollection<Blog> ApprovedBlogs { get; set; }
         public ICollection<Comment> Comments { get; set; }
         public ICollection<BlogLike> BlogLikes { get; set; }
     }

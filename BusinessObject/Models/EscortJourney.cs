@@ -22,29 +22,35 @@ namespace BusinessObject.Models
         [Column("created_in_group_id")]
         public int? CreatedInGroupId { get; set; }
 
+        [Column("vehicle")]
+        public string Vehicle { get; set; }
+
         [Column("start_point")]
         public string StartPoint { get; set; }
 
         [Column("start_latitude")]
-        public decimal? StartLatitude { get; set; }
+        public double? StartLatitude { get; set; }
 
         [Column("start_longitude")]
-        public decimal? StartLongitude { get; set; }
+        public double? StartLongitude { get; set; }
 
         [Column("end_point")]
         public string EndPoint { get; set; }
 
         [Column("end_latitude")]
-        public decimal? EndLatitude { get; set; }
+        public double? EndLatitude { get; set; }
 
         [Column("end_longitude")]
-        public decimal? EndLongitude { get; set; }
+        public double? EndLongitude { get; set; }
+
+        [Column("distance_in_meters")]
+        public int DistanceInMeters { get; set; }
+
+        [Column("duration_in_seconds")]
+        public int DurationInSeconds { get; set; }
 
         [Column("start_time")]
         public DateTime? StartTime { get; set; }
-
-        [Column("expected_time")]
-        public DateTime? ExpectedTime { get; set; }
 
         [Column("expected_end_time")]
         public DateTime? ExpectedEndTime { get; set; }
@@ -52,8 +58,11 @@ namespace BusinessObject.Models
         [Column("arrival_time")]
         public DateTime? ArrivalTime { get; set; }
 
+        [Column("route_json")]
+        public string RouteJson { get; set; }
+
         [Column("status")]
-        public string Status { get; set; } // "Active", "Completed", "Timeout"
+        public string Status { get; set; } = "Active";// "Active", "Completed", "Timeout"
 
         [Column("deviation_alert_sent")]
         public bool DeviationAlertSent { get; set; } = false;

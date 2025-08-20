@@ -16,6 +16,8 @@ namespace Service.Interfaces
         Task<List<PendingRequestDto>> GetPendingRequestsByGroupIdAsync(int groupId);
         Task<List<EscortGroupDto>> GetGroupsByAccountIdAsync(Guid accountId);
         Task DeleteGroupByIdAsync(string groupCode);
-        Task<GroupWaitingRoomDto?> GetGroupWaitingRoomAsync(int groupId);
+        Task KickMemberAsync(int memberId, Guid leaderId);
+        Task<GroupWaitingRoomDto?> GetGroupWaitingRoomAsync(int groupId, Guid accountId);
+        Task UpdateGroupSettingsAsync(UpdateEscortGroupSettingsDTO groupSettings, Guid leaderId);
     }
 }
