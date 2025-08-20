@@ -3,6 +3,7 @@ using System;
 using DataAccessLayer.DataContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,13 +12,15 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DataAccessLayer.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250817065105_AddPointHistory")]
+    partial class AddPointHistory
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.16")
+                .HasAnnotation("ProductVersion", "8.0.17")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -215,10 +218,6 @@ namespace DataAccessLayer.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<Guid?>("ApprovedBy")
-                        .HasColumnType("uuid")
-                        .HasColumnName("approved_by");
-
                     b.Property<Guid>("AuthorId")
                         .HasColumnType("uuid")
                         .HasColumnName("author_id");
@@ -263,8 +262,6 @@ namespace DataAccessLayer.Migrations
                         .HasColumnName("updated_at");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ApprovedBy");
 
                     b.HasIndex("AuthorId");
 
@@ -569,42 +566,6 @@ namespace DataAccessLayer.Migrations
                     b.ToTable("commune");
                 });
 
-            modelBuilder.Entity("BusinessObject.Models.Configuration", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Category")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("category");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("description");
-
-                    b.Property<string>("Key")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("key");
-
-                    b.Property<string>("Value")
-                        .HasColumnType("text")
-                        .HasColumnName("value");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Category", "Key")
-                        .IsUnique();
-
-                    b.ToTable("configuration");
-                });
-
             modelBuilder.Entity("BusinessObject.Models.CurrentUserLocation", b =>
                 {
                     b.Property<int>("Id")
@@ -689,7 +650,8 @@ namespace DataAccessLayer.Migrations
 
                     b.HasIndex("AccountId");
 
-                    b.HasIndex("GroupId");
+                    b.HasIndex("GroupId", "AccountId")
+                        .IsUnique();
 
                     b.ToTable("escort_group_join_request");
                 });
@@ -715,20 +677,12 @@ namespace DataAccessLayer.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("deviation_alert_sent");
 
-                    b.Property<int>("DistanceInMeters")
-                        .HasColumnType("integer")
-                        .HasColumnName("distance_in_meters");
-
-                    b.Property<int>("DurationInSeconds")
-                        .HasColumnType("integer")
-                        .HasColumnName("duration_in_seconds");
-
-                    b.Property<double?>("EndLatitude")
-                        .HasColumnType("double precision")
+                    b.Property<decimal?>("EndLatitude")
+                        .HasColumnType("numeric")
                         .HasColumnName("end_latitude");
 
-                    b.Property<double?>("EndLongitude")
-                        .HasColumnType("double precision")
+                    b.Property<decimal?>("EndLongitude")
+                        .HasColumnType("numeric")
                         .HasColumnName("end_longitude");
 
                     b.Property<string>("EndPoint")
@@ -740,17 +694,16 @@ namespace DataAccessLayer.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("expected_end_time");
 
-                    b.Property<string>("RouteJson")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("route_json");
+                    b.Property<DateTime?>("ExpectedTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expected_time");
 
-                    b.Property<double?>("StartLatitude")
-                        .HasColumnType("double precision")
+                    b.Property<decimal?>("StartLatitude")
+                        .HasColumnType("numeric")
                         .HasColumnName("start_latitude");
 
-                    b.Property<double?>("StartLongitude")
-                        .HasColumnType("double precision")
+                    b.Property<decimal?>("StartLongitude")
+                        .HasColumnType("numeric")
                         .HasColumnName("start_longitude");
 
                     b.Property<string>("StartPoint")
@@ -771,11 +724,6 @@ namespace DataAccessLayer.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("user_id");
 
-                    b.Property<string>("Vehicle")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("vehicle");
-
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedInGroupId");
@@ -793,10 +741,6 @@ namespace DataAccessLayer.Migrations
                         .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("AutoApprove")
-                        .HasColumnType("boolean")
-                        .HasColumnName("auto_approve");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -819,10 +763,6 @@ namespace DataAccessLayer.Migrations
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("name");
-
-                    b.Property<bool>("ReceiveRequest")
-                        .HasColumnType("boolean")
-                        .HasColumnName("receive_request");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -1103,18 +1043,6 @@ namespace DataAccessLayer.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<bool>("CanPostBlog")
-                        .HasColumnType("boolean")
-                        .HasColumnName("can_post_blog");
-
-                    b.Property<bool>("CanReusePreviousEscortPaths")
-                        .HasColumnType("boolean")
-                        .HasColumnName("can_reuse_previous_escort_paths");
-
-                    b.Property<bool>("CanViewIncidentDetail")
-                        .HasColumnType("boolean")
-                        .HasColumnName("can_view_incident_detail");
-
                     b.Property<string>("Color")
                         .IsRequired()
                         .HasColumnType("text")
@@ -1140,10 +1068,6 @@ namespace DataAccessLayer.Migrations
                     b.Property<DateTime>("LastUpdated")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_updated");
-
-                    b.Property<int>("MonthlyVirtualEscortLimit")
-                        .HasColumnType("integer")
-                        .HasColumnName("monthly_virtual_escort_limit");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -1559,11 +1483,6 @@ namespace DataAccessLayer.Migrations
 
             modelBuilder.Entity("BusinessObject.Models.Blog", b =>
                 {
-                    b.HasOne("BusinessObject.Models.Account", "ApprovedByAccount")
-                        .WithMany("ApprovedBlogs")
-                        .HasForeignKey("ApprovedBy")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("BusinessObject.Models.Account", "Author")
                         .WithMany("Blogs")
                         .HasForeignKey("AuthorId")
@@ -1575,8 +1494,6 @@ namespace DataAccessLayer.Migrations
                         .HasForeignKey("CommuneId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("ApprovedByAccount");
 
                     b.Navigation("Author");
 
@@ -1911,8 +1828,6 @@ namespace DataAccessLayer.Migrations
 
             modelBuilder.Entity("BusinessObject.Models.Account", b =>
                 {
-                    b.Navigation("ApprovedBlogs");
-
                     b.Navigation("ActedPointHistories");
 
                     b.Navigation("BlogLikes");

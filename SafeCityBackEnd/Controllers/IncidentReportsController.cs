@@ -95,6 +95,23 @@ namespace SafeCityBackEnd.Controllers
             }
         }
 
+        [HttpPatch("{id:Guid}/visibility")]
+        //[Authorize(Roles = "Admin,Officer")]
+        public async Task<IActionResult> UpdateReportVisibility(Guid id, [FromBody] UpdateReportVisibilityRequestModel model)
+        {
+            if (!ModelState.IsValid)
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.BadRequest, "Invalid visibility data", null);
+            try
+            {
+                var updated = await _reportService.UpdateVisibilityAsync(id, model);
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Report visibility updated successfully", updated);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.NotFound, ex.Message, null);
+            }
+        }
+
         [HttpPost("{id:Guid}/note")]
         [Authorize(Roles = "Admin,Officer")]
         public async Task<IActionResult> AddInternalNote(Guid id, [FromBody] AddInternalNoteRequestModel model)

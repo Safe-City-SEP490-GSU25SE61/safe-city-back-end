@@ -96,5 +96,7 @@ namespace BusinessObject.Models
         public ICollection<Blog> ApprovedBlogs { get; set; }
         public ICollection<Comment> Comments { get; set; }
         public ICollection<BlogLike> BlogLikes { get; set; }
+        public ICollection<PointHistory> PointHistories { get; set; }
+        public ICollection<PointHistory> ActedPointHistories { get; set; }
     }
 }

@@ -68,6 +68,25 @@ namespace Repository
             _context.IncidentReports.Update(report);
             await _context.SaveChangesAsync();
         }
+        
+        public async Task<List<IncidentReport>> GetByIdsAsync(IEnumerable<Guid> ids)
+        {
+            if (ids == null) return new List<IncidentReport>();
+            var list = ids.Distinct().ToList();
+            if (list.Count == 0) return new List<IncidentReport>();
+
+            return await _context.IncidentReports
+                .AsNoTracking()
+                .Where(r => list.Contains(r.Id))
+                .Select(r => new IncidentReport
+                {
+                    Id = r.Id,
+                    Status = r.Status,
+                    OccurredAt = r.OccurredAt,
+                    Address = r.Address
+                })
+                .ToListAsync();
+        }
 
     }
 

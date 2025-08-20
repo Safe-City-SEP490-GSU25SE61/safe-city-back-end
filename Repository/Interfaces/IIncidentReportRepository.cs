@@ -15,6 +15,7 @@ namespace Repository.Interfaces
         Task UpdateStatusAsync(Guid id, string status, Guid officerId);
         Task UpdateStatusByUserAsync(Guid reportId, string status);
         Task UpdateAsync(IncidentReport report);
+        Task<List<IncidentReport>> GetByIdsAsync(IEnumerable<Guid> ids);
     }
 
 }

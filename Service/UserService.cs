@@ -57,7 +57,8 @@ public class UserService : IUserService
             TotalPoint = user.TotalPoint,
             ReputationPoint = user.ReputationPoint,
             CurrentSubscription = await _subscriptionRepository.GetCurrentSubscriptionAsync(user),
-            AchievementName = user.Achievement != null ? user.Achievement.Name : "Unrank"
+            AchievementName = user.Achievement != null ? user.Achievement.Name : "Unrank",
+            AchievementImageUrl = user.Achievement?.ImageUrl
         };
     }
 

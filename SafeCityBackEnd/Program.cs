@@ -71,6 +71,8 @@ builder.Services.AddScoped<INoteRepository, NoteRepository>();
 builder.Services.AddScoped<IMapService, MapService>();
 builder.Services.AddHostedService<AchievementCronJob>();
 builder.Services.AddHostedService<ReputationResetCronJob>();
+builder.Services.AddScoped<IPointHistoryRepository, PointHistoryRepository>();
+builder.Services.AddScoped<IPointHistoryService, PointHistoryService>();
 
 
 

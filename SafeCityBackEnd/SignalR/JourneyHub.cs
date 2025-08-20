@@ -18,9 +18,9 @@ namespace SafeCityBackEnd.SignalR
 
             var userId = Guid.Parse(userIdClaim.Value);
             var role = Context.GetHttpContext()?.Request.Query["role"].ToString();
-            var journeyId = Context.GetHttpContext()?.Request.Query["journeyId"].ToString();
+            var memberId = Context.GetHttpContext()?.Request.Query["memberId"].ToString();
 
-            if (string.IsNullOrEmpty(journeyId))
+            if (string.IsNullOrEmpty(memberId))
             {
                 Context.Abort();
                 return;
@@ -28,11 +28,11 @@ namespace SafeCityBackEnd.SignalR
 
             if (role == "leader")
             {
-                await Groups.AddToGroupAsync(Context.ConnectionId, $"journey-{journeyId}-leader");
+                await Groups.AddToGroupAsync(Context.ConnectionId, $"journey-{memberId}-leader");
             }
             else
             {
-                await Groups.AddToGroupAsync(Context.ConnectionId, $"journey-{journeyId}-followers");
+                await Groups.AddToGroupAsync(Context.ConnectionId, $"journey-{memberId}-followers");
             }
 
             await base.OnConnectedAsync();

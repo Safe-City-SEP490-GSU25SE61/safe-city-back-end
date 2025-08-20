@@ -44,6 +44,7 @@ namespace DataAccessLayer.DataContext
         public DbSet<CurrentUserLocation> CurrentUserLocations { get; set; }
         public DbSet<LocationHistory> LocationHistories { get; set; }
         public DbSet<Configuration> Configurations { get; set; }
+        public DbSet<PointHistory> PointHistories { get; set; }
 
 
 
@@ -390,6 +391,22 @@ namespace DataAccessLayer.DataContext
                .IsUnique();
 
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<PointHistory>(builder =>
+            {
+                builder.HasOne(ph => ph.User)
+                       .WithMany(a => a.PointHistories)        
+                       .HasForeignKey(ph => ph.UserId)
+                       .OnDelete(DeleteBehavior.Cascade);       
+
+                builder.HasOne(ph => ph.Actor)
+                       .WithMany(a => a.ActedPointHistories)    
+                       .HasForeignKey(ph => ph.ActorId)
+                       .OnDelete(DeleteBehavior.SetNull);       
+
+                builder.HasIndex(ph => new { ph.UserId, ph.CreatedAt });
+                builder.HasIndex(ph => new { ph.SourceType, ph.SourceId });
+            });
         }
     }
 }

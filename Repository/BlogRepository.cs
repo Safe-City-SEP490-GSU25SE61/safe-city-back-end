@@ -253,6 +253,25 @@ namespace Repository
                 .Include(b => b.Moderation)
                 .ToListAsync();
         }
+        
+        public async Task<List<Blog>> GetByIdsAsync(IEnumerable<int> ids)
+        {
+            if (ids == null) return new List<Blog>();
+            var list = ids.Distinct().ToList();
+            if (list.Count == 0) return new List<Blog>();
+
+            return await _context.Blogs
+                .AsNoTracking()
+                .Where(b => list.Contains(b.Id))
+                .Select(b => new Blog
+                {
+                    Id = b.Id,
+                    Title = b.Title
+                    
+                })
+                .ToListAsync();
+        }
+
     }
 
 }

@@ -1,5 +1,6 @@
 ﻿using BusinessObject.Models;
 using DataAccessLayer.DataContext;
+using Microsoft.EntityFrameworkCore;
 using Repository.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -23,6 +24,16 @@ namespace Repository
             await _context.EscortJourneys.AddAsync(journey);
             await _context.SaveChangesAsync();
             return journey;
+        }
+
+        public async Task<EscortJourney> GetByUserIdAsync(Guid userId)
+        {
+            var escort = await _context.EscortJourneys
+                        .Include(e => e.User)
+                        .Include(e => e.Watchers)
+                        .FirstOrDefaultAsync(e => e.UserId == userId);
+
+            return escort;
         }
     }
 

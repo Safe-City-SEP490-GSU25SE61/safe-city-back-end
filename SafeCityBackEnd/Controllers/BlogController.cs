@@ -52,10 +52,10 @@ namespace SafeCityBackEnd.Controllers
             if (userIdClaim == null)
                 return CustomErrorHandler.SimpleError("User ID claim not found.", 401);
 
-            var userId = Guid.Parse(userIdClaim.Value);
+            var officerId = Guid.Parse(userIdClaim.Value);
             try
             {
-                await _blogService.ApproveBlog(userId, id, isApproved, isPinned);
+                await _blogService.ApproveBlog(id, isApproved, isPinned, officerId);
                 return Ok();
             }
             catch (Exception ex)
@@ -176,7 +176,7 @@ namespace SafeCityBackEnd.Controllers
             }
         }
         [HttpGet("admin/metrics")]
-        [Authorize(Roles = "Admin")]
+        [Authorize]
         public async Task<IActionResult> GetBlogMetrics([FromQuery] int? communeId,[FromQuery] string? startMonth,[FromQuery] string? endMonth,[FromQuery] int? monthsBack)
         {
             try
