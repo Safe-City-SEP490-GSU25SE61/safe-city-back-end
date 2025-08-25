@@ -102,6 +102,10 @@ namespace Service
                 }
             }
 
+            if (communeId == null)
+            {
+                throw new InvalidOperationException("This ward is not within the supported area.");
+            }
 
 
 
@@ -460,7 +464,7 @@ namespace Service
                 StatusMessage = report.StatusMessage,
                 UserName = report.IsAnonymous ? null : report.User.FullName,
                 CommuneName = report.Commune?.Name,
-                Notes = report.Notes.Select(n => $"[{n.CreatedAt:yyyy-MM-dd HH:mm}] {n.Officer.FullName}: {n.Content}").ToList(),
+                Notes = report.Notes.Select(n =>$"{n.CreatedAt:yyyy-MM-dd HH:mm} [{n.Officer?.FullName ?? "Không xác định"}]: {n.Content}").ToList(),
                 ImageUrls = string.IsNullOrEmpty(report.ImageUrls)
                 ? new List<string>()
                 : JsonSerializer.Deserialize<List<string>>(report.ImageUrls),
