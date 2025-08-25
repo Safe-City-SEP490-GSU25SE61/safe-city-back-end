@@ -174,17 +174,21 @@ namespace Service
                 var current = grouped[i];
                 var next = i < grouped.Count - 1 ? grouped[i + 1].Key : (DateTime?)null;
 
+                int? durationDays = null;
                 var durationChange = current.FirstOrDefault(c => c.FieldName == "DurationDays");
-                int? durationDays = durationChange != null ? int.Parse(durationChange.NewValue) : null;
+                if (durationChange != null && int.TryParse(durationChange.NewValue, out var parsed))
+                    durationDays = parsed;
+
+                DateTime? expirationUtc = null;
+                if (durationDays.HasValue)
+                    expirationUtc = SafeAddDays(current.Key, durationDays.Value); // <- KHÔNG overflow
 
                 result.Add(new GroupedPackageChangeDTO
                 {
                     ChangedAt = DateTimeHelper.ToVietnamTime(current.Key),
                     EffectiveStart = DateTimeHelper.ToVietnamTime(current.Key),
                     EffectiveEnd = next.HasValue ? DateTimeHelper.ToVietnamTime(next.Value) : null,
-                    PackageExpiration = durationDays.HasValue
-                ? DateTimeHelper.ToVietnamTime(current.Key.AddDays(durationDays.Value))
-                : null,
+                    PackageExpiration = expirationUtc != null ? DateTimeHelper.ToVietnamTime(expirationUtc.Value) : null,
                     Changes = current.Select(c => new PackageChangeDetailDTO
                     {
                         FieldName = c.FieldName,
@@ -198,6 +202,9 @@ namespace Service
             return result.OrderByDescending(r => r.ChangedAt);
         }
 
+
+
+
         private string GetDisplayNameFromField<T>(string fieldName)
         {
             var prop = typeof(T).GetProperty(fieldName);
@@ -207,6 +214,18 @@ namespace Service
             return displayAttr?.Name ?? fieldName;
         }
 
+
+        private static DateTime? SafeAddDays(DateTime basis, int days)
+        {
+            // Nếu business rule: số ngày không âm
+            if (days < 0) return null;
+
+            // Tính biên tối đa có thể cộng mà không overflow
+            var maxAdd = (int)Math.Floor((DateTime.MaxValue - basis).TotalDays);
+            if (days > maxAdd) return null;
+
+            return basis.AddDays(days);
+        }
 
     }
 }
