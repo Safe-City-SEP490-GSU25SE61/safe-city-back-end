@@ -319,3 +319,11 @@ C:\Project-Capstone\safe-city-back-end\SafeCityBackEnd\obj\Debug\net8.0\refint\S
 C:\Project-Capstone\safe-city-back-end\SafeCityBackEnd\obj\Debug\net8.0\SafeCityBackEnd.pdb
 C:\Project-Capstone\safe-city-back-end\SafeCityBackEnd\obj\Debug\net8.0\SafeCityBackEnd.genruntimeconfig.cache
 C:\Project-Capstone\safe-city-back-end\SafeCityBackEnd\obj\Debug\net8.0\ref\SafeCityBackEnd.dll
+C:\SafeCity\SafeCityBackEnd\bin\Debug\net8.0\Microsoft.AspNetCore.Connections.Abstractions.dll
+C:\SafeCity\SafeCityBackEnd\bin\Debug\net8.0\Microsoft.AspNetCore.Http.Connections.Client.dll
+C:\SafeCity\SafeCityBackEnd\bin\Debug\net8.0\Microsoft.AspNetCore.Http.Connections.Common.dll
+C:\SafeCity\SafeCityBackEnd\bin\Debug\net8.0\Microsoft.AspNetCore.SignalR.Client.dll
+C:\SafeCity\SafeCityBackEnd\bin\Debug\net8.0\Microsoft.AspNetCore.SignalR.Client.Core.dll
+C:\SafeCity\SafeCityBackEnd\bin\Debug\net8.0\Microsoft.AspNetCore.SignalR.Common.dll
+C:\SafeCity\SafeCityBackEnd\bin\Debug\net8.0\Microsoft.AspNetCore.SignalR.Protocols.Json.dll
+C:\SafeCity\SafeCityBackEnd\bin\Debug\net8.0\Microsoft.Extensions.Features.dll
