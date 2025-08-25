@@ -26,7 +26,7 @@ namespace SafeCityBackEnd.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromForm] BlogCreateRequestDto request)
+        public async Task<IActionResult> CreateBlog([FromForm] BlogCreateRequestDto request)
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim == null)
@@ -46,7 +46,7 @@ namespace SafeCityBackEnd.Controllers
 
         [HttpPatch("approve/{id}")]
         //[Authorize(Roles = "Officer")]
-        public async Task<IActionResult> Approve(int id, bool isApproved, bool isPinned)
+        public async Task<IActionResult> ApproveBlog(int id, bool isApproved, bool isPinned)
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim == null)

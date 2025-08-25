@@ -36,9 +36,15 @@ namespace BusinessObject.Models
         [Column("paid_at")]
         public DateTime? PaidAt { get; set; }
 
+        [Column("created_at")]
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        [Column("updated_at")]
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
         public Account User { get; set; } = null!;
         public Subscription Subscription { get; set; } = null!;
-        public PayosTransaction PayosTransaction { get; set; } = null!;
+        public PayosTransaction? PayosTransaction { get; set; } = null!;
     }
 
 }

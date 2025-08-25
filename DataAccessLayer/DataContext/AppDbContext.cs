@@ -41,7 +41,6 @@ namespace DataAccessLayer.DataContext
         public DbSet<EscortJourney> EscortJourneys { get; set; }
         public DbSet<EscortJourneyWatcher> EscortJourneyWatchers { get; set; }
         public DbSet<SosAlert> SosAlerts { get; set; }
-        public DbSet<CurrentUserLocation> CurrentUserLocations { get; set; }
         public DbSet<LocationHistory> LocationHistories { get; set; }
         public DbSet<Configuration> Configurations { get; set; }
         public DbSet<PointHistory> PointHistories { get; set; }
@@ -336,6 +335,12 @@ namespace DataAccessLayer.DataContext
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<EscortJourney>()
+                .HasOne(e => e.Member)
+                .WithMany(a => a.CreatedEscortJourneys)
+                .HasForeignKey(e => e.MemberId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // EscortJourneyWatcher
             modelBuilder.Entity<EscortJourneyWatcher>()
                 .HasOne(w => w.EscortJourney)
@@ -364,19 +369,6 @@ namespace DataAccessLayer.DataContext
                 .HasOne(s => s.Sender)
                 .WithMany(a => a.SosAlerts)
                 .HasForeignKey(s => s.SenderId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            // CurrentUserLocation
-            modelBuilder.Entity<CurrentUserLocation>()
-                .HasOne(c => c.EscortJourney)
-                .WithMany(j => j.CurrentUserLocations)
-                .HasForeignKey(c => c.EscortJourneyId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<CurrentUserLocation>()
-                .HasOne(c => c.User)
-                .WithOne(a => a.CurrentLocation)
-                .HasForeignKey<CurrentUserLocation>(c => c.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // LocationHistory

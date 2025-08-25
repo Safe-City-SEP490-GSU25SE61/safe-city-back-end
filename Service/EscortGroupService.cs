@@ -15,14 +15,14 @@ using System.Threading.Tasks;
 
 namespace Service
 {
-    public class EscortJourneyGroupService : IEscortJourneyGroupService
+    public class EscortGroupService : IEscortGroupService
     {
         private readonly IEscortGroupRepository _groupRepository;
         private readonly IAccountRepository _accountRepository;
         private readonly ISubscriptionRepository _subscriptionRepository;
         private readonly IEscortGroupJoinRequestRepository _groupJoinRequestRepository;
 
-        public EscortJourneyGroupService(IEscortGroupRepository repository, IAccountRepository accountRepository,
+        public EscortGroupService(IEscortGroupRepository repository, IAccountRepository accountRepository,
             ISubscriptionRepository subscriptionRepository, IEscortGroupJoinRequestRepository groupJoinRequestRepository)
         {
             _groupRepository = repository;

@@ -19,10 +19,10 @@ namespace BusinessObject.Models
         public int PackageId { get; set; }
 
         [Column("start_date")]
-        public DateTime StartDate { get; set; }
+        public DateTime? StartDate { get; set; }
 
         [Column("end_date")]
-        public DateTime EndDate { get; set; }
+        public DateTime? EndDate { get; set; }
 
         [Column("is_active")]
         public bool IsActive { get; set; }

@@ -150,19 +150,6 @@ namespace Service
 
                 await _paymentRepo.UpdateAsync(payment);
             }
-            else
-            {
-                payment.Status = "Failed";
-                if (payment.PayosTransaction != null)
-                {
-                    payment.PayosTransaction.Status = "CANCELLED";
-                    payment.PayosTransaction.WebhookReceivedAt = DateTime.UtcNow;
-                    payment.PayosTransaction.UpdatedAt = DateTime.UtcNow;
-                    await _payosTransactionRepo.UpdateAsync(payment.PayosTransaction);
-                }
-
-                await _paymentRepo.UpdateAsync(payment);
-            }
         }
 
 

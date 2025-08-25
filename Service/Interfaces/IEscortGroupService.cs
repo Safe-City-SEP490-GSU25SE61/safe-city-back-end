@@ -8,7 +8,7 @@ using BusinessObject.DTOs.ResponseModels;
 
 namespace Service.Interfaces
 {
-    public interface IEscortJourneyGroupService
+    public interface IEscortGroupService
     {
         Task CreateGroupAsync(Guid accountId, CreateEscortJourneyGroupRequest request);
         Task JoinGroupAsync(Guid accountId, string code);
