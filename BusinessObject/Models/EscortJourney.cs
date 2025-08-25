@@ -19,6 +19,9 @@ namespace BusinessObject.Models
         [Column("user_id")]
         public Guid UserId { get; set; }
 
+        [Column("member_id")]
+        public int MemberId { get; set; }
+
         [Column("created_in_group_id")]
         public int? CreatedInGroupId { get; set; }
 
@@ -68,11 +71,11 @@ namespace BusinessObject.Models
         public bool DeviationAlertSent { get; set; } = false;
 
         public Account User { get; set; }
+        public EscortJourneyGroupMember Member { get; set; }
         public EscortJourneyGroup CreatedInGroup { get; set; }
         public ICollection<EscortJourneyWatcher> Watchers { get; set; }
         public ICollection<SosAlert> SosAlerts { get; set; }
         public ICollection<LocationHistory> LocationHistories { get; set; }
-        public ICollection<CurrentUserLocation> CurrentUserLocations { get; set; }
 
     }
 

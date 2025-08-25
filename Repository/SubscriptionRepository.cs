@@ -56,7 +56,7 @@ namespace Repository
 
             var remaining = endDateTime - now;
 
-            string remainingTime = $"{remaining.Days}d {remaining.Hours}h {remaining.Minutes}m";
+            string remainingTime = $"{remaining.Value.Days}d {remaining.Value.Hours}h {remaining.Value.Minutes}m";
 
             return new CurrentSubscriptionResponseModel
             {

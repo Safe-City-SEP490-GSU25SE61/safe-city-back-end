@@ -19,9 +19,9 @@ namespace SafeCityBackEnd.Controllers
     [ApiExplorerSettings(GroupName = "Escort Groups")]
     public class EscortGroupController : ControllerBase
     {
-        private readonly IEscortJourneyGroupService _groupService;
+        private readonly IEscortGroupService _groupService;
 
-        public EscortGroupController(IEscortJourneyGroupService groupService)
+        public EscortGroupController(IEscortGroupService groupService)
         {
             _groupService = groupService;
         }
