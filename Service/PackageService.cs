@@ -217,10 +217,10 @@ namespace Service
 
         private static DateTime? SafeAddDays(DateTime basis, int days)
         {
-            // Nếu business rule: số ngày không âm
+
             if (days < 0) return null;
 
-            // Tính biên tối đa có thể cộng mà không overflow
+
             var maxAdd = (int)Math.Floor((DateTime.MaxValue - basis).TotalDays);
             if (days > maxAdd) return null;
 
