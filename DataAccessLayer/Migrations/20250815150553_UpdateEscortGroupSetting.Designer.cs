@@ -3,6 +3,7 @@ using System;
 using DataAccessLayer.DataContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DataAccessLayer.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250815150553_UpdateEscortGroupSetting")]
+    partial class UpdateEscortGroupSetting
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -153,10 +156,6 @@ namespace DataAccessLayer.Migrations
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("description");
-
-                    b.Property<string>("ImageUrl")
-                        .HasColumnType("text")
-                        .HasColumnName("image_url");
 
                     b.Property<DateTime>("LastUpdated")
                         .HasColumnType("timestamp with time zone")
@@ -715,20 +714,12 @@ namespace DataAccessLayer.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("deviation_alert_sent");
 
-                    b.Property<int>("DistanceInMeters")
-                        .HasColumnType("integer")
-                        .HasColumnName("distance_in_meters");
-
-                    b.Property<int>("DurationInSeconds")
-                        .HasColumnType("integer")
-                        .HasColumnName("duration_in_seconds");
-
-                    b.Property<double?>("EndLatitude")
-                        .HasColumnType("double precision")
+                    b.Property<decimal?>("EndLatitude")
+                        .HasColumnType("numeric")
                         .HasColumnName("end_latitude");
 
-                    b.Property<double?>("EndLongitude")
-                        .HasColumnType("double precision")
+                    b.Property<decimal?>("EndLongitude")
+                        .HasColumnType("numeric")
                         .HasColumnName("end_longitude");
 
                     b.Property<string>("EndPoint")
@@ -740,17 +731,16 @@ namespace DataAccessLayer.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("expected_end_time");
 
-                    b.Property<string>("RouteJson")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("route_json");
+                    b.Property<DateTime?>("ExpectedTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expected_time");
 
-                    b.Property<double?>("StartLatitude")
-                        .HasColumnType("double precision")
+                    b.Property<decimal?>("StartLatitude")
+                        .HasColumnType("numeric")
                         .HasColumnName("start_latitude");
 
-                    b.Property<double?>("StartLongitude")
-                        .HasColumnType("double precision")
+                    b.Property<decimal?>("StartLongitude")
+                        .HasColumnType("numeric")
                         .HasColumnName("start_longitude");
 
                     b.Property<string>("StartPoint")
@@ -770,11 +760,6 @@ namespace DataAccessLayer.Migrations
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid")
                         .HasColumnName("user_id");
-
-                    b.Property<string>("Vehicle")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("vehicle");
 
                     b.HasKey("Id");
 
@@ -1306,64 +1291,6 @@ namespace DataAccessLayer.Migrations
                     b.ToTable("payos_transaction");
                 });
 
-            modelBuilder.Entity("BusinessObject.Models.PointHistory", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<string>("Action")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("action");
-
-                    b.Property<Guid?>("ActorId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("actor_id");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<string>("Note")
-                        .HasColumnType("text")
-                        .HasColumnName("note");
-
-                    b.Property<int>("PointsDelta")
-                        .HasColumnType("integer")
-                        .HasColumnName("points_delta");
-
-                    b.Property<int>("ReputationDelta")
-                        .HasColumnType("integer")
-                        .HasColumnName("reputation_delta");
-
-                    b.Property<string>("SourceId")
-                        .HasColumnType("text")
-                        .HasColumnName("source_id");
-
-                    b.Property<string>("SourceType")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("source_type");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ActorId");
-
-                    b.HasIndex("SourceType", "SourceId");
-
-                    b.HasIndex("UserId", "CreatedAt");
-
-                    b.ToTable("point_history");
-                });
-
             modelBuilder.Entity("BusinessObject.Models.Province", b =>
                 {
                     b.Property<int>("Id")
@@ -1853,24 +1780,6 @@ namespace DataAccessLayer.Migrations
                     b.Navigation("Payment");
                 });
 
-            modelBuilder.Entity("BusinessObject.Models.PointHistory", b =>
-                {
-                    b.HasOne("BusinessObject.Models.Account", "Actor")
-                        .WithMany("ActedPointHistories")
-                        .HasForeignKey("ActorId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("BusinessObject.Models.Account", "User")
-                        .WithMany("PointHistories")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Actor");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("BusinessObject.Models.SosAlert", b =>
                 {
                     b.HasOne("BusinessObject.Models.EscortJourney", "EscortJourney")
@@ -1913,8 +1822,6 @@ namespace DataAccessLayer.Migrations
                 {
                     b.Navigation("ApprovedBlogs");
 
-                    b.Navigation("ActedPointHistories");
-
                     b.Navigation("BlogLikes");
 
                     b.Navigation("Blogs");
@@ -1939,8 +1846,6 @@ namespace DataAccessLayer.Migrations
                     b.Navigation("Notes");
 
                     b.Navigation("Payments");
-
-                    b.Navigation("PointHistories");
 
                     b.Navigation("SosAlerts");
 

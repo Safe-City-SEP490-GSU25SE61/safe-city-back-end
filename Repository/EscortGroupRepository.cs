@@ -1,4 +1,5 @@
-﻿using BusinessObject.DTOs.ResponseModels;
+﻿using BusinessObject.DTOs.RequestModels;
+using BusinessObject.DTOs.ResponseModels;
 using BusinessObject.Models;
 using DataAccessLayer.DataContext;
 using Microsoft.EntityFrameworkCore;
@@ -27,7 +28,7 @@ namespace Repository
             return group.Id;
         }
 
-        public async Task DeleteGroupByIdAsync(string groupCode)
+        public async Task DeleteGroupByGroupCodeAsync(string groupCode)
         {
             var group = await _context.EscortJourneyGroups      
         .       FirstOrDefaultAsync(g => g.GroupCode.Equals(groupCode));
@@ -39,11 +40,39 @@ namespace Repository
             await _context.SaveChangesAsync();
         }
 
-        public async Task<int?> GetGroupIdByCodeAsync(string groupCode)
+        public async Task<int?> GetGroupIdByGroupCodeAsync(string groupCode)
+        {
+            return await _context.EscortJourneyGroups
+                .Where(g => g.GroupCode == groupCode)
+                .Select(g => g.Id)
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<EscortGroupSettingsDto?> GetGroupSettingsByCodeAsync(string groupCode)
+        {
+            return await _context.EscortJourneyGroups
+                .Where(g => g.GroupCode == groupCode)
+                .Select(g => new EscortGroupSettingsDto
+                {
+                    Id = g.Id,
+                    MaxMemberNumber = g.MaxMemberNumber,
+                    AutoApprove = g.AutoApprove,
+                    ReceiveRequest = g.ReceiveRequest,
+                })
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task UpdateGroupSettingsByCodeAsync(UpdateEscortGroupSettingsDTO groupSettings)
         {
             var group = await _context.EscortJourneyGroups
-                .FirstOrDefaultAsync(g => g.GroupCode == groupCode);
-            return group.Id;
+                .FirstOrDefaultAsync(g => g.GroupCode == groupSettings.groupCode);
+
+            if (group == null)
+                throw new Exception("Nhóm không tồn tại.");
+
+            group.AutoApprove = groupSettings.AutoApprove;
+            group.ReceiveRequest = groupSettings.ReceiveRequest;
+            await _context.SaveChangesAsync();
         }
 
         public async Task<bool> IsGroupCodeExistsAsync(string groupCode)
@@ -75,13 +104,6 @@ namespace Repository
                 .CountAsync(m => m.GroupId == groupId);
         }
 
-        public async Task<List<EscortJourneyGroup>> GetGroupsByUserIdAsync(Guid userId)
-        {
-            return await _context.EscortJourneyGroups
-                .Where(g => g.Members.Any(m => m.AccountId == userId))
-                .ToListAsync();
-        }
-
         public async Task<List<EscortJourneyGroup>> GetGroupsByAccountIdAsync(Guid accountId)
         {
             return await _context.EscortJourneyGroups
@@ -90,7 +112,7 @@ namespace Repository
                 .ToListAsync();
         }
 
-        public async Task<GroupWaitingRoomDto?> GetGroupWithLeaderAndMembersAsync(int groupId)
+        public async Task<GroupWaitingRoomDto?> GetGroupWithLeaderAndMembersAsync(int groupId, Guid accountId)
         {
             return await _context.EscortJourneyGroups
                 .Select(g => new GroupWaitingRoomDto
@@ -98,7 +120,10 @@ namespace Repository
                     Id = g.Id,
                     Name = g.Name,
                     GroupCode = g.GroupCode,
+                    AutoApprove = g.AutoApprove,
+                    ReceiveRequest = g.ReceiveRequest,
                     MaxMemberNumber = g.MaxMemberNumber,
+                    IsLeader = g.LeaderId == accountId,
                     CurrentMemberCount = g.Members.Count,
                     LeaderName = g.Leader.FullName,
                     CreatedAt = g.CreatedAt,
@@ -106,6 +131,7 @@ namespace Repository
                     {
                         Id = m.Id,
                         FullName = m.Account.FullName,
+                        Email = m.Account.Email,
                         AvatarUrl = m.Account.ImageUrl ?? "unavailable avatar",
                         Role = m.Role,                      
                     })
@@ -113,6 +139,33 @@ namespace Repository
                 .FirstOrDefaultAsync(g => g.Id == groupId);
         }
 
+        public async Task RemoveGroupMemberByIdAsync(int memberId)
+        {
+            var member = await _context.EscortJourneyGroupMembers
+                .FirstOrDefaultAsync(m => m.Id == memberId);
+
+            if (member != null)
+            {
+                _context.EscortJourneyGroupMembers.Remove(member);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task<Guid> GetLeaderUserIdAsync(int groupId)
+        {
+            return await _context.EscortJourneyGroups
+                .Where(g => g.Id == groupId)
+                .Select(g => g.LeaderId)
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<int?> GetGroupIdByMemberIdAsync(int memberId)
+        {
+            return await _context.EscortJourneyGroupMembers
+                . Where(g => g.Id == memberId)
+                .Select (g => g.GroupId)
+                .FirstOrDefaultAsync();
+        }
     }
 
 }
