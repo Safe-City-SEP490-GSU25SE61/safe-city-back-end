@@ -29,6 +29,9 @@ namespace BusinessObject.Models
         [Column("is_online")]
         public bool IsOnline { get; set; } = false;
 
+        [Column("is_online")]
+        public string Status { get; set; } = "default";
+
         [Column("joined_at")]
         public DateTime? JoinedAt { get; set; }
         public EscortJourneyGroup Group { get; set; }

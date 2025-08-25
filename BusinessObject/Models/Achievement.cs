@@ -31,6 +31,8 @@ namespace BusinessObject.Models
         [Column("last_updated")]
         public DateTime LastUpdated { get; set; }
 
+        [Column("point_multiplier")]
+        public double? PointMultiplier { get; set; }
         public ICollection<Account> Accounts { get; set; }
     }
 }
