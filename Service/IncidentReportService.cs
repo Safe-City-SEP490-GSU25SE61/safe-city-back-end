@@ -102,6 +102,10 @@ namespace Service
                 }
             }
 
+            if (communeId == null)
+            {
+                throw new InvalidOperationException("This ward is not within the supported area.");
+            }
 
 
 
