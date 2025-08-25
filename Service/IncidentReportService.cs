@@ -349,7 +349,6 @@ namespace Service
             var allowedTransitionsFrom = new Dictionary<string, string[]>
             {
                 { "pending", new[] { "verified", "closed", "malicious", "solved" } },
-                { "pending", new[] { "solved" } },
                 { "verified", new[] { "solved" } },                  
             };
 
