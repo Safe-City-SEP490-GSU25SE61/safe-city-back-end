@@ -20,7 +20,7 @@ namespace BusinessObject.Models
         public int EscortJourneyId { get; set; }
 
         [Column("watcher_id")]
-        public Guid WatcherId { get; set; }
+        public int WatcherId { get; set; }
 
         [Column("added_at")]
         public DateTime AddedAt { get; set; }
@@ -29,7 +29,7 @@ namespace BusinessObject.Models
         public string Status { get; set; } // "Pending", "Accepted", "Removed"
 
         public EscortJourney EscortJourney { get; set; }
-        public Account Watcher { get; set; }
+        public EscortJourneyGroupMember Watcher { get; set; }
     }
 
 }
