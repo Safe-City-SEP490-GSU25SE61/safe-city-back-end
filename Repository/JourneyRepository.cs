@@ -1,4 +1,5 @@
-﻿using BusinessObject.Models;
+﻿using BusinessObject.DTOs.ResponseModels;
+using BusinessObject.Models;
 using DataAccessLayer.DataContext;
 using Microsoft.EntityFrameworkCore;
 using Repository.Interfaces;
@@ -26,15 +27,39 @@ namespace Repository
             return journey;
         }
 
-        public async Task<EscortJourney> GetByUserIdAsync(Guid userId)
+        public async Task<EscortJourney> GetActiveJourneyByGroupMemberIdAsync(int memberId)
         {
             var escort = await _context.EscortJourneys
                         .Include(e => e.User)
                         .Include(e => e.Watchers)
-                        .FirstOrDefaultAsync(e => e.UserId == userId);
+                        .FirstOrDefaultAsync(e => e.MemberId == memberId && e.Status.Equals("Active"));
 
             return escort;
         }
+
+        public async Task<List<EscortJourneyDto>> GetJourneysByUserIdAsync(Guid userId)
+        {
+            return await _context.EscortJourneys
+                .Where(j => j.UserId == userId)
+                .OrderByDescending(j => j.StartTime)
+                .Select(j => new EscortJourneyDto
+                {
+                    Id = j.Id,
+                    StartLocation = j.StartPoint,
+                    EndLocation = j.EndPoint,
+                    StartTime = j.StartTime != null ? j.StartTime.Value : null,
+                    EndTime = j.ArrivalTime != null ? j.ArrivalTime.Value : null,
+                    Vehicle = j.Vehicle,
+                    Status = j.Status,
+                    Watchers = j.Watchers.Select(w => new WatcherDto
+                    {
+                        MemberId = w.WatcherId,
+                        FullName = w.Watcher.Account.FullName
+                    }).ToList()
+                })
+                .ToListAsync();
+        }
+
     }
 
 }

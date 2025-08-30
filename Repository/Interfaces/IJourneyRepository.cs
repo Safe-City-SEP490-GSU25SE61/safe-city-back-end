@@ -1,4 +1,5 @@
-﻿using BusinessObject.Models;
+﻿using BusinessObject.DTOs.ResponseModels;
+using BusinessObject.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +11,7 @@ namespace Repository.Interfaces
     public interface IJourneyRepository
     {
         Task<EscortJourney> AddAsync(EscortJourney journey);
-        Task<EscortJourney> GetByUserIdAsync(Guid userId);
+        Task<EscortJourney> GetActiveJourneyByGroupMemberIdAsync(int memberId);
+        Task<List<EscortJourneyDto>> GetJourneysByUserIdAsync(Guid userId);
     }
 }

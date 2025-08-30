@@ -26,7 +26,7 @@ namespace BusinessObject.Models
         public DateTime AddedAt { get; set; }
 
         [Column("status")]
-        public string Status { get; set; } // "Pending", "Accepted", "Removed"
+        public string Status { get; set; } 
 
         public EscortJourney EscortJourney { get; set; }
         public EscortJourneyGroupMember Watcher { get; set; }

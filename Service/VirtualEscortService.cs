@@ -1,4 +1,5 @@
 ﻿using BusinessObject.DTOs.RequestModels;
+using BusinessObject.DTOs.ResponseModels;
 using BusinessObject.Models;
 using Repository.Interfaces;
 using Service.Interfaces;
@@ -24,8 +25,8 @@ namespace Service
 
         public async Task<EscortJourney> CreateJourneyFromGoongResponseAsync(Guid userId, CreateJourneyDTO request)
         {
-            var isInGroup = await _ecortGroupRepository.IsAlreadyInGroupAsync(userId, request.GroupId);
-            if (!isInGroup)
+            var existedMember = await _ecortGroupRepository.GetMemberbyUserIdAndGroupIdAsync(userId, request.GroupId);
+            if (existedMember == null)
                 throw new Exception("Bạn không ở trong nhóm này.");
 
             var goongData = JsonDocument.Parse(request.RawJson);
@@ -98,14 +99,38 @@ namespace Service
                 StartTime = DateTime.UtcNow,
                 ExpectedEndTime = DateTime.UtcNow.AddSeconds(duration),
                 Vehicle = request.Vehicle,
-            };          
+                MemberId = existedMember.Id,
+                Watchers = request.WatcherIds.Select(memberId => new EscortJourneyWatcher
+                {
+                    WatcherId = memberId,
+                    AddedAt = DateTime.UtcNow,
+                    Status = "Pending"
+                }).ToList()
+            };
 
             return await _journeyRepository.AddAsync(journey);
         }
 
-        public async Task<EscortJourney> GetJourneyByUserIdAsync(Guid userId)
+        public async Task<EscortJourney> GetJourneyByUserIdAsync(Guid userId, int memberId)
         {
-            return await _journeyRepository.GetByUserIdAsync(userId);
+            return await _journeyRepository.GetActiveJourneyByGroupMemberIdAsync(memberId);
+        }
+
+        public async Task<string> GetJourneyForObserverAsync(Guid userId, int memberId)
+        {
+            var journey = await _journeyRepository.GetActiveJourneyByGroupMemberIdAsync(memberId);
+            return journey.RouteJson;
+        }
+
+        public async Task<JourneyHistoryDto> GetJourneyHistoryAsync(Guid userId)
+        {
+            var journeys = await _journeyRepository.GetJourneysByUserIdAsync(userId);
+
+            return new JourneyHistoryDto
+            {
+                EscortGroupDtos = journeys,
+                CanReusePreviousEscortPaths = false,
+            };
         }
     }
 }

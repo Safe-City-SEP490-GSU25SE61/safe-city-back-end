@@ -29,16 +29,16 @@ namespace SafeCityBackEnd.SignalR
 
             var userId = Guid.Parse(userIdClaim.Value);
             var role = Context.GetHttpContext()?.Request.Query["role"].ToString();
-            var memberId = Context.GetHttpContext()?.Request.Query["memberId"].ToString();
+            int.TryParse(Context.GetHttpContext()?.Request.Query["memberId"], out var memberId);
 
             _logger.LogInformation("User {UserId} attempting to connect. Role={Role}, MemberId={MemberId}",
                                    userId, role, memberId);
 
-            var escort = await _virtualEscortService.GetJourneyByUserIdAsync(userId);
+            var escort = await _virtualEscortService.GetJourneyByUserIdAsync(userId, memberId);
 
-            if (string.IsNullOrEmpty(memberId))
+            if (escort == null)
             {
-                _logger.LogWarning("Connection aborted: memberId missing for User {UserId}", userId);
+                _logger.LogWarning("No active journey found for this Member {MemberId}", memberId);
                 Context.Abort();
                 return;
             }
@@ -50,7 +50,7 @@ namespace SafeCityBackEnd.SignalR
             }
             else
             {
-                await Groups.AddToGroupAsync(Context.ConnectionId, $"journey-{escort.Id}-followers");
+                await Groups.AddToGroupAsync(Context.ConnectionId, $"journey-{escort.Id}-observers");
                 _logger.LogInformation("User {UserId} joined followers group journey-{JourneyId}", userId, escort.Id);
             }
 
@@ -60,13 +60,32 @@ namespace SafeCityBackEnd.SignalR
 
         public async Task UpdateLocation(double latitude, double longitude)
         {
-            await Clients.OthersInGroup(Context.ConnectionId)
-                         .SendAsync("ReceiveLocationUpdate", latitude, longitude);
+            var userIdClaim = Context.User?.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                _logger.LogWarning("Connection aborted: missing userIdClaim");
+                Context.Abort();
+                return;
+            }
+
+            var userId = Guid.Parse(userIdClaim.Value);
+            var role = Context.GetHttpContext()?.Request.Query["role"].ToString();
+            int.TryParse(Context.GetHttpContext()?.Request.Query["memberId"], out var memberId);
+            var escort = await _virtualEscortService.GetJourneyByUserIdAsync(userId, memberId);
+
+            if (escort == null) return;
+
+            if (role == "leader")
+            {               
+                await Clients.Group($"journey-{escort.Id}-observers")
+                             .SendAsync("ReceiveLeaderLocation", latitude, longitude);
+            }
         }
 
-        public async Task JoinGroup(string groupName)
+        public override async Task OnDisconnectedAsync(Exception? exception)
         {
-            await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
+            _logger.LogInformation("User disconnected: {ConnectionId}", Context.ConnectionId);
+            await base.OnDisconnectedAsync(exception);
         }
     }
 }
