@@ -32,6 +32,7 @@ namespace Repository
             var escort = await _context.EscortJourneys
                         .Include(e => e.User)
                         .Include(e => e.Watchers)
+                        .OrderByDescending(e => e.StartTime)
                         .FirstOrDefaultAsync(e => e.MemberId == memberId && e.Status.Equals("Active"));
 
             return escort;
