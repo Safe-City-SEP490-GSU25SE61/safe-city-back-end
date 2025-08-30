@@ -98,6 +98,12 @@ namespace Repository
                 .AnyAsync(m => m.AccountId == accountId && m.GroupId == groupId);
         }
 
+        public async Task<EscortJourneyGroupMember?> GetMemberbyUserIdAndGroupIdAsync(Guid accountId, int groupId)
+        {
+            return await _context.EscortJourneyGroupMembers
+                .FirstOrDefaultAsync(m => m.AccountId == accountId && m.GroupId == groupId);
+        }
+
         public async Task<int> GetMemberCountAsync(int groupId)
         {
             return await _context.EscortJourneyGroupMembers

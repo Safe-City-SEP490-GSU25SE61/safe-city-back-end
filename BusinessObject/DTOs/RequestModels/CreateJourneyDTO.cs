@@ -12,9 +12,11 @@ namespace BusinessObject.DTOs.RequestModels
         [Required]
         public int GroupId { get; set; }
 
+        [Required]
         public string RawJson { get; set; }
 
         [Required]
         public string Vehicle {  get; set; }
+        public List<int> WatcherIds { get; set; } = new();
     }
 }

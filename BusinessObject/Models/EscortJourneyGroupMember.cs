@@ -35,6 +35,7 @@ namespace BusinessObject.Models
         [Column("joined_at")]
         public DateTime? JoinedAt { get; set; }
         public EscortJourneyGroup Group { get; set; }
+        public ICollection<EscortJourneyWatcher> WatchedJourneys { get; set; }
         public ICollection<EscortJourney> CreatedEscortJourneys { get; set; }
         public Account Account { get; set; }
     }
