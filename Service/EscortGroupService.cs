@@ -158,7 +158,19 @@ namespace Service
         public async Task<GroupWaitingRoomDto?> GetGroupWaitingRoomAsync(int groupId, Guid accountId)
         {
             var group = await _groupRepository.GetGroupWithLeaderAndMembersAsync(groupId, accountId);
-            if (group == null) return null;
+            if (group == null) throw new Exception("Nhóm không tồn tại."); 
+
+            var currentMember = await _groupRepository.GetMemberbyUserIdAndGroupIdAsync(accountId, groupId);
+            if (currentMember == null) throw new Exception("Bạn không thuộc nhóm này."); 
+
+            var inviterList = await _groupRepository.GetInvitersForWatcherAsync(groupId, currentMember.Id);
+            foreach (var member in group.Members)
+            {
+                if (inviterList.Contains(member.Id.Value))
+                {
+                    member.EscortStatus = "on-journey";
+                }
+            }
 
             return group;
         }

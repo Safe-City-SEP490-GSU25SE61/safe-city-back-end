@@ -9,12 +9,14 @@ namespace SafeCityBackEnd.SignalR
     public sealed class JourneyHub : Hub
     {
         private readonly IVirtualEscortService _virtualEscortService;
+        private readonly ISosAlertService _sosAlertService;
         private readonly ILogger<JourneyHub> _logger;
 
-        public JourneyHub(IVirtualEscortService virtualEscortService, ILogger<JourneyHub> logger)
+        public JourneyHub(IVirtualEscortService virtualEscortService, ILogger<JourneyHub> logger, ISosAlertService sosAlertService)
         {
             _virtualEscortService = virtualEscortService;
             _logger = logger;
+            _sosAlertService = sosAlertService;
         }
 
         public override async Task OnConnectedAsync()
@@ -54,6 +56,8 @@ namespace SafeCityBackEnd.SignalR
                 _logger.LogInformation("User {UserId} joined followers group journey-{JourneyId}", userId, escort.Id);
             }
 
+            Context.Items["journeyId"] = escort.Id;
+
             await base.OnConnectedAsync();
         }
 
@@ -75,32 +79,38 @@ namespace SafeCityBackEnd.SignalR
 
         public async Task UpdateLocation(double latitude, double longitude)
         {
-            var userIdClaim = Context.User?.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim == null)
-            {
-                _logger.LogWarning("Connection aborted: missing userIdClaim");
-                Context.Abort();
-                return;
-            }
-
-            var userId = Guid.Parse(userIdClaim.Value);
             var role = Context.GetHttpContext()?.Request.Query["role"].ToString();
-            int.TryParse(Context.GetHttpContext()?.Request.Query["memberId"], out var memberId);
+            if (!Context.Items.TryGetValue("journeyId", out var journeyObj) || journeyObj == null) return;
 
-            _logger.LogInformation("User {UserId} attempting to connect. Role={Role}, MemberId={MemberId}",
-                                   userId, role, memberId);
+            int escortJourneyId = (int)journeyObj;
 
-            var escort = await _virtualEscortService.GetJourneyByUserIdAsync(userId, memberId);
-
-            if (escort == null) return;
-
-            if (role.ToLower().Equals("leader"))
-            {               
-                await Clients.Group($"journey-{escort.Id}-observers")
+            if (role?.ToLower() == "leader")
+            {
+                await Clients.Group($"journey-{escortJourneyId}-observers")
                              .SendAsync("ReceiveLeaderLocation", latitude, longitude);
                 _logger.LogInformation($"Observer nhận tọa độ: {latitude}, {longitude}");
             }
         }
+
+
+        public async Task SendSos(decimal lat, decimal lng, DateTime timestamp)
+        {
+            if (!Context.Items.TryGetValue("journeyId", out var journeyObj) || journeyObj == null)
+                throw new HubException("No journey found for this connection");
+
+            int escortJourneyId = (int)journeyObj;
+            Guid senderId = Guid.Parse(Context.UserIdentifier);
+
+            var senderName = await _sosAlertService.CreateAlertAsync(escortJourneyId, senderId, lat, lng, timestamp);
+
+            await Clients.Group($"journey-{escortJourneyId}-observers").SendAsync("ReceiveSos", new
+            {
+                message = $"{senderName} hiện đang gửi tín hiệu cầu cứu.",        
+                lat = lat,
+                lng = lng,
+            });
+        }
+
 
         public override async Task OnDisconnectedAsync(Exception? exception)
         {

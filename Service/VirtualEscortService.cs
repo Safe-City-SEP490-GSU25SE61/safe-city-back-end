@@ -15,17 +15,17 @@ namespace Service
     public class VirtualEscortService : IVirtualEscortService
     {
         private readonly IJourneyRepository _journeyRepository;
-        private readonly IEscortGroupRepository _ecortGroupRepository;
+        private readonly IEscortGroupRepository _escortGroupRepository;
 
-        public VirtualEscortService(IJourneyRepository journeyRepository, IEscortGroupRepository ecortGroupRepository)
+        public VirtualEscortService(IJourneyRepository journeyRepository, IEscortGroupRepository escortGroupRepository)
         {
             _journeyRepository = journeyRepository;
-            _ecortGroupRepository = ecortGroupRepository;
+            _escortGroupRepository = escortGroupRepository;
         }
 
         public async Task<EscortJourney> CreateJourneyFromGoongResponseAsync(Guid userId, CreateJourneyDTO request)
         {
-            var existedMember = await _ecortGroupRepository.GetMemberbyUserIdAndGroupIdAsync(userId, request.GroupId);
+            var existedMember = await _escortGroupRepository.GetMemberbyUserIdAndGroupIdAsync(userId, request.GroupId);
             if (existedMember == null)
                 throw new Exception("Bạn không ở trong nhóm này.");
 
@@ -108,6 +108,7 @@ namespace Service
                 }).ToList()
             };
 
+            await _escortGroupRepository.UpdateGroupMemberStatusAsync(existedMember, "on-journey");
             return await _journeyRepository.AddAsync(journey);
         }
 
