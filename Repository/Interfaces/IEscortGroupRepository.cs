@@ -16,6 +16,7 @@ namespace Repository.Interfaces
         Task<int?> GetGroupIdByGroupCodeAsync(string groupCode);
         Task<EscortGroupSettingsDto?> GetGroupSettingsByCodeAsync(string groupCode);
         Task UpdateGroupSettingsByCodeAsync(UpdateEscortGroupSettingsDTO groupSettings);
+        Task UpdateGroupMemberStatusAsync(EscortJourneyGroupMember groupMember, string status);
         Task<bool> IsGroupCodeExistsAsync(string groupCode);
         Task<int> GetGroupCountByAccountIdAsync(Guid accountId);
         Task AddMemberAsync(EscortJourneyGroupMember member);
@@ -27,6 +28,7 @@ namespace Repository.Interfaces
         Task<Guid> GetLeaderUserIdAsync(int groupId);
         Task<int?> GetGroupIdByMemberIdAsync(int memberId);
         Task RemoveGroupMemberByIdAsync(int memberId);
+        Task<List<int>> GetInvitersForWatcherAsync(int groupId, int watcherMemberId);
 
     }
 }

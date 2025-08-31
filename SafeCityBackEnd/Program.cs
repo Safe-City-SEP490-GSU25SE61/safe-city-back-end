@@ -47,6 +47,8 @@ builder.Services.AddScoped<IEscortGroupRepository, EscortGroupRepository>();
 builder.Services.AddScoped<IEscortGroupJoinRequestRepository, EscortGroupJoinRequestRepository>();
 builder.Services.AddScoped<IJourneyRepository, JourneyRepository>();
 builder.Services.AddScoped<IConfigurationRepository, ConfigurationRepository>();
+builder.Services.AddScoped<ISosAlertRepository, SosAlertRepository>();
+builder.Services.AddScoped<ISosAlertService, SosAlertService>();
 builder.Services.AddScoped<IConfigurationService, ConfigurationService>();
 builder.Services.AddScoped<IVirtualEscortService, VirtualEscortService>();
 builder.Services.AddScoped<IEscortGroupService, EscortGroupService>();

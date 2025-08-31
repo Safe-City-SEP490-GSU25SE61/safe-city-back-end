@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Text.Json.Serialization;
 
 namespace BusinessObject.Models
 {
@@ -71,6 +72,8 @@ namespace BusinessObject.Models
         public bool DeviationAlertSent { get; set; } = false;
 
         public Account User { get; set; }
+
+        [JsonIgnore]
         public EscortJourneyGroupMember Member { get; set; }
         public EscortJourneyGroup CreatedInGroup { get; set; }
         public ICollection<EscortJourneyWatcher> Watchers { get; set; }

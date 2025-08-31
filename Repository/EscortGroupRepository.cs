@@ -172,6 +172,26 @@ namespace Repository
                 .Select (g => g.GroupId)
                 .FirstOrDefaultAsync();
         }
+
+        public async Task UpdateGroupMemberStatusAsync(EscortJourneyGroupMember groupMember, string status)
+        {           
+            groupMember.Status = status;
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<int>> GetInvitersForWatcherAsync(int groupId, int watcherMemberId)
+        {
+            var inviterMemberIds = await _context.EscortJourneyWatchers
+                .Where(w => w.WatcherId == watcherMemberId) 
+                .Where(w => w.EscortJourney.CreatedInGroupId == groupId) 
+                .Where(w => w.EscortJourney.Status.Equals("Active")) 
+                .Select(w => w.EscortJourney.MemberId)
+                .Distinct()
+                .ToListAsync();
+
+            return inviterMemberIds;
+        }
+
     }
 
 }
