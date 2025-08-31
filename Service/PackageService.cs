@@ -39,6 +39,10 @@ namespace Service
                 Color = p.Color,
                 CreateAt = DateTimeHelper.ToVietnamTime(p.CreateAt),
                 LastUpdated = DateTimeHelper.ToVietnamTime(p.LastUpdated),
+                MonthlyVirtualEscortLimit = p.MonthlyVirtualEscortLimit,
+                CanViewIncidentDetail = p.CanViewIncidentDetail,
+                CanReusePreviousEscortPaths = p.CanReusePreviousEscortPaths,
+                CanPostBlog = p.CanPostBlog,
                 IsActive = p.IsActive
             }).ToList();
         }
@@ -62,6 +66,10 @@ namespace Service
                 Color = package.Color,
                 CreateAt = DateTimeHelper.ToVietnamTime(package.CreateAt),
                 LastUpdated = DateTimeHelper.ToVietnamTime(package.LastUpdated),
+                MonthlyVirtualEscortLimit = package.MonthlyVirtualEscortLimit,
+                CanViewIncidentDetail = package.CanViewIncidentDetail,
+                CanReusePreviousEscortPaths = package.CanReusePreviousEscortPaths,
+                CanPostBlog = package.CanPostBlog,
                 IsActive = package.IsActive
             };
         }
@@ -78,6 +86,10 @@ namespace Service
                 Color = dto.Color,
                 CreateAt = DateTime.UtcNow,
                 LastUpdated = DateTime.UtcNow,
+                CanPostBlog = dto.CanPostBlog,
+                CanReusePreviousEscortPaths = dto.CanReusePreviousEscortPaths,  
+                CanViewIncidentDetail = dto.CanViewIncidentDetail,
+                MonthlyVirtualEscortLimit = dto.MonthlyVirtualEscortLimit,
                 IsActive = true
             };
 
@@ -137,6 +149,10 @@ namespace Service
 
             package.Color = dto.Color;
             package.LastUpdated = changedAt;
+            package.CanPostBlog = dto.CanPostBlog;
+            package.CanReusePreviousEscortPaths = dto.CanReusePreviousEscortPaths;
+            package.CanViewIncidentDetail = dto.CanViewIncidentDetail;
+            package.MonthlyVirtualEscortLimit = dto.MonthlyVirtualEscortLimit;
 
             if (logs.Any())
                 await _changeHistoryRepository.AddManyAsync(logs);

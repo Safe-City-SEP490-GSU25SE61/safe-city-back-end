@@ -11,6 +11,8 @@ namespace Repository.Interfaces
     public interface IJourneyRepository
     {
         Task<EscortJourney> AddAsync(EscortJourney journey);
+        Task<EscortJourney?> GetJourneyByIdAsync(int journeyId);
+        Task UpdateJourneyAsync(EscortJourney journey);
         Task<EscortJourney> GetActiveJourneyByGroupMemberIdAsync(int memberId);
         Task<List<EscortJourneyDto>> GetJourneysByUserIdAsync(Guid userId);
     }

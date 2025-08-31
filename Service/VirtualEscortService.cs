@@ -1,6 +1,7 @@
 ﻿using BusinessObject.DTOs.RequestModels;
 using BusinessObject.DTOs.ResponseModels;
 using BusinessObject.Models;
+using Microsoft.AspNetCore.SignalR;
 using Repository.Interfaces;
 using Service.Interfaces;
 using System;
@@ -16,11 +17,13 @@ namespace Service
     {
         private readonly IJourneyRepository _journeyRepository;
         private readonly IEscortGroupRepository _escortGroupRepository;
+        private readonly ILocationHistoryRepository _locationHistoryRepository;
 
-        public VirtualEscortService(IJourneyRepository journeyRepository, IEscortGroupRepository escortGroupRepository)
+        public VirtualEscortService(IJourneyRepository journeyRepository, IEscortGroupRepository escortGroupRepository, ILocationHistoryRepository locationHistoryRepository)
         {
             _journeyRepository = journeyRepository;
             _escortGroupRepository = escortGroupRepository;
+            _locationHistoryRepository = locationHistoryRepository;
         }
 
         public async Task<EscortJourney> CreateJourneyFromGoongResponseAsync(Guid userId, CreateJourneyDTO request)
@@ -132,6 +135,48 @@ namespace Service
                 EscortGroupDtos = journeys,
                 CanReusePreviousEscortPaths = false,
             };
+        }
+
+        public async Task SaveLeaderLocationAsync(int escortJourneyId, Guid leaderId, double lat, double lng, DateTime timestamp)
+        {
+            var journey = await _journeyRepository.GetJourneyByIdAsync(escortJourneyId);
+            if (journey == null)
+                throw new Exception("Journey not found");
+
+            if (journey.UserId != leaderId)
+                throw new Exception("Only leader can send location updates");
+
+            var location = new LocationHistory
+            {
+                EscortJourneyId = escortJourneyId,
+                Latitude = (decimal)lat,
+                Longitude = (decimal)lng,
+                RecordedAt = timestamp
+            };
+
+            await _locationHistoryRepository.AddAsync(location);
+        }
+
+        public async Task<List<LocationHistory>> GetLocationHistoryAsync(int escortJourneyId)
+        {
+            return await _locationHistoryRepository.GetByJourneyIdAsync(escortJourneyId);
+        }
+
+        public async Task EndJourneyAsync(int journeyId)
+        {
+            var journey = await _journeyRepository.GetJourneyByIdAsync(journeyId);
+
+            if (journey != null)
+            {
+                journey.Status = "Completed";
+                journey.ArrivalTime = DateTime.UtcNow;
+                if (journey.StartTime.HasValue)
+                {
+                    journey.DurationInSeconds =
+                        (int)(journey.ArrivalTime.Value - journey.StartTime.Value).TotalSeconds;
+                }
+                await _journeyRepository.UpdateJourneyAsync(journey);
+            }
         }
     }
 }
