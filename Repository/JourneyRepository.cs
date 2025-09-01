@@ -38,6 +38,17 @@ namespace Repository
             return escort;
         }
 
+        public async Task<EscortJourney?> GetJourneyByIdAsync(int journeyId)
+        {
+            return await _context.EscortJourneys.FindAsync(journeyId);
+        }
+
+        public async Task UpdateJourneyAsync(EscortJourney journey)
+        {
+            _context.EscortJourneys.Update(journey);
+            await _context.SaveChangesAsync();
+        }
+
         public async Task<List<EscortJourneyDto>> GetJourneysByUserIdAsync(Guid userId)
         {
             return await _context.EscortJourneys

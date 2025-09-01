@@ -15,5 +15,8 @@ namespace Service.Interfaces
         Task<EscortJourney> GetJourneyByUserIdAsync(Guid userId, int memberId);
         Task<string> GetJourneyForObserverAsync(Guid userId, int memberId);
         Task<JourneyHistoryDto> GetJourneyHistoryAsync(Guid userId);
+        Task SaveLeaderLocationAsync(int escortJourneyId, Guid leaderId, double lat, double lng, DateTime timestamp);
+        Task<List<LocationHistory>> GetLocationHistoryAsync(int escortJourneyId);
+        Task EndJourneyAsync(int journeyId);
     }
 }
