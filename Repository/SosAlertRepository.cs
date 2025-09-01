@@ -20,7 +20,7 @@ namespace Repository
 
         public async Task<SosAlert> CreateAsync(SosAlert alert)
         {
-            _context.SosAlerts.Add(alert);
+            await _context.SosAlerts.AddAsync(alert);
             await _context.SaveChangesAsync();
             return alert;
         }
