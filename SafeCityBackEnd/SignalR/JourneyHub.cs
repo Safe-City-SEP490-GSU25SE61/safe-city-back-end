@@ -106,12 +106,8 @@ namespace SafeCityBackEnd.SignalR
             var senderName = await _sosAlertService.CreateAlertAsync(escortJourneyId, senderId, lat, lng, timestamp);
             _logger.LogWarning($"SoS Alert: {lat}, {lng} . TimeStamp: {timestamp}");
 
-            await Clients.Group($"journey-{escortJourneyId}-observers").SendAsync("ReceiveSos", new
-            {
-                message = $"{senderName} hiện đang gửi tín hiệu cầu cứu.",        
-                lat = lat,
-                lng = lng,
-            });
+            await Clients.Group($"journey-{escortJourneyId}-observers").SendAsync("ReceiveSos",
+                $"{senderName} hiện đang gửi tín hiệu cầu cứu.", (double)lat, (double)lng);
         }
 
         public override async Task OnDisconnectedAsync(Exception? exception)
