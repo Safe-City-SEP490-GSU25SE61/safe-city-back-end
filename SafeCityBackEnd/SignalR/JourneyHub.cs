@@ -81,13 +81,14 @@ namespace SafeCityBackEnd.SignalR
         public async Task UpdateLocation(double latitude, double longitude, Guid userId)
         {
             var role = Context.GetHttpContext()?.Request.Query["role"].ToString();
-            if (!Context.Items.TryGetValue("journeyId", out var journeyObj) || journeyObj == null) return;
-
-            int escortJourneyId = (int)journeyObj;
+            if (!(Context.Items.TryGetValue("journeyId", out var journeyObj) && journeyObj is int escortJourneyId) || journeyObj == null) return;
+            _logger.LogWarning($"journey id: {escortJourneyId}");
 
             if (role?.ToLower() == "leader")
             {
                 await _virtualEscortService.SaveLeaderLocationAsync(escortJourneyId, userId, latitude, longitude, DateTime.UtcNow);
+                _logger.LogWarning($"Location history update: {latitude}, {longitude}");
+
                 await Clients.Group($"journey-{escortJourneyId}-observers")
                              .SendAsync("ReceiveLeaderLocation", latitude, longitude);
                 _logger.LogInformation($"Observer nhận tọa độ: {latitude}, {longitude}");
@@ -97,13 +98,13 @@ namespace SafeCityBackEnd.SignalR
 
         public async Task SendSos(decimal lat, decimal lng, DateTime timestamp)
         {
-            if (!Context.Items.TryGetValue("journeyId", out var journeyObj) || journeyObj == null)
+            if (!(Context.Items.TryGetValue("journeyId", out var journeyObj) && journeyObj is int escortJourneyId) || journeyObj == null)
                 throw new HubException("No journey found for this connection");
 
-            int escortJourneyId = (int)journeyObj;
             Guid senderId = Guid.Parse(Context.UserIdentifier);
 
             var senderName = await _sosAlertService.CreateAlertAsync(escortJourneyId, senderId, lat, lng, timestamp);
+            _logger.LogWarning($"SoS Alert: {lat}, {lng} . TimeStamp: {timestamp}");
 
             await Clients.Group($"journey-{escortJourneyId}-observers").SendAsync("ReceiveSos", new
             {
