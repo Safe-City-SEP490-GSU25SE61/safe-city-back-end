@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Text.Json.Serialization;
 
 namespace BusinessObject.Models
 {
@@ -26,8 +27,9 @@ namespace BusinessObject.Models
         public DateTime AddedAt { get; set; }
 
         [Column("status")]
-        public string Status { get; set; } 
+        public string Status { get; set; }
 
+        [JsonIgnore] 
         public EscortJourney EscortJourney { get; set; }
         public EscortJourneyGroupMember Watcher { get; set; }
     }
