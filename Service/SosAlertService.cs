@@ -29,7 +29,7 @@ namespace Service
                 Timestamp = timestamp
             };
 
-            return (await _sosAlertRepository.CreateAsync(alert)).Sender.FullName;
+            return await _sosAlertRepository.CreateAsync(alert);
         }
     }
 }

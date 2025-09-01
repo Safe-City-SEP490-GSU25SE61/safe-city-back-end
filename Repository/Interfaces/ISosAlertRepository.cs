@@ -9,6 +9,6 @@ namespace Repository.Interfaces
 {
     public interface ISosAlertRepository
     {
-        Task<SosAlert> CreateAsync(SosAlert alert);
+        Task<string> CreateAsync(SosAlert alert);
     }
 }

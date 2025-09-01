@@ -1,5 +1,6 @@
 ﻿using BusinessObject.Models;
 using DataAccessLayer.DataContext;
+using Microsoft.EntityFrameworkCore;
 using Repository.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -18,11 +19,16 @@ namespace Repository
             _context = context;
         }
 
-        public async Task<SosAlert> CreateAsync(SosAlert alert)
+        public async Task<string> CreateAsync(SosAlert alert)
         {
             await _context.SosAlerts.AddAsync(alert);
             await _context.SaveChangesAsync();
-            return alert;
+            var fullName = await _context.Accounts
+                .Where(a => a.Id == alert.SenderId)
+                .Select(a => a.FullName)
+                .FirstOrDefaultAsync();
+
+            return fullName;
         }
     }
 }
