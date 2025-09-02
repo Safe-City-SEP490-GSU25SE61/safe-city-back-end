@@ -611,6 +611,7 @@ namespace Service
                 if (includeRelated)
                 {
                     var streetName = ExtractStreetName(report.Address);
+
                     var related = allReports
                         .Where(r =>
                             r.Id != report.Id &&
@@ -623,29 +624,32 @@ namespace Service
                             r.Lat.HasValue && r.Lng.HasValue &&
                             CalculateDistanceInMeters((double)report.Lat.Value, (double)report.Lng.Value, (double)r.Lat.Value, (double)r.Lng.Value) <= 100
                         )
-                        .ToList()
-                        .OrderByDescending(r => r.CreatedAt)
                         .ToList();
 
-                    var relatedResponses = related.Select(ToResponseModel).ToList();
+                    var group = new List<IncidentReport> { report };
+                    group.AddRange(related);
 
-                    foreach (var r in related) visited.Add(r.Id);
+                    var main = group.OrderBy(r => r.CreatedAt).First();
+                    var relatedResponses = group
+                        .Where(r => r.Id != main.Id)
+                        .OrderByDescending(r => r.CreatedAt)
+                        .Select(ToResponseModel)
+                        .ToList();
 
                     results.Add(new GroupedReportResponseModel
                     {
-                        MainReport = response,
+                        MainReport = ToResponseModel(main),
                         RelatedReports = relatedResponses
                     });
+
+                    foreach (var r in group) visited.Add(r.Id);
                 }
                 else
                 {
-                    results.Add(new GroupedReportResponseModel
-                    {
-                        MainReport = response
-                    });
+                    results.Add(new GroupedReportResponseModel { MainReport = response });
+                    visited.Add(report.Id);
                 }
 
-                visited.Add(report.Id);
             }
 
             return results;
@@ -883,6 +887,7 @@ namespace Service
                 if (includeRelated)
                 {
                     var streetName = ExtractStreetName(report.Address);
+
                     var related = allReports
                         .Where(r =>
                             r.Id != report.Id &&
@@ -893,31 +898,34 @@ namespace Service
                             Math.Abs((r.CreatedAt - report.CreatedAt).TotalMinutes) <= 15 &&
                             report.Lat.HasValue && report.Lng.HasValue &&
                             r.Lat.HasValue && r.Lng.HasValue &&
-                            CalculateDistanceInMeters((double)report.Lat.Value, (double)report.Lng.Value, (double)r.Lat.Value, (double)r.Lng.Value) <= 300
+                            CalculateDistanceInMeters((double)report.Lat.Value, (double)report.Lng.Value, (double)r.Lat.Value, (double)r.Lng.Value) <= 100
                         )
-                        .ToList()
-                        .OrderByDescending(r => r.CreatedAt)
                         .ToList();
 
-                    var relatedResponses = related.Select(ToResponseModel).ToList();
+                    var group = new List<IncidentReport> { report };
+                    group.AddRange(related);
 
-                    foreach (var r in related) visited.Add(r.Id);
+                    var main = group.OrderBy(r => r.CreatedAt).First();
+                    var relatedResponses = group
+                        .Where(r => r.Id != main.Id)
+                        .OrderByDescending(r => r.CreatedAt)
+                        .Select(ToResponseModel)
+                        .ToList();
 
                     results.Add(new GroupedReportResponseModel
                     {
-                        MainReport = response,
+                        MainReport = ToResponseModel(main),
                         RelatedReports = relatedResponses
                     });
+
+                    foreach (var r in group) visited.Add(r.Id);
                 }
                 else
                 {
-                    results.Add(new GroupedReportResponseModel
-                    {
-                        MainReport = response
-                    });
+                    results.Add(new GroupedReportResponseModel { MainReport = response });
+                    visited.Add(report.Id);
                 }
 
-                visited.Add(report.Id);
             }
 
             return results;
