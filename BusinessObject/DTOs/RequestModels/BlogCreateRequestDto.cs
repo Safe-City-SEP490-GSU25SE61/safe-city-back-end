@@ -12,7 +12,7 @@ namespace BusinessObject.DTOs.RequestModels
     public class BlogCreateRequestDto
     {
         [Required(ErrorMessage = "Title is required.")]
-        [StringLength(100, ErrorMessage = "Title cannot be longer than 100 characters.")]
+        [StringLength(500, ErrorMessage = "Title cannot be longer than 500 characters.")]
         [MinLength(5, ErrorMessage = "Title must be at least 5 characters long.")]
         public string Title { get; set; }
 

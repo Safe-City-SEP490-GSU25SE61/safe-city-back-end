@@ -621,7 +621,7 @@ namespace Service
                             Math.Abs((r.CreatedAt - report.CreatedAt).TotalMinutes) <= 15 &&
                             report.Lat.HasValue && report.Lng.HasValue &&
                             r.Lat.HasValue && r.Lng.HasValue &&
-                            CalculateDistanceInMeters((double)report.Lat.Value, (double)report.Lng.Value, (double)r.Lat.Value, (double)r.Lng.Value) <= 300
+                            CalculateDistanceInMeters((double)report.Lat.Value, (double)report.Lng.Value, (double)r.Lat.Value, (double)r.Lng.Value) <= 100
                         )
                         .ToList()
                         .OrderByDescending(r => r.CreatedAt)
