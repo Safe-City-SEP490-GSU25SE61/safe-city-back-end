@@ -35,8 +35,8 @@ namespace SafeCityBackEnd.Controllers
             var authorId = Guid.Parse(userIdClaim.Value);
             try
             {
-                var result = await _blogService.CreateBlog(request, authorId);
-                return Ok(result);
+                await _blogService.CreateBlog(request, authorId);
+                return Ok("Tạo blog thành công.");
             }
             catch (Exception ex)
             {

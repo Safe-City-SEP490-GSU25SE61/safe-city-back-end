@@ -13,7 +13,7 @@ namespace Service.Interfaces
         Task Like(Guid userId, int postId);
         Task ApproveBlog(int blogId, bool isApproved, bool isPinned, Guid officerId);
         Task TogglePinned(int blogId, bool pinned);
-        Task<BlogResponseDto> CreateBlog(BlogCreateRequestDto request, Guid authorId);
+        Task CreateBlog(BlogCreateRequestDto request, Guid authorId);
         Task<IEnumerable<BlogResponseDto>> GetBlogsByCommune(int districtId, Guid currentUserId);
         Task<IEnumerable<BlogResponseDto>> GetCreatedBlogsByUser(Guid userId);
         Task<IEnumerable<BlogResponseForOfficerDto>> GetBlogsForOfficer(Guid userId, BlogFilterForOfficerRequest filter);

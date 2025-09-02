@@ -140,7 +140,7 @@ namespace Service
             await _blogRepository.UpdateAsync(blog);
         }
 
-        public async Task<BlogResponseDto> CreateBlog(BlogCreateRequestDto request, Guid authorId)
+        public async Task CreateBlog(BlogCreateRequestDto request, Guid authorId)
         {
             var images = request.MediaFiles?.Where(f => f.ContentType.StartsWith("image")).ToList() ?? new();
             var videos = request.MediaFiles?.Where(f => f.ContentType.StartsWith("video")).ToList() ?? new();
@@ -205,17 +205,7 @@ namespace Service
                 CreatedAt = DateTime.UtcNow
             };
 
-            await _blogModerationRepository.AddAsync(moderation); 
-
-            return new BlogResponseDto
-            {
-                Id = blog.Id,
-                Title = blog.Title,
-                Content = blog.Content,
-                Type = blog.Type,
-                CreatedAt = blog.CreatedAt,
-                MediaUrls = await _mediaRepository.GetUrlsByPostIdAsync(blog.Id)
-            };
+            _blogModerationRepository.AddAsync(moderation); 
         }
 
         public async Task<IEnumerable<BlogResponseDto>> GetBlogsByCommune(int CommuneId, Guid currentUserId)
