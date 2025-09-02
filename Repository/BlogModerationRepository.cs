@@ -21,7 +21,7 @@ namespace Repository
 
         public async Task AddAsync(BlogModeration moderation)
         {
-            _context.BlogModerations.Add(moderation);
+            await _context.BlogModerations.AddAsync(moderation);
             await _context.SaveChangesAsync();
         }
         public async Task<IEnumerable<BlogModeration>> GetAllAsync()

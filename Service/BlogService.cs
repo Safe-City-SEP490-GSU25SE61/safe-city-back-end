@@ -15,6 +15,9 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
+using BusinessObject.DTOs.Enums;
+using System.Reflection.Metadata;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Service
 {
@@ -31,6 +34,7 @@ namespace Service
         private readonly ISubscriptionRepository _subscriptionRepository;
         private readonly IPointHistoryService _pointHistory;
         private readonly IConfiguration _configuration;
+        private readonly IServiceProvider _serviceProvider;
 
         public BlogService(
             IBlogRepository blogRepository,
@@ -43,7 +47,8 @@ namespace Service
             IProvinceRepository provinceRepository,
             ISubscriptionRepository subscriptionRepository,
             IPointHistoryService pointHistory, 
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IServiceProvider serviceProvider)
         {
             _blogRepository = blogRepository;
             _likeRepository = likeRepository;
@@ -56,6 +61,7 @@ namespace Service
             _subscriptionRepository = subscriptionRepository;
             _pointHistory = pointHistory;
             _configuration = configuration;
+            _serviceProvider = serviceProvider;
         }
 
         public async Task Like(Guid userId, int postId)
@@ -170,6 +176,41 @@ namespace Service
 
             await _blogRepository.AddAsync(blog);
 
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    using var scope = _serviceProvider.CreateScope();
+
+                    var moderationService = scope.ServiceProvider.GetRequiredService<BlogModerationService>();
+                    var moderationRepo = scope.ServiceProvider.GetRequiredService<IBlogModerationRepository>();
+
+                    var result = await moderationService.ModerateBlogAsync(blog.Title, blog.Content, blog.Type);
+
+                    var moderation = new BlogModeration
+                    {
+                        BlogId = blog.Id,
+                        IsApproved = result.IsApproved,
+                        Politeness = result.Politeness,
+                        NoAntiState = result.NoAntiState,
+                        PositiveMeaning = result.PositiveMeaning,
+                        TypeRequirement = result.TypeRequirement,
+                        Reasoning = result.Reasoning,
+                        ViolationsJson = JsonSerializer.Serialize(result.Violations, new JsonSerializerOptions
+                        {
+                            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                        }),
+                        CreatedAt = DateTime.UtcNow
+                    };
+
+                    await moderationRepo.AddAsync(moderation);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            });
+
             int slot = 1;
             foreach (var file in request.MediaFiles.Take(11))
             {
@@ -186,26 +227,6 @@ namespace Service
 
                 await _mediaRepository.AddAsync(media);
             }
-
-            var result = await _blogModerationService.ModerateBlogAsync(blog.Title, blog.Content, blog.Type);
-
-            var moderation = new BlogModeration
-            {
-                BlogId = blog.Id,
-                IsApproved = result.IsApproved,
-                Politeness = result.Politeness,
-                NoAntiState = result.NoAntiState,
-                PositiveMeaning = result.PositiveMeaning,
-                TypeRequirement = result.TypeRequirement,
-                Reasoning = result.Reasoning,
-                ViolationsJson = JsonSerializer.Serialize(result.Violations, new JsonSerializerOptions
-                {
-                    Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-                }),
-                CreatedAt = DateTime.UtcNow
-            };
-
-            _blogModerationRepository.AddAsync(moderation); 
         }
 
         public async Task<IEnumerable<BlogResponseDto>> GetBlogsByCommune(int CommuneId, Guid currentUserId)
