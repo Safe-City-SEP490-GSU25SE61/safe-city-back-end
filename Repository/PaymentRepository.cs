@@ -24,6 +24,7 @@ namespace Repository
         public async Task<Payment?> GetByOrderCodeAsync(string orderCode)
         {
             return await _context.Set<Payment>()
+                .Include(p => p.User)
                 .Include(p => p.PayosTransaction)
                 .Include(p => p.Subscription).ThenInclude(s => s.Package)
                 .FirstOrDefaultAsync(p => p.PayosTransaction.OrderCode == orderCode);

@@ -38,7 +38,10 @@ namespace Service
         private static readonly string[] ValidStatuses = { "pending", "verified", "closed", "malicious","solved" };
         private static readonly string[] ValidCitizenStatuses = { "pending", "verified", "closed", "malicious", "solved", "cancelled" };
         private readonly IPointHistoryService _pointHistory;
-        public IncidentReportService(IIncidentReportRepository reportRepo, INoteRepository noteRepo, IFirebaseStorageService storageService, IAccountRepository accountRepo, IAchievementRepository achievementRepo, IConfiguration configuration, ICommuneRepository communeRepo, IMediator mediator, IPointHistoryService pointHistory)
+        private readonly IConfigurationRepository _configurationRepository;
+        public IncidentReportService(IIncidentReportRepository reportRepo, INoteRepository noteRepo, IFirebaseStorageService storageService, 
+            IAccountRepository accountRepo, IAchievementRepository achievementRepo, IConfiguration configuration,
+            ICommuneRepository communeRepo, IMediator mediator, IPointHistoryService pointHistory, IConfigurationRepository configurationRepository)
         {
             _reportRepo = reportRepo;
             _noteRepo = noteRepo;
@@ -49,6 +52,7 @@ namespace Service
             _communeRepo = communeRepo;
             _mediator = mediator;
             _pointHistory = pointHistory;
+            _configurationRepository = configurationRepository;
         }
 
         public async Task<ReportResponseModel> CreateAsync(CreateReportRequestModel model, Guid userId)
@@ -370,10 +374,13 @@ namespace Service
 
             if (model.Status == "verified")
             {
+                var obtainedPoint = (await _configurationRepository.GetByKeyNameAsync("verified-report-point")) != null
+                    ? (await _configurationRepository.GetByKeyNameAsync("verified-report-point")).ValueAsNumber : 100;
+
                 var account = await _accountRepo.GetByIdAsync(report.UserId);
                 if (account != null)
                 {
-                    int rewardPoint = _configuration.GetValue<int>("Reward:VerifiedReportPoint", 100);
+                    int rewardPoint = _configuration.GetValue<int>("Reward:VerifiedReportPoint", (int)obtainedPoint);
                     account.TotalPoint += rewardPoint;
                     await _accountRepo.UpdateOfficerAsync(account);
 

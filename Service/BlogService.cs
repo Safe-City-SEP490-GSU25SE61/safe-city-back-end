@@ -116,7 +116,10 @@ namespace Service
             await _blogRepository.UpdateAsync(blog);
             if (isApproved)
             {
-                int reward = _configuration.GetValue<int>("Reward:ApprovedBlogPoint", 50);
+                var obtainedPoint = (await _configurationRepository.GetByKeyNameAsync("approved-blog-point")) != null 
+                    ? (await _configurationRepository.GetByKeyNameAsync("approved-blog-point")).ValueAsNumber : 50;
+
+                int reward = _configuration.GetValue<int>("Reward:ApprovedBlogPoint", (int)obtainedPoint);
                 var author = await _accountRepository.GetByIdAsync(blog.AuthorId);
                 if (author != null)
                 {

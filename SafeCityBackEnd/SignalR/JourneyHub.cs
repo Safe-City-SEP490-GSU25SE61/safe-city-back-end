@@ -63,7 +63,7 @@ namespace SafeCityBackEnd.SignalR
             await base.OnConnectedAsync();
         }
 
-        public async Task SendLocation(double latitude, double longitude)
+        public async Task SendLocation(double latitude, double longitude, bool isGPSAvailable, bool isInternetAvailable, bool BatteryStatus)
         {
             var userIdClaim = Context.User?.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim == null)
@@ -76,10 +76,10 @@ namespace SafeCityBackEnd.SignalR
             var userId = Guid.Parse(userIdClaim.Value);
             _logger.LogWarning($"Leader {userId} gửi tọa độ: {latitude}, {longitude}");
 
-            await UpdateLocation(latitude, longitude, userId);
+            await UpdateLocation(latitude, longitude, userId, isGPSAvailable, isInternetAvailable, BatteryStatus);
         }
 
-        public async Task UpdateLocation(double latitude, double longitude, Guid userId)
+        public async Task UpdateLocation(double latitude, double longitude, Guid userId, bool isGPSAvailable, bool isInternetAvailable, bool BatteryStatus)
         {
             var role = Context.GetHttpContext()?.Request.Query["role"].ToString();
             if (!(Context.Items.TryGetValue("journeyId", out var journeyObj) && journeyObj is int escortJourneyId) || journeyObj == null) return;
@@ -91,7 +91,7 @@ namespace SafeCityBackEnd.SignalR
                 _logger.LogWarning($"Location history update: {latitude}, {longitude}");
 
                 await Clients.Group($"journey-{escortJourneyId}-observers")
-                             .SendAsync("ReceiveLeaderLocation", latitude, longitude);
+                             .SendAsync("ReceiveLeaderLocation", latitude, longitude, isGPSAvailable, isInternetAvailable, BatteryStatus);
                 _logger.LogInformation($"Observer nhận tọa độ: {latitude}, {longitude}");
             }
         }
