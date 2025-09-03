@@ -19,9 +19,14 @@ namespace Repository
             _context = context;
         }
 
-        public async Task<Configuration> GetByIdAsync(int id)
+        public async Task<Configuration?> GetByIdAsync(int id)
         {
             return await _context.Configurations.FindAsync(id);
+        }
+
+        public async Task<Configuration?> GetByKeyNameAsync(string keyName)
+        {
+            return await _context.Configurations.FirstOrDefaultAsync(c => c.Key.ToLower().Equals(keyName.ToLower()));
         }
 
         public async Task<List<Configuration>> GetAllAsync()

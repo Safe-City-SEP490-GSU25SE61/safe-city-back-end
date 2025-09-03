@@ -75,6 +75,9 @@ namespace BusinessObject.Models
         [Column("is_biometric_enabled")]
         public bool IsBiometricEnabled { get; set; }
 
+        [Column("remaining_virtual_escorts")]
+        public int RemainingVirtualEscorts { get; set; } = 5;
+
 
         public Role Role { get; set; }
         public Commune? Commune { get; set; }

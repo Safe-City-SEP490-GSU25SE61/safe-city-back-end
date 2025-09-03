@@ -40,7 +40,7 @@ namespace Repository
             return await _context.Payments
                 .Include(p => p.Subscription)
                     .ThenInclude(s => s.Package)
-                .Where(p => p.UserId == userId)
+                .Where(p => p.UserId == userId && p.PaidAt != null)
                 .OrderByDescending(p => p.PaidAt)
                 .ToListAsync();
         }
