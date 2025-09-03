@@ -298,6 +298,7 @@ namespace Service
 
             foreach (var blog in blogs)
             {
+                blog.MediaUrls = await _mediaRepository.GetUrlsByPostIdAsync(blog.Id);
                 blog.CreatedAt = DateTimeHelper.ToVietnamTime(blog.CreatedAt);
             }
             return new FirstRequestBlogResponseDto
