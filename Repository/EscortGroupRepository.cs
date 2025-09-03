@@ -101,6 +101,7 @@ namespace Repository
         public async Task<EscortJourneyGroupMember?> GetMemberbyUserIdAndGroupIdAsync(Guid accountId, int groupId)
         {
             return await _context.EscortJourneyGroupMembers
+                .Include(m => m.Account)
                 .FirstOrDefaultAsync(m => m.AccountId == accountId && m.GroupId == groupId);
         }
 

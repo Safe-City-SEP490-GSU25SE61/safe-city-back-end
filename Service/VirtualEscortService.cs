@@ -3,10 +3,13 @@ using BusinessObject.DTOs.ResponseModels;
 using BusinessObject.Models;
 using Microsoft.AspNetCore.SignalR;
 using Repository.Interfaces;
+using Service.Helpers;
 using Service.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
+using System.Security.Principal;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -31,6 +34,11 @@ namespace Service
             var existedMember = await _escortGroupRepository.GetMemberbyUserIdAndGroupIdAsync(userId, request.GroupId);
             if (existedMember == null)
                 throw new Exception("Bạn không ở trong nhóm này.");
+
+            if (existedMember.Account.RemainingVirtualEscorts <= 0)
+                throw new InvalidOperationException("Bạn đã hết lượt Virtual Escort.");
+
+            existedMember.Account.RemainingVirtualEscorts -= 1;
 
             var goongData = JsonDocument.Parse(request.RawJson);
 
@@ -129,6 +137,12 @@ namespace Service
         public async Task<JourneyHistoryDto> GetJourneyHistoryAsync(Guid userId)
         {
             var journeys = await _journeyRepository.GetJourneysByUserIdAsync(userId);
+
+            foreach (var journey in journeys)
+            {
+                journey.StartTime = DateTimeHelper.ToVietnamTime(journey.StartTime.HasValue ? journey.StartTime.Value : DateTime.UtcNow);
+                journey.EndTime = DateTimeHelper.ToVietnamTime(journey.EndTime.HasValue ? journey.EndTime.Value : DateTime.UtcNow);
+            }
 
             return new JourneyHistoryDto
             {

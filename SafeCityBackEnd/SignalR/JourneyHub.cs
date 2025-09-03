@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Service.Interfaces;
+using System.Data;
 using System.Security.Claims;
 
 namespace SafeCityBackEnd.SignalR
@@ -114,6 +115,11 @@ namespace SafeCityBackEnd.SignalR
         {
             _logger.LogInformation("User disconnected: {ConnectionId}", Context.ConnectionId);
 
+            await base.OnDisconnectedAsync(exception);
+        }
+
+        public async Task EndJourney()
+        {
             if (Context.Items.TryGetValue("journeyId", out var journeyObj) && journeyObj is int escortJourneyId)
             {
                 var role = Context.GetHttpContext()?.Request.Query["role"].ToString();
@@ -121,15 +127,18 @@ namespace SafeCityBackEnd.SignalR
                 if (role?.ToLower() == "leader")
                 {
                     await _virtualEscortService.EndJourneyAsync(escortJourneyId);
+
                     await Clients.Group($"journey-{escortJourneyId}-observers")
                                  .SendAsync("LeaderDisconnected", "Hành trình đã kết thúc.");
 
-                    _logger.LogInformation($"Leader của journey {escortJourneyId} đã disconnect, thông báo tới observers.");
+                    _logger.LogInformation($"Leader của journey {escortJourneyId} đã kết thúc hành trình, thông báo tới observers.");
+                }
+                else
+                {
+                    _logger.LogWarning($"EndJourney bị gọi bởi user không phải leader. Role: {role}");
+                    throw new HubException("Chỉ leader mới có thể kết thúc hành trình.");
                 }
             }
-
-            await base.OnDisconnectedAsync(exception);
         }
-
     }
 }

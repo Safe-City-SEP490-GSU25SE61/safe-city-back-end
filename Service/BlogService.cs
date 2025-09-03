@@ -35,6 +35,7 @@ namespace Service
         private readonly IPointHistoryService _pointHistory;
         private readonly IConfiguration _configuration;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IConfigurationRepository _configurationRepository;
 
         public BlogService(
             IBlogRepository blogRepository,
@@ -48,7 +49,8 @@ namespace Service
             ISubscriptionRepository subscriptionRepository,
             IPointHistoryService pointHistory, 
             IConfiguration configuration,
-            IServiceProvider serviceProvider)
+            IServiceProvider serviceProvider,
+            IConfigurationRepository configurationRepository)
         {
             _blogRepository = blogRepository;
             _likeRepository = likeRepository;
@@ -62,6 +64,7 @@ namespace Service
             _pointHistory = pointHistory;
             _configuration = configuration;
             _serviceProvider = serviceProvider;
+            _configurationRepository = configurationRepository;
         }
 
         public async Task Like(Guid userId, int postId)

@@ -9,7 +9,8 @@ namespace Repository.Interfaces
 {
     public interface IConfigurationRepository
     {
-        Task<Configuration> GetByIdAsync(int id);
+        Task<Configuration?> GetByIdAsync(int id);
+        Task<Configuration?> GetByKeyNameAsync(string keyName);
         Task<List<Configuration>> GetAllAsync();
         Task AddAsync(Configuration config);
         Task UpdateAsync(Configuration config);
