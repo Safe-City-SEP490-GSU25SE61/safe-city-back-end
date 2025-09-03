@@ -1,0 +1,237 @@
+﻿using BusinessObject.DTOs.RequestModels;
+using BusinessObject.DTOs.ResponseModels;
+using Repository.Interfaces;
+using Service.Interfaces;
+using DataAccessLayer.Mappers;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using BusinessObject.Models;
+using Repository.HandleException;
+using Repository.Repositories;
+using Repository;
+
+namespace Service
+{
+    public class AccountService : IAccountService
+    {
+        private readonly IAccountRepository _accountRepository;
+        private readonly IUserRepository _userRepository;
+        private readonly IIdentityCardRepository _identityCardRepository;
+        private readonly IMailService _mailService;
+        private readonly IRoleRepository _roleRepository;
+        private readonly ISubscriptionRepository _subscriptionRepository;
+        private readonly ICommuneRepository _communeRepository;
+        public AccountService(IAccountRepository accountRepository, IUserRepository userRepository, 
+            IMailService mailService, IRoleRepository roleRepository,IIdentityCardRepository identityCardRepository,
+            ISubscriptionRepository subscriptionRepository, ICommuneRepository communeRepository)
+        {
+            _accountRepository = accountRepository;
+            _userRepository = userRepository;
+            _mailService = mailService;
+            _identityCardRepository = identityCardRepository;
+            _roleRepository = roleRepository;
+            _subscriptionRepository = subscriptionRepository;
+            _communeRepository = communeRepository;
+        }
+        public async Task AddAsync(AddAccountRequestModel userDto)
+        {
+            var errors = new Dictionary<string, string>();
+
+            var duplicateField = await CheckDuplicateFieldsAsync(userDto, userDto.idNumber);
+            if (duplicateField != null)
+            {
+                errors["duplicateField"] = duplicateField;
+            }
+
+            if (errors.Any())
+                throw new CustomValidationError(errors);
+
+            var officerRole = await _roleRepository.GetByNameAsync("Officer");
+            if (officerRole == null)
+                throw new Exception("Officer role does not exist. Please initialize roles first.");
+
+            var accountId = Guid.NewGuid();
+
+            var account = new Account
+            {
+                Id = accountId,
+                Email = userDto.email,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(userDto.password),
+                FullName = userDto.fullName,
+                DateOfBirth = userDto.dateOfBirth.ToUniversalTime(),
+                Phone = userDto.phone,
+                Gender = userDto.gender,
+                TotalPoint = 0,
+                Status = "active",
+                RoleId = officerRole.Id,
+                ImageUrl = "",
+                ActivationCode = null,
+                RefreshToken = null,
+                RefreshTokenExpiry = null,
+                IsLoggedIn = false,
+                IsBiometricEnabled = false,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            var identityCard = new CitizenIdentityCard
+            {
+                Id = Guid.NewGuid(),
+                UserId = accountId,
+                IdNumber = userDto.idNumber,
+                Address = userDto.address,
+                IssueDate = userDto.issueDate.ToUniversalTime(),
+                ExpiryDate = userDto.expiryDate.ToUniversalTime(),
+                PlaceOfIssue = userDto.placeOfIssue,
+                PlaceOfBirth = userDto.placeOfBirth,
+                FrontImageUrl = "N/A",
+                BackImageUrl = "N/A",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            await _accountRepository.AddAsync(account);
+            await _identityCardRepository.CreateAsync(identityCard);
+
+            string subject = "Thông tin tài khoản Cán bộ địa phương";
+            string message = $@"
+        <p>Kính chào anh/chị,</p>
+        <p>Hệ thống <strong>Safe City</strong> đã khởi tạo tài khoản Cán bộ địa phương.</p>
+        <p><strong>Thông tin đăng nhập:</strong></p>
+        <ul>
+            <li><strong>Email:</strong> {userDto.email}</li>
+            <li><strong>Mật khẩu:</strong> {userDto.password}</li>
+        </ul>
+        <p>Vui lòng đăng nhập và đổi mật khẩu ngay sau lần đăng nhập đầu tiên để đảm bảo bảo mật.</p>
+        <p>Trân trọng,<br/>Safe City</p>";
+
+            await _mailService.SendEmailVerificationCode(userDto.email, subject, message);
+        }
+
+        private async Task<string?> CheckDuplicateFieldsAsync(AddAccountRequestModel userDto, string idNumber)
+        {
+            if (await _userRepository.GetByEmailAsync(userDto.email) != null)
+                return "Email already exists.";
+
+            if (await _userRepository.GetByPhoneAsync(userDto.phone) != null)
+                return "Phone number already exists.";
+
+            if (await _userRepository.GetByIdNumberAsync(idNumber) != null)
+                return "Cccd number already exists.";
+
+            return null;
+        }
+
+        public async Task<AccountResponseModel> DeleteAsync(Guid id)
+        {
+            var result = await _accountRepository.DeleteAsync(id);
+            return result.ToAccountResponseModel(await _subscriptionRepository.GetCurrentSubscriptionAsync(result));
+        }
+
+        public async Task<IEnumerable<AccountResponseModel>> GetAllAsync()
+        {
+            var result = await _accountRepository.GetAllAsync();
+            var responseModels = new List<AccountResponseModel>();
+            foreach (var x in result)
+            {
+                var sub = await _subscriptionRepository.GetCurrentSubscriptionAsync(x);
+                responseModels.Add(x.ToAccountResponseModel(sub));
+            }
+            return responseModels;
+        }
+
+        public async Task<IEnumerable<OfficerResponseModel>> GetAllOfficerAsync()
+        {
+            var result = await _accountRepository.GetAllOfficerAsync();
+            var responseModels = await Task.WhenAll(result.Select(async x =>
+               x.ToOfficerResponseModel()));
+            return responseModels;
+        }
+
+        public async Task<AccountResponseModel> GetByIdAsync(Guid id)
+        {
+            var result = await _accountRepository.GetByIdAsync(id);
+            if (result == null) throw new KeyNotFoundException();
+            return result.ToAccountResponseModel(await _subscriptionRepository.GetCurrentSubscriptionAsync(result));
+        }
+
+        public async Task<AccountResponseModel> UpdateAsync(Guid id, UpdateAccountRequestModel requestModel)
+        {
+            var accounts = await _accountRepository.GetAllAsync();
+            if (accounts.FirstOrDefault(x => x.Email.ToLower() == requestModel.Email.ToLower()) != null)
+            {
+                throw new InvalidOperationException("Account email must be unique");
+            }
+            var result = await _accountRepository.UpdateAsync(requestModel.ToAccount(id));
+            return result.ToAccountResponseModel(await _subscriptionRepository.GetCurrentSubscriptionAsync(result));
+        }
+        public async Task<AccountResponseModel> UpdateStatusAsync(Guid id, UpdateAccountStatusRequestModel requestModel)
+        {
+            var allowedStatuses = new[] { "active", "inactive" };
+            if (!allowedStatuses.Contains(requestModel.Status.ToLower()))
+            {
+                throw new ArgumentException("Invalid status. Must be 'active' or 'inactive'.");
+            }
+
+            var account = await _accountRepository.GetByIdAsync(id);
+            if (account == null)
+                throw new KeyNotFoundException("Account not found.");
+
+            account.Status = requestModel.Status.ToLower();
+            var updated = await _accountRepository.UpdateOfficerAsync(account);
+            var subscription = await _subscriptionRepository.GetCurrentSubscriptionAsync(updated);
+            return updated.ToAccountResponseModel(subscription);
+
+        }
+        public async Task<object> GetAppUserStatisticsAsync()
+        {
+
+            var allRoles = await _roleRepository.GetAllAsync();
+            var allAccounts = await _accountRepository.GetAllAsync();
+            var allCommunes = await _communeRepository.GetAllAsync();
+
+            var totalUsers = allAccounts.Count();
+            var activeUsers = allAccounts.Count(a => string.Equals(a.Status, "active", StringComparison.OrdinalIgnoreCase));
+            var inactiveUsers = allAccounts.Count(a => string.Equals(a.Status, "inactive", StringComparison.OrdinalIgnoreCase));
+
+
+            var roleStats = allRoles.Select(r => new
+            {
+                role = r.Name,
+                total = allAccounts.Count(a => a.RoleId == r.Id),
+                active = allAccounts.Count(a => a.RoleId == r.Id && a.Status.Equals("active", StringComparison.OrdinalIgnoreCase)),
+                inactive = allAccounts.Count(a => a.RoleId == r.Id && a.Status.Equals("inactive", StringComparison.OrdinalIgnoreCase))
+            }).ToList();
+
+
+            var officerRole = allRoles.FirstOrDefault(r => r.Name.Equals("Officer", StringComparison.OrdinalIgnoreCase));
+            var officerStatsByCommune = new List<object>();
+
+            if (officerRole != null)
+            {
+                officerStatsByCommune = allCommunes.Select(c => new
+                {
+                    commune = c.Name,
+                    total = allAccounts.Count(a => a.RoleId == officerRole.Id && a.CommuneId == c.Id),
+                    active = allAccounts.Count(a => a.RoleId == officerRole.Id && a.CommuneId == c.Id && a.Status.Equals("active", StringComparison.OrdinalIgnoreCase)),
+                    inactive = allAccounts.Count(a => a.RoleId == officerRole.Id && a.CommuneId == c.Id && a.Status.Equals("inactive", StringComparison.OrdinalIgnoreCase))
+                }).ToList<object>();
+            }
+
+            return new
+            {
+                appUsers = new
+                {
+                    total = totalUsers,
+                    active = activeUsers,
+                    inactive = inactiveUsers
+                },
+                roles = roleStats,
+                officersByCommune = officerStatsByCommune
+            };
+        }
+
+    }
+}
