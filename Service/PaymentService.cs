@@ -134,6 +134,7 @@ namespace Service
             {
                 payment.Status = "Paid";
                 payment.PaidAt = DateTime.UtcNow;
+                payment.User.RemainingVirtualEscorts += payment.Subscription.Package.MonthlyVirtualEscortLimit;
                 if (payment.Subscription != null)
                 {
                     payment.Subscription.IsActive = true;
