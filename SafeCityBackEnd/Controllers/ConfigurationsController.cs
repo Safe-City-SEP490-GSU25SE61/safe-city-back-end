@@ -21,11 +21,12 @@ namespace SafeCityBackEnd.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] string? keyword)
         {
-            var configs = await _service.GetAllAsync();
+            var configs = await _service.GetAllAsync(keyword);
             return Ok(configs);
         }
+
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
@@ -36,7 +37,7 @@ namespace SafeCityBackEnd.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] ConfigurationCreateDto dto)
+        public async Task<IActionResult> Create([FromForm] ConfigurationCreateDto dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -45,7 +46,7 @@ namespace SafeCityBackEnd.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> Update([FromBody] ConfigurationUpdateDto dto)
+        public async Task<IActionResult> Update([FromForm] ConfigurationUpdateDto dto)
         {
             var updated = await _service.UpdateAsync(dto);
             if (updated == null) return NotFound();

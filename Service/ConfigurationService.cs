@@ -1,5 +1,6 @@
 ﻿using BusinessObject.DTOs.RequestModels;
 using BusinessObject.Models;
+using MediatR;
 using Repository.Interfaces;
 using Service.Interfaces;
 using System;
@@ -13,15 +14,17 @@ namespace Service
     public class ConfigurationService : IConfigurationService
     {
         private readonly IConfigurationRepository _repository;
+        private readonly IFirebaseStorageService _firebaseStorageService;
 
-        public ConfigurationService(IConfigurationRepository repository)
+        public ConfigurationService(IConfigurationRepository repository, IFirebaseStorageService firebaseStorageService)
         {
             _repository = repository;
+            _firebaseStorageService = firebaseStorageService;
         }
 
-        public async Task<List<ConfigurationResponseDto>> GetAllAsync()
+        public async Task<List<ConfigurationResponseDto>> GetAllAsync(string? keyword)
         {
-            var configs = await _repository.GetAllAsync();
+            var configs = await _repository.GetAllAsync(keyword);
             return configs.Select(c => new ConfigurationResponseDto
             {
                 Id = c.Id,
@@ -49,13 +52,27 @@ namespace Service
 
         public async Task<ConfigurationResponseDto> CreateAsync(ConfigurationCreateDto dto)
         {
+            var image = (dto.MediaFile != null && dto.MediaFile.ContentType?.StartsWith("image") == true)
+                ? dto.MediaFile
+                : null;
+
             var config = new Configuration
             {
                 Category = dto.Category,
                 Key = dto.Key,
-                Value = dto.Value,
                 Description = dto.Description
             };
+
+            if (image != null)
+            {
+                var url = await _firebaseStorageService.UploadFileAsync(image, "uploads");
+
+                config.Value = url;
+            }
+            else
+            {
+                config.Value = string.IsNullOrWhiteSpace(dto.Value) ? null : dto.Value.Trim();
+            }
 
             await _repository.AddAsync(config);
 
@@ -74,9 +91,23 @@ namespace Service
             var config = await _repository.GetByIdAsync(dto.Id);
             if (config == null) return null;
 
+            var image = (dto.MediaFile != null && dto.MediaFile.ContentType?.StartsWith("image") == true)
+                ? dto.MediaFile
+                : null;
+
+            if (image != null)
+            {
+                var url = await _firebaseStorageService.UploadFileAsync(image, "uploads");
+
+                config.Value = url;
+            }
+            else
+            {
+                config.Value = string.IsNullOrWhiteSpace(dto.Value) ? null : dto.Value.Trim();
+            }
+
             config.Category = dto.Category;
             config.Key = dto.Key;
-            config.Value = dto.Value;
             config.Description = dto.Description;
 
             await _repository.UpdateAsync(config);

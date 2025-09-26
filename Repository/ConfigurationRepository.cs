@@ -29,9 +29,19 @@ namespace Repository
             return await _context.Configurations.FirstOrDefaultAsync(c => c.Key.ToLower().Equals(keyName.ToLower()));
         }
 
-        public async Task<List<Configuration>> GetAllAsync()
+        public async Task<List<Configuration>> GetAllAsync(string? keyword)
         {
-            return await _context.Configurations.ToListAsync();
+            var query = _context.Configurations.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                keyword = keyword.Trim().ToLower();
+                query = query.Where(c =>
+                    c.Key.ToLower().Contains(keyword) ||
+                    c.Category.ToLower().Contains(keyword));
+            }
+
+            return await query.ToListAsync();
         }
 
         public async Task AddAsync(Configuration config)

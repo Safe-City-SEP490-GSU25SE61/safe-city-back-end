@@ -37,6 +37,7 @@ namespace Repository
                     Content = b.Content,
                     Type = b.Type,
                     AuthorName = b.Author.FullName,
+                    AuthorId = b.AuthorId,
                     CommentNumber = b.Comments.Count(),
                     LikeNumber = b.Likes.Count(),
                     IsApproved = b.IsApproved,

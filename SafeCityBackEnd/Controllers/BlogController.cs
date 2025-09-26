@@ -137,6 +137,20 @@ namespace SafeCityBackEnd.Controllers
             }          
         }
 
+        [HttpGet("officer/citizen-blog-history")]
+        public async Task<IActionResult> GetCreatedBlogsByUser(Guid userId)
+        {
+            try
+            {
+                var blogs = await _blogService.GetCreatedBlogsByUser(userId);
+                return CustomSuccessHandler.ResponseBuilder(HttpStatusCode.OK, "Get citizen blog history successfully", blogs);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
         [HttpGet("user")]
         public async Task<IActionResult> GetBlogsByFilter([FromQuery] BlogFilterDto filter, bool isFirstRequest)
         {
