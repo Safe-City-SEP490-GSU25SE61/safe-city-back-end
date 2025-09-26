@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -20,6 +21,7 @@ namespace BusinessObject.DTOs.RequestModels
         [Required(ErrorMessage = "Value is required.")]
         [StringLength(200, ErrorMessage = "Value cannot be longer than 200 characters.")]
         public string? Value { get; set; }
+        public IFormFile? MediaFile { get; set; }
 
         [Required(ErrorMessage = "Description is required.")]
         [StringLength(500, ErrorMessage = "Description cannot be longer than 500 characters.")]
@@ -43,6 +45,7 @@ namespace BusinessObject.DTOs.RequestModels
         [Required(ErrorMessage = "Value is required.")]
         [StringLength(200, ErrorMessage = "Value cannot be longer than 200 characters.")]
         public string? Value { get; set; }
+        public IFormFile? MediaFile { get; set; }
 
         [Required(ErrorMessage = "Description is required.")]
         [StringLength(500, ErrorMessage = "Description cannot be longer than 500 characters.")]

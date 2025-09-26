@@ -48,6 +48,7 @@ namespace BusinessObject.DTOs.ResponseModels
         public string Content { get; set; }
         public BlogType Type { get; set; }
         public string AuthorName { get; set; }
+        public Guid AuthorId { get; set; }
         public int LikeNumber { get; set; }
         public int CommentNumber { get; set; }
         public bool Pinned { get; set; }

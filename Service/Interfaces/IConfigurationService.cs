@@ -10,7 +10,7 @@ namespace Service.Interfaces
 {
     public interface IConfigurationService
     {
-        Task<List<ConfigurationResponseDto>> GetAllAsync();
+        Task<List<ConfigurationResponseDto>> GetAllAsync(string? keyword);
         Task<ConfigurationResponseDto> GetByIdAsync(int id);
         Task<ConfigurationResponseDto> CreateAsync(ConfigurationCreateDto dto);
         Task<ConfigurationResponseDto> UpdateAsync(ConfigurationUpdateDto dto);

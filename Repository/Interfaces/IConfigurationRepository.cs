@@ -11,7 +11,7 @@ namespace Repository.Interfaces
     {
         Task<Configuration?> GetByIdAsync(int id);
         Task<Configuration?> GetByKeyNameAsync(string keyName);
-        Task<List<Configuration>> GetAllAsync();
+        Task<List<Configuration>> GetAllAsync(string? keyword);
         Task AddAsync(Configuration config);
         Task UpdateAsync(Configuration config);
         Task DeleteAsync(Configuration config);
