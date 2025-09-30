@@ -327,3 +327,8 @@ C:\SafeCity\SafeCityBackEnd\bin\Debug\net8.0\Microsoft.AspNetCore.SignalR.Client
 C:\SafeCity\SafeCityBackEnd\bin\Debug\net8.0\Microsoft.AspNetCore.SignalR.Common.dll
 C:\SafeCity\SafeCityBackEnd\bin\Debug\net8.0\Microsoft.AspNetCore.SignalR.Protocols.Json.dll
 C:\SafeCity\SafeCityBackEnd\bin\Debug\net8.0\Microsoft.Extensions.Features.dll
+C:\Project-Capstone\safe-city-back-end\SafeCityBackEnd\bin\Debug\net8.0\AgoraIO.dll
+C:\Project-Capstone\safe-city-back-end\SafeCityBackEnd\bin\Debug\net8.0\Crc32.NET.dll
+C:\Project-Capstone\safe-city-back-end\SafeCityBackEnd\bin\Debug\net8.0\NetTopologySuite.dll
+C:\Project-Capstone\safe-city-back-end\SafeCityBackEnd\bin\Debug\net8.0\NetTopologySuite.Features.dll
+C:\Project-Capstone\safe-city-back-end\SafeCityBackEnd\bin\Debug\net8.0\NetTopologySuite.IO.GeoJSON.dll

@@ -1,4 +1,5 @@
 ﻿using BusinessObject.DTOs.RequestModels;
+using BusinessObject.DTOs.ResponseModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -15,10 +16,12 @@ namespace SafeCityBackEnd.Controllers
     public class VirtualEscortController : ControllerBase
     {
         private readonly IVirtualEscortService _virtualEscortService;
+        private readonly ISosAlertService _sosService;
 
-        public VirtualEscortController(IVirtualEscortService virtualEscortService)
+        public VirtualEscortController(IVirtualEscortService virtualEscortService, ISosAlertService sosAlertService)
         {
             _virtualEscortService = virtualEscortService;
+            _sosService = sosAlertService;
         }
 
 
@@ -85,6 +88,48 @@ namespace SafeCityBackEnd.Controllers
             {
                 return BadRequest(new { message = "Unexpected error", error = ex.Message });
             }
+        }
+
+        [HttpPost("start")]
+        public async Task<IActionResult> StartSos([FromBody] SosCreateRequest req)
+        {
+            if (req == null) return BadRequest("Invalid request");
+
+            var senderToken = await _sosService.CreateAlertAsync(
+                req.EscortJourneyId,
+                req.SenderId,
+                req.Lat,
+                req.Lng,
+                DateTime.UtcNow
+            );
+
+            return Ok(new
+            {
+                ChannelName = $"sos_{req.EscortJourneyId}", 
+                SenderToken = senderToken.token
+            });
+        }
+
+
+        [HttpPost("{sosAlertId}/end")]
+        public async Task<IActionResult> EndSos(int sosAlertId)
+        {
+            await _sosService.EndSosCallAsync(sosAlertId);
+            return Ok(new { Message = "SOS call ended" });
+        }
+
+        [HttpPost("{sosAlertId}/watchers/{watcherRecordId}/join")]
+        public async Task<IActionResult> JoinWatcher(int sosAlertId, int watcherRecordId)
+        {
+            await _sosService.JoinWatcherAsync(sosAlertId, watcherRecordId);
+            return Ok(new { Message = "Watcher joined" });
+        }
+
+        [HttpPost("{sosAlertId}/watchers/{watcherRecordId}/leave")]
+        public async Task<IActionResult> LeaveWatcher(int sosAlertId, int watcherRecordId)
+        {
+            await _sosService.LeaveWatcherAsync(sosAlertId, watcherRecordId);
+            return Ok(new { Message = "Watcher left" });
         }
     }
 }

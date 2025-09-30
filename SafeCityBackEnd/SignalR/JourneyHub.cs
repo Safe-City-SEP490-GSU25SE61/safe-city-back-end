@@ -104,11 +104,11 @@ namespace SafeCityBackEnd.SignalR
 
             Guid senderId = Guid.Parse(Context.UserIdentifier);
 
-            var senderName = await _sosAlertService.CreateAlertAsync(escortJourneyId, senderId, lat, lng, timestamp);
+            var alertInfo = await _sosAlertService.CreateAlertAsync(escortJourneyId, senderId, lat, lng, timestamp);
             _logger.LogWarning($"SoS Alert: {lat}, {lng} . TimeStamp: {timestamp}");
 
             await Clients.Group($"journey-{escortJourneyId}-observers").SendAsync("ReceiveSos",
-                $"{senderName} hiện đang gửi tín hiệu cầu cứu.", (double)lat, (double)lng);
+                $"{alertInfo.senderName} hiện đang gửi tín hiệu cầu cứu.", (double)lat, (double)lng, alertInfo.token);
         }
 
         public override async Task OnDisconnectedAsync(Exception? exception)

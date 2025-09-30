@@ -1,6 +1,7 @@
 ﻿using BusinessObject.Models;
 using DataAccessLayer.DataContext;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Repository.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -29,6 +30,18 @@ namespace Repository
                 .FirstOrDefaultAsync();
 
             return fullName;
+        }
+        public async Task<SosAlert?> GetByIdAsync(int id)
+        {
+            return await _context.SosAlerts
+                .Include(s => s.EscortJourney)
+                .FirstOrDefaultAsync(s => s.Id == id);
+        }
+
+        public async Task UpdateAsync(SosAlert entity)
+        {
+            _context.SosAlerts.Update(entity);
+            await _context.SaveChangesAsync();
         }
     }
 }

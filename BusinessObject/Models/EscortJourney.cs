@@ -71,13 +71,22 @@ namespace BusinessObject.Models
         [Column("deviation_alert_sent")]
         public bool DeviationAlertSent { get; set; } = false;
 
+        [JsonIgnore]
         public Account User { get; set; }
 
         [JsonIgnore]
         public EscortJourneyGroupMember Member { get; set; }
+
+        [JsonIgnore]
         public EscortJourneyGroup CreatedInGroup { get; set; }
+
+        [JsonIgnore]
         public ICollection<EscortJourneyWatcher> Watchers { get; set; }
+
+        [JsonIgnore]
         public ICollection<SosAlert> SosAlerts { get; set; }
+
+        [JsonIgnore]
         public ICollection<LocationHistory> LocationHistories { get; set; }
 
     }
