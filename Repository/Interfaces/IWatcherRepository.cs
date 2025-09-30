@@ -12,6 +12,7 @@ namespace Repository.Interfaces
     {
         Task<List<EscortJourneyWatcher>> GetWatchersByJourneyIdAsync(int escortJourneyId);
         Task<List<EscortJourneyWatcher>> GetWatchersBySosAlertAsync(int sosAlertId, int? escortJourneyId = null);
+        Task<EscortJourneyWatcher?> GetBySosAlertIdAndUserIdAsync(int AlertId, Guid userId);
         Task UpdateAsync(EscortJourneyWatcher watcher);
         Task<EscortJourneyWatcher?> GetByIdAsync(int id);
         Task<IDbContextTransaction> BeginTransactionAsync();

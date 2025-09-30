@@ -13,5 +13,7 @@ namespace Repository.Interfaces
         Task<string> CreateAsync(SosAlert alert);
         Task<SosAlert?> GetByIdAsync(int id);
         Task UpdateAsync(SosAlert entity);
+        Task<SosAlert?> GetLatestBySenderIdAsync(Guid senderId);
     }
 }
+

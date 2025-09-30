@@ -43,5 +43,13 @@ namespace Repository
             _context.SosAlerts.Update(entity);
             await _context.SaveChangesAsync();
         }
+        public async Task<SosAlert?> GetLatestBySenderIdAsync(Guid senderId)
+        {
+            return await _context.SosAlerts
+                .Where(a => a.SenderId == senderId)
+                .Include(a => a.Sender)
+                .OrderByDescending(a => a.CreatedAt)
+                .FirstOrDefaultAsync();
+        }
     }
 }

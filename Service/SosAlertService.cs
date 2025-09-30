@@ -1,5 +1,6 @@
 ﻿using BusinessObject.DTOs.ResponseModels;
 using BusinessObject.Models;
+using Repository;
 using Repository.Interfaces;
 using Service.Interfaces;
 using System;
@@ -113,10 +114,10 @@ namespace Service
             }
         }
 
-        public async Task JoinWatcherAsync(int sosAlertId, int watcherRecordId)
+        public async Task<string?> JoinWatcherAsync(int sosAlertId, Guid userId)
         {
             var sos = await _sosRepo.GetByIdAsync(sosAlertId) ?? throw new KeyNotFoundException("SosAlert not found");
-            var watcher = await _watcherRepo.GetByIdAsync(watcherRecordId) ?? throw new KeyNotFoundException("Watcher not found");
+            var watcher = await _watcherRepo.GetBySosAlertIdAndUserIdAsync(sosAlertId, userId) ?? throw new KeyNotFoundException("Watcher not found");
 
             watcher.JoinTime = DateTime.UtcNow;
             watcher.CallStatus = "Joined";
@@ -128,12 +129,13 @@ namespace Service
                 if (!sos.CreatedAt.HasValue) sos.CreatedAt = DateTime.UtcNow;
                 await _sosRepo.UpdateAsync(sos);
             }
+            return watcher.Token;
         }
 
-        public async Task LeaveWatcherAsync(int sosAlertId, int watcherRecordId)
+        public async Task LeaveWatcherAsync(int sosAlertId, Guid userId)
         {
             var sos = await _sosRepo.GetByIdAsync(sosAlertId) ?? throw new KeyNotFoundException("SosAlert not found");
-            var watcher = await _watcherRepo.GetByIdAsync(watcherRecordId) ?? throw new KeyNotFoundException("Watcher not found");
+            var watcher = await _watcherRepo.GetBySosAlertIdAndUserIdAsync(sosAlertId, userId) ?? throw new KeyNotFoundException("Watcher not found");
 
             watcher.LeaveTime = DateTime.UtcNow;
             watcher.CallStatus = "Left";
@@ -149,6 +151,11 @@ namespace Service
                     sos.CallDuration = sos.EndedAt - sos.CreatedAt;
                 await _sosRepo.UpdateAsync(sos);
             }
+        }
+
+        public async Task<SosAlert?> GetLatestAlertBySenderIdAsync(Guid senderId)
+        {
+            return await _sosRepo.GetLatestBySenderIdAsync(senderId);
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using BusinessObject.DTOs.RequestModels;
+﻿using AutoMapper.Execution;
+using BusinessObject.DTOs.RequestModels;
 using BusinessObject.DTOs.ResponseModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -105,30 +106,47 @@ namespace SafeCityBackEnd.Controllers
 
             return Ok(new
             {
-                ChannelName = $"sos_{req.EscortJourneyId}", 
+                ChannelName = $"sos_{req.EscortJourneyId}",
                 SenderToken = senderToken.token
             });
         }
 
 
-        [HttpPost("{sosAlertId}/end")]
-        public async Task<IActionResult> EndSos(int sosAlertId)
+        //[HttpPost("{sosAlertId}/end")]
+        //public async Task<IActionResult> EndSos(int sosAlertId)
+        //{
+        //    await _sosService.EndSosCallAsync(sosAlertId);
+        //    return Ok(new { Message = "SOS call ended" });
+        //}
+
+        [HttpPost("{sosAlertId}/watchers/join")]
+        public async Task<IActionResult> JoinWatcher(int sosAlertId)
         {
-            await _sosService.EndSosCallAsync(sosAlertId);
-            return Ok(new { Message = "SOS call ended" });
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+                return CustomErrorHandler.SimpleError("User ID claim not found.", 401);
+
+            var userId = Guid.Parse(userIdClaim.Value);
+            try
+            {
+                var token = await _sosService.JoinWatcherAsync(sosAlertId, userId);
+                return Ok(token);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Unexpected error", error = ex.Message });
+            }
         }
 
-        [HttpPost("{sosAlertId}/watchers/{watcherRecordId}/join")]
-        public async Task<IActionResult> JoinWatcher(int sosAlertId, int watcherRecordId)
+        [HttpPost("{sosAlertId}/watchers/leave")]
+        public async Task<IActionResult> LeaveWatcher(int sosAlertId)
         {
-            await _sosService.JoinWatcherAsync(sosAlertId, watcherRecordId);
-            return Ok(new { Message = "Watcher joined" });
-        }
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+                return CustomErrorHandler.SimpleError("User ID claim not found.", 401);
 
-        [HttpPost("{sosAlertId}/watchers/{watcherRecordId}/leave")]
-        public async Task<IActionResult> LeaveWatcher(int sosAlertId, int watcherRecordId)
-        {
-            await _sosService.LeaveWatcherAsync(sosAlertId, watcherRecordId);
+            var userId = Guid.Parse(userIdClaim.Value);
+            await _sosService.LeaveWatcherAsync(sosAlertId, userId);
             return Ok(new { Message = "Watcher left" });
         }
     }

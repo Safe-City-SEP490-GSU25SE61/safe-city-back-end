@@ -50,6 +50,17 @@ namespace Repository
         {
             return await _db.EscortJourneyWatchers.FindAsync(id);
         }
+
+        public async Task<EscortJourneyWatcher?> GetBySosAlertIdAndUserIdAsync(int alertId, Guid userId)
+        {
+            var alert = await _db.SosAlerts.FindAsync(alertId);
+            if (alert == null)
+                return null;
+
+            return await _db.EscortJourneyWatchers.Include(w => w.Watcher)
+                .FirstOrDefaultAsync(w => w.CallSessionName == alert.CallChannelName && w.Watcher.AccountId == userId);
+        }
+
         public async Task<IDbContextTransaction> BeginTransactionAsync()
         {
             return await _db.Database.BeginTransactionAsync();
