@@ -1,4 +1,6 @@
-﻿using BusinessObject.DTOs.RequestModels;
+﻿using AutoMapper.Execution;
+using BusinessObject.DTOs.RequestModels;
+using BusinessObject.DTOs.ResponseModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -15,10 +17,12 @@ namespace SafeCityBackEnd.Controllers
     public class VirtualEscortController : ControllerBase
     {
         private readonly IVirtualEscortService _virtualEscortService;
+        private readonly ISosAlertService _sosService;
 
-        public VirtualEscortController(IVirtualEscortService virtualEscortService)
+        public VirtualEscortController(IVirtualEscortService virtualEscortService, ISosAlertService sosAlertService)
         {
             _virtualEscortService = virtualEscortService;
+            _sosService = sosAlertService;
         }
 
 
@@ -85,6 +89,71 @@ namespace SafeCityBackEnd.Controllers
             {
                 return BadRequest(new { message = "Unexpected error", error = ex.Message });
             }
+        }
+
+        [HttpPost("start")]
+        public async Task<IActionResult> StartSos([FromBody] SosCreateRequest req)
+        {
+            if (req == null) return BadRequest("Invalid request");
+
+            var senderToken = await _sosService.CreateAlertAsync(
+                req.EscortJourneyId,
+                req.SenderId,
+                req.Lat,
+                req.Lng,
+                DateTime.UtcNow
+            );
+
+            return Ok(new
+            {
+                ChannelName = $"sos_{req.EscortJourneyId}",
+                SenderName = senderToken.senderName,
+                SenderToken = senderToken.token,
+                AlertId = senderToken.alertId,
+            });
+        }
+
+
+        [HttpPost("{sosAlertId}/end")]
+        public async Task<IActionResult> EndSos(int sosAlertId)
+        {
+            await _sosService.EndSosCallAsync(sosAlertId);
+            return Ok(new { Message = "SOS call ended" });
+        }
+
+        [HttpPost("{sosAlertId}/watchers/join")]
+        public async Task<IActionResult> JoinWatcher(int sosAlertId)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+                return CustomErrorHandler.SimpleError("User ID claim not found.", 401);
+
+            var userId = Guid.Parse(userIdClaim.Value);
+            try
+            {
+                var token = await _sosService.JoinWatcherAsync(sosAlertId, userId);
+                return Ok(new
+                {
+                    ChannelName = token.channelName,
+                    Token = token.token,
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Unexpected error", error = ex.Message });
+            }
+        }
+
+        [HttpPost("{sosAlertId}/watchers/leave")]
+        public async Task<IActionResult> LeaveWatcher(int sosAlertId)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+                return CustomErrorHandler.SimpleError("User ID claim not found.", 401);
+
+            var userId = Guid.Parse(userIdClaim.Value);
+            await _sosService.LeaveWatcherAsync(sosAlertId, userId);
+            return Ok(new { Message = "Watcher left" });
         }
     }
 }

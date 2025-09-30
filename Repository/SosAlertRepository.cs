@@ -1,6 +1,7 @@
 ﻿using BusinessObject.Models;
 using DataAccessLayer.DataContext;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Repository.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -19,7 +20,7 @@ namespace Repository
             _context = context;
         }
 
-        public async Task<string> CreateAsync(SosAlert alert)
+        public async Task<(string senderName, int alertId)> CreateAsync(SosAlert alert)
         {
             await _context.SosAlerts.AddAsync(alert);
             await _context.SaveChangesAsync();
@@ -27,8 +28,27 @@ namespace Repository
                 .Where(a => a.Id == alert.SenderId)
                 .Select(a => a.FullName)
                 .FirstOrDefaultAsync();
+            return (fullName, alert.Id);
+        }
+        public async Task<SosAlert?> GetByIdAsync(int id)
+        {
+            return await _context.SosAlerts
+                .Include(s => s.EscortJourney)
+                .FirstOrDefaultAsync(s => s.Id == id);
+        }
 
-            return fullName;
+        public async Task UpdateAsync(SosAlert entity)
+        {
+            _context.SosAlerts.Update(entity);
+            await _context.SaveChangesAsync();
+        }
+        public async Task<SosAlert?> GetLatestBySenderIdAsync(Guid senderId)
+        {
+            return await _context.SosAlerts
+                .Where(a => a.SenderId == senderId)
+                .Include(a => a.Sender)
+                .OrderByDescending(a => a.CreatedAt)
+                .FirstOrDefaultAsync();
         }
     }
 }

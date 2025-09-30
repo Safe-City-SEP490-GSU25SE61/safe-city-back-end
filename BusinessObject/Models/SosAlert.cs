@@ -31,6 +31,23 @@ namespace BusinessObject.Models
         [Column("timestamp")]
         public DateTime Timestamp { get; set; }
 
+        [Column("call_channel_name")]
+        public string? CallChannelName { get; set; }
+
+        [Column("call_type")]
+        public string? CallType { get; set; } // Enum: Voice, Video, GroupVideo
+
+        [Column("call_status")]
+        public string? CallStatus { get; set; } // Enum: Ringing, Ongoing, Ended, Missed
+
+        [Column("created_at")]
+        public DateTime? CreatedAt { get; set; }
+
+        [Column("ended_at")]
+        public DateTime? EndedAt { get; set; }
+
+        [Column("call_duration")]
+        public TimeSpan? CallDuration { get; set; }
         public EscortJourney EscortJourney { get; set; }
         public Account Sender { get; set; }
     }

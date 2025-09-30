@@ -104,11 +104,30 @@ namespace SafeCityBackEnd.SignalR
 
             Guid senderId = Guid.Parse(Context.UserIdentifier);
 
-            var senderName = await _sosAlertService.CreateAlertAsync(escortJourneyId, senderId, lat, lng, timestamp);
+            var alertInfo = await _sosAlertService.CreateAlertAsync(escortJourneyId, senderId, lat, lng, timestamp);
             _logger.LogWarning($"SoS Alert: {lat}, {lng} . TimeStamp: {timestamp}");
 
             await Clients.Group($"journey-{escortJourneyId}-observers").SendAsync("ReceiveSos",
-                $"{senderName} hiện đang gửi tín hiệu cầu cứu.", (double)lat, (double)lng);
+                $"{alertInfo.senderName} hiện đang gửi tín hiệu cầu cứu.", (double)lat, (double)lng, alertInfo.token, alertInfo.alertId);
+        }
+
+        public async Task StartVideoCall()
+        {
+            if (!(Context.Items.TryGetValue("journeyId", out var journeyObj) && journeyObj is int escortJourneyId) || journeyObj == null)
+                throw new HubException("No journey found for this connection");
+
+            Guid senderId = Guid.Parse(Context.UserIdentifier);
+            var currentSosAlert = await _sosAlertService.GetLatestAlertBySenderIdAsync(senderId);
+            if (currentSosAlert == null)
+            {
+                _logger.LogWarning("Không tìm thấy SOS alert nào cho Sender {SenderId}", senderId);
+                throw new HubException("No active SOS alert found.");
+            }
+
+            _logger.LogWarning($"SoS Alert: {currentSosAlert.Id}");
+
+            await Clients.Group($"journey-{escortJourneyId}-observers").SendAsync("ReceiveVideoCall",
+                $"{currentSosAlert.Sender.FullName} hiện đang thực hiện cuộc gọi.", currentSosAlert.Id);
         }
 
         public override async Task OnDisconnectedAsync(Exception? exception)
