@@ -20,7 +20,7 @@ namespace Repository
             _context = context;
         }
 
-        public async Task<string> CreateAsync(SosAlert alert)
+        public async Task<(string senderName, int alertId)> CreateAsync(SosAlert alert)
         {
             await _context.SosAlerts.AddAsync(alert);
             await _context.SaveChangesAsync();
@@ -28,8 +28,7 @@ namespace Repository
                 .Where(a => a.Id == alert.SenderId)
                 .Select(a => a.FullName)
                 .FirstOrDefaultAsync();
-
-            return fullName;
+            return (fullName, alert.Id);
         }
         public async Task<SosAlert?> GetByIdAsync(int id)
         {

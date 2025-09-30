@@ -24,7 +24,7 @@ namespace Service
             _tokenProvider = tokenProvider;
         }
 
-        public async Task<(string senderName, string token)> CreateAlertAsync(int escortJourneyId, Guid senderId, decimal lat, decimal lng, DateTime timestamp)
+        public async Task<(string senderName, string token, int alertId)> CreateAlertAsync(int escortJourneyId, Guid senderId, decimal lat, decimal lng, DateTime timestamp)
         {
             var channelName = $"sos_{escortJourneyId}_{Guid.NewGuid():N}";
             var watchers = await _watcherRepo.GetWatchersByJourneyIdAsync(escortJourneyId);
@@ -87,8 +87,8 @@ namespace Service
             };
             var (senderToken, sIssuedAt, sExpireAt, sAgoraUid) = await _tokenProvider.GenerateRtcTokenAsync(channelName,
                 senderId.ToString(), "GroupVideo", expireInSeconds: 3600, role: 1);
-            var senderName = await _sosRepo.CreateAsync(alert);
-            return (senderName, senderToken);
+            var result = await _sosRepo.CreateAsync(alert);
+            return (result.senderName, senderToken, result.alertId);
         }
 
         public async Task EndSosCallAsync(int sosAlertId)
@@ -114,7 +114,7 @@ namespace Service
             }
         }
 
-        public async Task<string?> JoinWatcherAsync(int sosAlertId, Guid userId)
+        public async Task<(string? channelName, string? token)> JoinWatcherAsync(int sosAlertId, Guid userId)
         {
             var sos = await _sosRepo.GetByIdAsync(sosAlertId) ?? throw new KeyNotFoundException("SosAlert not found");
             var watcher = await _watcherRepo.GetBySosAlertIdAndUserIdAsync(sosAlertId, userId) ?? throw new KeyNotFoundException("Watcher not found");
@@ -129,7 +129,7 @@ namespace Service
                 if (!sos.CreatedAt.HasValue) sos.CreatedAt = DateTime.UtcNow;
                 await _sosRepo.UpdateAsync(sos);
             }
-            return watcher.Token;
+            return (watcher.CallSessionName, watcher.Token);
         }
 
         public async Task LeaveWatcherAsync(int sosAlertId, Guid userId)

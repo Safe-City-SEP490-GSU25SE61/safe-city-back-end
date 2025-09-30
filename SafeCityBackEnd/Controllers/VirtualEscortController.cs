@@ -107,17 +107,19 @@ namespace SafeCityBackEnd.Controllers
             return Ok(new
             {
                 ChannelName = $"sos_{req.EscortJourneyId}",
-                SenderToken = senderToken.token
+                SenderName = senderToken.senderName,
+                SenderToken = senderToken.token,
+                AlertId = senderToken.alertId,
             });
         }
 
 
-        //[HttpPost("{sosAlertId}/end")]
-        //public async Task<IActionResult> EndSos(int sosAlertId)
-        //{
-        //    await _sosService.EndSosCallAsync(sosAlertId);
-        //    return Ok(new { Message = "SOS call ended" });
-        //}
+        [HttpPost("{sosAlertId}/end")]
+        public async Task<IActionResult> EndSos(int sosAlertId)
+        {
+            await _sosService.EndSosCallAsync(sosAlertId);
+            return Ok(new { Message = "SOS call ended" });
+        }
 
         [HttpPost("{sosAlertId}/watchers/join")]
         public async Task<IActionResult> JoinWatcher(int sosAlertId)
@@ -130,7 +132,11 @@ namespace SafeCityBackEnd.Controllers
             try
             {
                 var token = await _sosService.JoinWatcherAsync(sosAlertId, userId);
-                return Ok(token);
+                return Ok(new
+                {
+                    ChannelName = token.channelName,
+                    Token = token.token,
+                });
             }
             catch (Exception ex)
             {
