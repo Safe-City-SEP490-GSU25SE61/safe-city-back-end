@@ -24,7 +24,7 @@ namespace Service
             _tokenProvider = tokenProvider;
         }
 
-        public async Task<(string senderName, string token, int alertId)> CreateAlertAsync(int escortJourneyId, Guid senderId, decimal lat, decimal lng, DateTime timestamp)
+        public async Task<(string senderName, string token, string channelName, int alertId)> CreateAlertAsync(int escortJourneyId, Guid senderId, decimal lat, decimal lng, DateTime timestamp)
         {
             var channelName = $"sos_{escortJourneyId}_{Guid.NewGuid():N}";
             var watchers = await _watcherRepo.GetWatchersByJourneyIdAsync(escortJourneyId);
@@ -88,7 +88,7 @@ namespace Service
             var (senderToken, sIssuedAt, sExpireAt, sAgoraUid) = await _tokenProvider.GenerateRtcTokenAsync(channelName,
                 senderId.ToString(), "GroupVideo", expireInSeconds: 3600, role: 1);
             var result = await _sosRepo.CreateAsync(alert);
-            return (result.senderName, senderToken, result.alertId);
+            return (result.senderName, senderToken, result.channelName, result.alertId);
         }
 
         public async Task EndSosCallAsync(int sosAlertId)
