@@ -97,7 +97,7 @@ namespace SafeCityBackEnd.SignalR
         }
 
 
-        public async Task SendSos(decimal lat, decimal lng, DateTime timestamp)
+        public async Task SendSos(decimal lat, decimal lng, DateTime timestamp, bool isVideoCall = false)
         {
             if (!(Context.Items.TryGetValue("journeyId", out var journeyObj) && journeyObj is int escortJourneyId) || journeyObj == null)
                 throw new HubException("No journey found for this connection");
@@ -106,9 +106,10 @@ namespace SafeCityBackEnd.SignalR
 
             var alertInfo = await _sosAlertService.CreateAlertAsync(escortJourneyId, senderId, lat, lng, timestamp);
             _logger.LogWarning($"SoS Alert: {lat}, {lng} . TimeStamp: {timestamp}");
-
+            if (!isVideoCall) {
             await Clients.Group($"journey-{escortJourneyId}-observers").SendAsync("ReceiveSos",
                 $"{alertInfo.senderName} hiện đang gửi tín hiệu cầu cứu.", (double)lat, (double)lng);
+            }
             await Clients.Group($"journey-{escortJourneyId}-leader").SendAsync("ReceiveToken", alertInfo.token, alertInfo.channelName, alertInfo.alertId);
         }
 
