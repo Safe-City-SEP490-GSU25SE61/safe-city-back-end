@@ -108,7 +108,8 @@ namespace SafeCityBackEnd.SignalR
             _logger.LogWarning($"SoS Alert: {lat}, {lng} . TimeStamp: {timestamp}");
 
             await Clients.Group($"journey-{escortJourneyId}-observers").SendAsync("ReceiveSos",
-                $"{alertInfo.senderName} hiện đang gửi tín hiệu cầu cứu.", (double)lat, (double)lng, alertInfo.token, alertInfo.alertId);
+                $"{alertInfo.senderName} hiện đang gửi tín hiệu cầu cứu.", (double)lat, (double)lng);
+            await Clients.Group($"journey-{escortJourneyId}-leader").SendAsync("ReceiveToken", alertInfo.token, alertInfo.alertId);
         }
 
         public async Task StartVideoCall()
