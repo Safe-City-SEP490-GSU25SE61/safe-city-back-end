@@ -9,7 +9,7 @@ namespace Service.Interfaces
 {
     public interface ISosAlertService
     {
-        Task<(string senderName, string token, int alertId)> CreateAlertAsync(int escortJourneyId, Guid senderId, decimal lat, decimal lng, DateTime timestamp);
+        Task<(string senderName, string token, string channelName, int alertId)> CreateAlertAsync(int escortJourneyId, Guid senderId, decimal lat, decimal lng, DateTime timestamp);
         Task EndSosCallAsync(int sosAlertId);
         //Task RefreshTokensForSosAsync(int sosAlertId, int expireInSeconds = 3600);
         Task<(string? channelName, string? token)> JoinWatcherAsync(int sosAlertId, Guid userId);

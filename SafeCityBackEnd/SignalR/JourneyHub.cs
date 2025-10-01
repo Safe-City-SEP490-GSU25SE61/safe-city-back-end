@@ -109,7 +109,7 @@ namespace SafeCityBackEnd.SignalR
 
             await Clients.Group($"journey-{escortJourneyId}-observers").SendAsync("ReceiveSos",
                 $"{alertInfo.senderName} hiện đang gửi tín hiệu cầu cứu.", (double)lat, (double)lng);
-            await Clients.Group($"journey-{escortJourneyId}-leader").SendAsync("ReceiveToken", alertInfo.token, alertInfo.alertId);
+            await Clients.Group($"journey-{escortJourneyId}-leader").SendAsync("ReceiveToken", alertInfo.token, alertInfo.channelName, alertInfo.alertId);
         }
 
         public async Task StartVideoCall()
