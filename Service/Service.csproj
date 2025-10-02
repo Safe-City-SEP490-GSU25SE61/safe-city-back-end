@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Tools\DynamicKey\AgoraDynamicKey\csharp\src\AgoraIO\AgoraIO.csproj" />
+    <ProjectReference Include="..\AgoraIO\AgoraIO.csproj" />
     <ProjectReference Include="..\Repository\Repository.csproj" />
   </ItemGroup>
 
