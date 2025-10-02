@@ -35,11 +35,11 @@ namespace Service
             {
                 foreach (var w in watchers)
                 {
-                    var uid = w.AgoraUid ?? w.WatcherId.ToString();
+                    //var uid = w.AgoraUid ?? w.WatcherId.ToString();
 
                     var (token, issuedAt, expireAt, agoraUid) =
                         await _tokenProvider.GenerateRtcTokenAsync(
-                            channelName, uid, "GroupVideo", expireInSeconds: 3600, role: 0);
+                            channelName, "0", "GroupVideo", expireInSeconds: 3600, role: 0);
 
                     w.CallSessionName = channelName;
                     w.Role = w.Role ?? "Watcher";
@@ -86,7 +86,7 @@ namespace Service
                 CreatedAt = DateTime.UtcNow
             };
             var (senderToken, sIssuedAt, sExpireAt, sAgoraUid) = await _tokenProvider.GenerateRtcTokenAsync(channelName,
-                senderId.ToString(), "GroupVideo", expireInSeconds: 3600, role: 1);
+                "0", "GroupVideo", expireInSeconds: 3600, role: 1);
             var result = await _sosRepo.CreateAsync(alert);
             return (result.senderName, senderToken, result.channelName, result.alertId);
         }
