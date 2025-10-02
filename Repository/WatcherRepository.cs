@@ -22,6 +22,8 @@ namespace Repository
         public async Task<List<EscortJourneyWatcher>> GetWatchersByJourneyIdAsync(int escortJourneyId)
         {
             return await _db.EscortJourneyWatchers
+                .Include(w => w.Watcher)
+                .ThenInclude(m => m.Account)
                 .Where(w => w.EscortJourneyId == escortJourneyId)
                 .ToListAsync();
         }

@@ -22,6 +22,7 @@ namespace Repository.Interfaces
         Task AddMemberAsync(EscortJourneyGroupMember member);
         Task<bool> IsAlreadyInGroupAsync(Guid accountId, int groupId);
         Task<EscortJourneyGroupMember?> GetMemberbyUserIdAndGroupIdAsync(Guid accountId, int groupId);
+        //Task<string> GetMemberNamebyMemberIdAsync(int memberId);
         Task<int> GetMemberCountAsync(int groupId);
         Task<List<EscortJourneyGroup>> GetGroupsByAccountIdAsync(Guid accountId);
         Task<GroupWaitingRoomDto?> GetGroupWithLeaderAndMembersAsync(int groupId, Guid accountId);

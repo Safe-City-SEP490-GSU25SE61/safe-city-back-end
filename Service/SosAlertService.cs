@@ -26,7 +26,7 @@ namespace Service
             _journeyRepo = journeyRepo;
         }
 
-        public async Task<(string senderName, string token, string channelName, int alertId, int uid)> CreateAlertAsync(int escortJourneyId, Guid senderId, decimal lat, decimal lng, DateTime timestamp)
+        public async Task<(string senderName, string token, string channelName, int alertId, int uid, List<EscortJourneyWatcher>? watchers)> CreateAlertAsync(int escortJourneyId, Guid senderId, decimal lat, decimal lng, DateTime timestamp)
         {
             var channelName = $"sos_{escortJourneyId}_{Guid.NewGuid():N}";
             var watchers = await _watcherRepo.GetWatchersByJourneyIdAsync(escortJourneyId);
@@ -93,7 +93,7 @@ namespace Service
             var (senderToken, sIssuedAt, sExpireAt, sAgoraUid) = await _tokenProvider.GenerateRtcTokenAsync(channelName,
                 ownerId, "GroupVideo", expireInSeconds: 3600, role: 1);
             var result = await _sosRepo.CreateAsync(alert);
-            return (result.senderName, senderToken, result.channelName, result.alertId, journey.MemberId);
+            return (result.senderName, senderToken, result.channelName, result.alertId, journey.MemberId, watchers);
         }
 
         public async Task EndSosCallAsync(int sosAlertId)
