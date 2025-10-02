@@ -21,6 +21,35 @@ namespace Service
             _appCertificate = configuration["Agora:AppCertificate"] ?? throw new ArgumentNullException("Agora AppCertificate not found");
         }
 
+        //public Task<(string Token, DateTime IssuedAt, DateTime ExpireAt, string AgoraUid)> GenerateRtcTokenAsync(
+        //    string channelName,
+        //    string uid,
+        //    string callType,
+        //    int expireInSeconds = 3600,
+        //    int role = 1)
+        //{
+        //    var agoraRole = role == 1
+        //        ? RtcTokenBuilder.Role.RolePublisher
+        //        : RtcTokenBuilder.Role.RoleSubscriber;
+
+        //    var issuedAt = DateTime.UtcNow;
+        //    var expireAt = issuedAt.AddSeconds(expireInSeconds);
+
+        //    var agoraUid = uid;
+
+        //    uint expiresSeconds = (uint)(expireAt - issuedAt).TotalSeconds;
+        //    string token = RtcTokenBuilder.buildTokenWithUID(
+        //        _appId,
+        //        _appCertificate,
+        //        channelName,
+        //        Convert.ToUInt32(agoraUid.GetHashCode() & 0x7fffffff),
+        //        agoraRole,
+        //        expiresSeconds
+        //    );
+
+
+        //    return Task.FromResult((token, issuedAt, expireAt, agoraUid));
+        //}
         public Task<(string Token, DateTime IssuedAt, DateTime ExpireAt, string AgoraUid)> GenerateRtcTokenAsync(
             string channelName,
             string uid,
@@ -28,27 +57,26 @@ namespace Service
             int expireInSeconds = 3600,
             int role = 1)
         {
-            var agoraRole = role == 1
-                ? RtcTokenBuilder.Role.RolePublisher
-                : RtcTokenBuilder.Role.RoleSubscriber;
-
             var issuedAt = DateTime.UtcNow;
             var expireAt = issuedAt.AddSeconds(expireInSeconds);
-
             var agoraUid = uid;
 
-            uint expiresSeconds = (uint)(expireAt - issuedAt).TotalSeconds;
-            string token = RtcTokenBuilder.buildTokenWithUID(
-                _appId,
-                _appCertificate,
-                channelName,
-                Convert.ToUInt32(agoraUid.GetHashCode() & 0x7fffffff),
-                agoraRole,
-                expiresSeconds
-            );
+            uint agoraUidUint = (uint)(agoraUid.GetHashCode() & 0x7fffffff);
 
+            var token = new AccessToken(_appId, _appCertificate, channelName, agoraUidUint.ToString());
 
-            return Task.FromResult((token, issuedAt, expireAt, agoraUid));
+            token.addPrivilege(Privileges.kJoinChannel, (uint)expireInSeconds);
+
+            if (role == 1 || role == 2) 
+            {
+                token.addPrivilege(Privileges.kPublishAudioStream, (uint)expireInSeconds);
+                token.addPrivilege(Privileges.kPublishVideoStream, (uint)expireInSeconds);
+                token.addPrivilege(Privileges.kPublishDataStream, (uint)expireInSeconds);
+            }
+
+            string rtcToken = token.build();
+
+            return Task.FromResult((rtcToken, issuedAt, expireAt, agoraUid));
         }
     }
 

@@ -39,7 +39,7 @@ namespace Service
 
                     var (token, issuedAt, expireAt, agoraUid) =
                         await _tokenProvider.GenerateRtcTokenAsync(
-                            channelName, "0", "GroupVideo", expireInSeconds: 3600, role: 0);
+                            channelName, "0", "GroupVideo", expireInSeconds: 3600, role: 2);
 
                     w.CallSessionName = channelName;
                     w.Role = w.Role ?? "Watcher";
