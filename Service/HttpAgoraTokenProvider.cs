@@ -75,9 +75,6 @@ namespace Service
                 rtcService.addPrivilegeRtc(AccessToken2.PrivilegeRtcEnum.PRIVILEGE_PUBLISH_VIDEO_STREAM, expireTs);
                 rtcService.addPrivilegeRtc(AccessToken2.PrivilegeRtcEnum.PRIVILEGE_PUBLISH_DATA_STREAM, expireTs);
             }
-            else // Subscriber
-            {
-            }
 
             token.addService(rtcService);
 
