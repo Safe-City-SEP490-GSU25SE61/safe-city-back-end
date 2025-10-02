@@ -131,11 +131,12 @@ namespace SafeCityBackEnd.Controllers
             var userId = Guid.Parse(userIdClaim.Value);
             try
             {
-                var token = await _sosService.JoinWatcherAsync(sosAlertId, userId);
+                var result = await _sosService.JoinWatcherAsync(sosAlertId, userId);
                 return Ok(new
                 {
-                    ChannelName = token.channelName,
-                    Token = token.token,
+                    ChannelName = result.channelName,
+                    Token = result.token,
+                    UID = result.uid,
                 });
             }
             catch (Exception ex)

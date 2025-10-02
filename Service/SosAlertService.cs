@@ -14,20 +14,23 @@ namespace Service
     public class SosAlertService : ISosAlertService
     {
         private readonly ISosAlertRepository _sosRepo;
+        private readonly IJourneyRepository _journeyRepo;
         private readonly IWatcherRepository _watcherRepo;
         private readonly IAgoraTokenProvider _tokenProvider;
 
-        public SosAlertService(ISosAlertRepository sosAlertRepository, IWatcherRepository watcherRepo, IAgoraTokenProvider tokenProvider)
+        public SosAlertService(ISosAlertRepository sosAlertRepository, IWatcherRepository watcherRepo, IAgoraTokenProvider tokenProvider, IJourneyRepository journeyRepo)
         {
             _sosRepo = sosAlertRepository;
             _watcherRepo = watcherRepo;
             _tokenProvider = tokenProvider;
+            _journeyRepo = journeyRepo;
         }
 
-        public async Task<(string senderName, string token, string channelName, int alertId)> CreateAlertAsync(int escortJourneyId, Guid senderId, decimal lat, decimal lng, DateTime timestamp)
+        public async Task<(string senderName, string token, string channelName, int alertId, int uid, List<EscortJourneyWatcher>? watchers)> CreateAlertAsync(int escortJourneyId, Guid senderId, decimal lat, decimal lng, DateTime timestamp)
         {
             var channelName = $"sos_{escortJourneyId}_{Guid.NewGuid():N}";
             var watchers = await _watcherRepo.GetWatchersByJourneyIdAsync(escortJourneyId);
+            var journey = await _journeyRepo.GetJourneyByIdAsync(escortJourneyId) ?? throw new KeyNotFoundException("Journey not found"); ;
             var watcherTokens = new List<WatcherTokenInfo>();
 
             using var trx = await _watcherRepo.BeginTransactionAsync();
@@ -35,11 +38,11 @@ namespace Service
             {
                 foreach (var w in watchers)
                 {
-                    //var uid = w.AgoraUid ?? w.WatcherId.ToString();
+                    var uid = w.AgoraUid ?? w.WatcherId.ToString();
 
                     var (token, issuedAt, expireAt, agoraUid) =
                         await _tokenProvider.GenerateRtcTokenAsync(
-                            channelName, "0", "GroupVideo", expireInSeconds: 3600, role: 1);
+                            channelName, uid, "GroupVideo", expireInSeconds: 3600, role: 1);
 
                     w.CallSessionName = channelName;
                     w.Role = w.Role ?? "Watcher";
@@ -85,10 +88,12 @@ namespace Service
                 CallStatus = "Ringing",
                 CreatedAt = DateTime.UtcNow
             };
+
+            var ownerId = journey.MemberId.ToString();
             var (senderToken, sIssuedAt, sExpireAt, sAgoraUid) = await _tokenProvider.GenerateRtcTokenAsync(channelName,
-                "0", "GroupVideo", expireInSeconds: 3600, role: 1);
+                ownerId, "GroupVideo", expireInSeconds: 3600, role: 1);
             var result = await _sosRepo.CreateAsync(alert);
-            return (result.senderName, senderToken, result.channelName, result.alertId);
+            return (result.senderName, senderToken, result.channelName, result.alertId, journey.MemberId, watchers);
         }
 
         public async Task EndSosCallAsync(int sosAlertId)
@@ -114,7 +119,7 @@ namespace Service
             }
         }
 
-        public async Task<(string? channelName, string? token)> JoinWatcherAsync(int sosAlertId, Guid userId)
+        public async Task<(string? channelName, string? token, int? uid)> JoinWatcherAsync(int sosAlertId, Guid userId)
         {
             var sos = await _sosRepo.GetByIdAsync(sosAlertId) ?? throw new KeyNotFoundException("SosAlert not found");
             var watcher = await _watcherRepo.GetBySosAlertIdAndUserIdAsync(sosAlertId, userId) ?? throw new KeyNotFoundException("Watcher not found");
@@ -129,7 +134,7 @@ namespace Service
                 if (!sos.CreatedAt.HasValue) sos.CreatedAt = DateTime.UtcNow;
                 await _sosRepo.UpdateAsync(sos);
             }
-            return (watcher.CallSessionName, watcher.Token);
+            return (watcher.CallSessionName, watcher.Token, watcher.WatcherId);
         }
 
         public async Task LeaveWatcherAsync(int sosAlertId, Guid userId)

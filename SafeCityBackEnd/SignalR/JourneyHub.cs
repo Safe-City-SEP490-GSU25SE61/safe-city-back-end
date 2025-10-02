@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.FileSystemGlobbing;
 using Service.Interfaces;
 using System.Data;
 using System.Security.Claims;
@@ -106,11 +107,19 @@ namespace SafeCityBackEnd.SignalR
 
             var alertInfo = await _sosAlertService.CreateAlertAsync(escortJourneyId, senderId, lat, lng, timestamp);
             _logger.LogWarning($"SoS Alert: {lat}, {lng} . TimeStamp: {timestamp}");
-            if (!isVideoCall) {
+
+            var watcherList = (alertInfo.watchers?
+                .Select(w => (object)new { Key = w.WatcherId, Value = w.Watcher.Account.FullName })
+                .ToList())
+                ?? new List<object>();
+
+            watcherList.Add(new { Key = alertInfo.uid, Value = alertInfo.senderName });
+
+            if (!isVideoCall) {;
             await Clients.Group($"journey-{escortJourneyId}-observers").SendAsync("ReceiveSos",
-                $"{alertInfo.senderName} hiện đang gửi tín hiệu cầu cứu.", (double)lat, (double)lng);
+                $"{alertInfo.senderName} hiện đang gửi tín hiệu cầu cứu.", (double)lat, (double)lng, watcherList);
             }
-            await Clients.Group($"journey-{escortJourneyId}-leader").SendAsync("ReceiveToken", alertInfo.token, alertInfo.channelName, alertInfo.alertId);
+            await Clients.Group($"journey-{escortJourneyId}-leader").SendAsync("ReceiveToken", alertInfo.token, alertInfo.channelName, alertInfo.alertId, alertInfo.uid, watcherList);
         }
 
         public async Task StartVideoCall()

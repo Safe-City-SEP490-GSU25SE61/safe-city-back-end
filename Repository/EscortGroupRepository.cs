@@ -105,6 +105,14 @@ namespace Repository
                 .FirstOrDefaultAsync(m => m.AccountId == accountId && m.GroupId == groupId);
         }
 
+        //public async Task<string> GetMemberNamebyMemberIdAsync(int memberId)
+        //{
+        //    return await _context.EscortJourneyGroupMembers
+        //        .Where(m => m.Id == memberId)
+        //        .Select(m => m.Account.FullName)
+        //        .FirstOrDefaultAsync() ?? "unknown";
+        //}
+
         public async Task<int> GetMemberCountAsync(int groupId)
         {
             return await _context.EscortJourneyGroupMembers
