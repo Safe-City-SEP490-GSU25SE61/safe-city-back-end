@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AgoraDynamicKey" Version="1.0.0" />
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="Crc32.NET" Version="1.2.0" />
     <PackageReference Include="Google.Cloud.Storage.V1" Version="4.13.0" />
@@ -26,6 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Tools\DynamicKey\AgoraDynamicKey\csharp\src\AgoraIO\AgoraIO.csproj" />
     <ProjectReference Include="..\Repository\Repository.csproj" />
   </ItemGroup>
 

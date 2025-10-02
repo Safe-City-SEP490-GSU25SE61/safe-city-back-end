@@ -51,33 +51,41 @@ namespace Service
         //    return Task.FromResult((token, issuedAt, expireAt, agoraUid));
         //}
         public Task<(string Token, DateTime IssuedAt, DateTime ExpireAt, string AgoraUid)> GenerateRtcTokenAsync(
-            string channelName,
-            string uid,
-            string callType,
-            int expireInSeconds = 3600,
-            int role = 1)
+        string channelName,
+        string uid,
+        string callType,
+        int expireInSeconds = 3600,
+        int role = 1)
         {
             var issuedAt = DateTime.UtcNow;
             var expireAt = issuedAt.AddSeconds(expireInSeconds);
+
             var agoraUid = uid;
+            var expireTs = (uint)expireInSeconds;
 
-            uint agoraUidUint = (uint)(agoraUid.GetHashCode() & 0x7fffffff);
+            var token = new AccessToken2(_appId, _appCertificate, expireTs);
 
-            var token = new AccessToken(_appId, _appCertificate, channelName, agoraUidUint.ToString());
+            var rtcService = new AccessToken2.ServiceRtc(channelName, agoraUid);
 
-            token.addPrivilege(Privileges.kJoinChannel, (uint)expireInSeconds);
+            rtcService.addPrivilegeRtc(AccessToken2.PrivilegeRtcEnum.PRIVILEGE_JOIN_CHANNEL, expireTs);
 
-            if (role == 1 || role == 2) 
+            if (role == 1) // Publisher
             {
-                token.addPrivilege(Privileges.kPublishAudioStream, (uint)expireInSeconds);
-                token.addPrivilege(Privileges.kPublishVideoStream, (uint)expireInSeconds);
-                token.addPrivilege(Privileges.kPublishDataStream, (uint)expireInSeconds);
+                rtcService.addPrivilegeRtc(AccessToken2.PrivilegeRtcEnum.PRIVILEGE_PUBLISH_AUDIO_STREAM, expireTs);
+                rtcService.addPrivilegeRtc(AccessToken2.PrivilegeRtcEnum.PRIVILEGE_PUBLISH_VIDEO_STREAM, expireTs);
+                rtcService.addPrivilegeRtc(AccessToken2.PrivilegeRtcEnum.PRIVILEGE_PUBLISH_DATA_STREAM, expireTs);
             }
+            else // Subscriber
+            {
+            }
+
+            token.addService(rtcService);
 
             string rtcToken = token.build();
 
             return Task.FromResult((rtcToken, issuedAt, expireAt, agoraUid));
         }
+
     }
 
 }
