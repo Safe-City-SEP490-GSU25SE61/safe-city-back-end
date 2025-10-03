@@ -98,7 +98,7 @@ namespace SafeCityBackEnd.SignalR
         }
 
 
-        public async Task SendSos(decimal lat, decimal lng, DateTime timestamp, bool isVideoCall = false)
+        public async Task SendSos(decimal lat, decimal lng, DateTime timestamp, bool isVideoCall = false, bool isPassiveCall = false)
         {
             if (!(Context.Items.TryGetValue("journeyId", out var journeyObj) && journeyObj is int escortJourneyId) || journeyObj == null)
                 throw new HubException("No journey found for this connection");
@@ -115,9 +115,13 @@ namespace SafeCityBackEnd.SignalR
 
             watcherList.Add(new { Key = alertInfo.uid, Value = alertInfo.senderName });
 
-            if (!isVideoCall) {;
+            if (!isVideoCall && isPassiveCall == false) {;
             await Clients.Group($"journey-{escortJourneyId}-observers").SendAsync("ReceiveSos",
                 $"{alertInfo.senderName} hiện đang gửi tín hiệu cầu cứu.", (double)lat, (double)lng, watcherList);
+            }
+            else if (!isVideoCall && isPassiveCall == true) {
+                await Clients.Group($"journey-{escortJourneyId}-observers").SendAsync("ReceivePassiveSos",
+                $"{alertInfo.senderName} hiện đang gửi tín hiệu cầu cứu.", (double)lat, (double)lng);
             }
             await Clients.Group($"journey-{escortJourneyId}-leader").SendAsync("ReceiveToken", alertInfo.token, alertInfo.channelName, alertInfo.alertId, alertInfo.uid, watcherList);
         }
