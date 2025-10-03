@@ -40,7 +40,7 @@ public class ReputationResetCronJob : BackgroundService
                     {
                         if (acc.ReputationPoint < 3)
                         {
-                            acc.ReputationPoint += 1;
+                            acc.ReputationPoint += 10;
                             await accountRepo.UpdateOfficerAsync(acc);
                             _logger.LogInformation($"User {acc.FullName}: tăng uy tín lên {acc.ReputationPoint}");
                         }

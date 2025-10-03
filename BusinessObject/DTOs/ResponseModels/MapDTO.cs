@@ -32,6 +32,7 @@ namespace BusinessObject.DTOs.ResponseModels
         public decimal? Lng { get; set; }
         public DateTime OccurredAt { get; set; }
         public string Status { get; set; }
+        public string? IconUrl { get; set; }
     }
     public class MapReportResponse
     {

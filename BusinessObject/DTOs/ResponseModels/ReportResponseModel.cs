@@ -31,6 +31,5 @@ namespace BusinessObject.DTOs.ResponseModels
         public string? VideoUrl { get; set; }
         public List<RelatedReportResponseModel>? RelatedReports { get; set; }
 
-
     }
 }

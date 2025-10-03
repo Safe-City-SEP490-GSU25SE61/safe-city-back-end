@@ -137,7 +137,6 @@ C:\SafeCity\SafeCityBackEnd\bin\Debug\net8.0\Repository.pdb
 C:\SafeCity\SafeCityBackEnd\obj\Debug\net8.0\SafeCityBackEnd.csproj.AssemblyReference.cache
 C:\SafeCity\SafeCityBackEnd\obj\Debug\net8.0\SafeCityBackEnd.GeneratedMSBuildEditorConfig.editorconfig
 C:\SafeCity\SafeCityBackEnd\obj\Debug\net8.0\SafeCityBackEnd.csproj.CoreCompileInputs.cache
-C:\SafeCity\SafeCityBackEnd\obj\Debug\net8.0\SafeCityBackEnd.MvcApplicationPartsAssemblyInfo.cs
 C:\SafeCity\SafeCityBackEnd\obj\Debug\net8.0\SafeCityBackEnd.MvcApplicationPartsAssemblyInfo.cache
 C:\SafeCity\SafeCityBackEnd\obj\Debug\net8.0\SafeCityBackEnd.sourcelink.json
 C:\SafeCity\SafeCityBackEnd\obj\Debug\net8.0\staticwebassets.build.json
@@ -334,3 +333,5 @@ C:\Project-Capstone\safe-city-back-end\SafeCityBackEnd\obj\Debug\net8.0\refint\S
 C:\Project-Capstone\safe-city-back-end\SafeCityBackEnd\obj\Debug\net8.0\SafeCityBackEnd.pdb
 C:\Project-Capstone\safe-city-back-end\SafeCityBackEnd\obj\Debug\net8.0\SafeCityBackEnd.genruntimeconfig.cache
 C:\Project-Capstone\safe-city-back-end\SafeCityBackEnd\obj\Debug\net8.0\ref\SafeCityBackEnd.dll
+C:\SafeCity\SafeCityBackEnd\bin\Debug\net8.0\AgoraIO.dll
+C:\SafeCity\SafeCityBackEnd\bin\Debug\net8.0\AgoraIO.pdb

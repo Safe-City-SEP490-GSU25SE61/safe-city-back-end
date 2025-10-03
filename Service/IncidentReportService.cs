@@ -58,7 +58,9 @@ namespace Service
         public async Task<ReportResponseModel> CreateAsync(CreateReportRequestModel model, Guid userId)
         {
             var account = await _accountRepo.GetByIdAsync(userId);
-            if (account != null && account.ReputationPoint <= 0)
+            var minConfig = await _configurationRepository.GetByKeyNameAsync("reputation-min-threshold");
+            int minThreshold = minConfig?.ValueAsNumber ?? 0;
+            if (account != null && account.ReputationPoint <= minThreshold)
             {
                 throw new InvalidOperationException("Tài khoản của bạn đã mất uy tín và không thể gửi báo cáo.");
             }
@@ -380,6 +382,8 @@ namespace Service
                 var account = await _accountRepo.GetByIdAsync(report.UserId);
                 if (account != null)
                 {
+                    var stepConfig = await _configurationRepository.GetByKeyNameAsync("reputation-increase-step");
+                    int repStep = stepConfig?.ValueAsNumber ?? 1;
                     int rewardPoint = _configuration.GetValue<int>("Reward:VerifiedReportPoint", (int)obtainedPoint);
                     account.TotalPoint += rewardPoint;
                     await _accountRepo.UpdateOfficerAsync(account);
@@ -391,9 +395,10 @@ namespace Service
                         sourceId: report.Id.ToString(),
                         action: "report_verified",
                         pointsDelta: rewardPoint,
-                        reputationDelta: 0,
+                        reputationDelta: repStep,
                         note: model.Message
                     );
+                    await AddReputationPointAsync(account, officerId, report.Id, model.Message);
                 }
             }
             if (model.Status == "malicious")
@@ -401,7 +406,9 @@ namespace Service
                 var reporter = await _accountRepo.GetByIdAsync(report.UserId);
                 if (reporter != null)
                 {
-                    reporter.ReputationPoint = Math.Max(0, reporter.ReputationPoint - 1);
+                    var penaltyConfig = await _configurationRepository.GetByKeyNameAsync("reputation-malicious-penalty");
+                    int penalty = penaltyConfig?.ValueAsNumber ?? 10;
+                    reporter.ReputationPoint = Math.Max(0, reporter.ReputationPoint - penalty);
                     await _accountRepo.UpdateOfficerAsync(reporter);
 
                     await _pointHistory.LogAsync(
@@ -411,7 +418,7 @@ namespace Service
                         sourceId: report.Id.ToString(),
                         action: "report_malicious_penalty",
                         pointsDelta: 0,
-                        reputationDelta: -1,
+                        reputationDelta: -penalty,
                         note: model.Message
                     );
                 }
@@ -502,7 +509,7 @@ namespace Service
                     _ => null
                 }
 
-        };
+            };
         }
 
         public async Task<ReportResponseModel> CancelAsync(Guid reportId, Guid userId, string? reason = null)
@@ -1158,6 +1165,35 @@ namespace Service
             };
         }
 
+        private async Task AddReputationPointAsync(Account account, Guid officerId, Guid reportId, string? note)
+        {
+
+            var stepConfig = await _configurationRepository.GetByKeyNameAsync("reputation-increase-per-report");
+            double step = stepConfig?.ValueAsNumber ?? 1;
+
+
+            var maxConfig = await _configurationRepository.GetByKeyNameAsync("reputation-max-point");
+            int max = maxConfig?.ValueAsNumber != null ? (int)maxConfig.ValueAsNumber : 30;
+
+            double newValue = account.ReputationPoint + step;
+            if (newValue > max) newValue = max;
+
+            int delta = (int)Math.Round(newValue - account.ReputationPoint, 1, MidpointRounding.AwayFromZero);
+            account.ReputationPoint = (int)newValue;
+
+            await _accountRepo.UpdateOfficerAsync(account);
+
+            await _pointHistory.LogAsync(
+                userId: account.Id,
+                actorId: officerId,
+                sourceType: "incident_report",
+                sourceId: reportId.ToString(),
+                action: "report_reputation_increase",
+                pointsDelta: 0,
+                reputationDelta: delta,
+                note: note
+            );
+        }
 
 
 
