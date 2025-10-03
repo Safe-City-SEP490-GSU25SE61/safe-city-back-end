@@ -131,14 +131,14 @@ namespace SafeCityBackEnd.SignalR
             var currentSosAlert = await _sosAlertService.GetLatestAlertBySenderIdAsync(senderId);
             if (currentSosAlert == null)
             {
-                _logger.LogWarning("Không tìm thấy SOS alert nào cho Sender {SenderId}", senderId, watcherList);
+                _logger.LogWarning("Không tìm thấy SOS alert nào cho Sender {SenderId}", senderId);
                 throw new HubException("No active SOS alert found.");
             }
 
             _logger.LogWarning($"SoS Alert: {currentSosAlert.Id}");
 
             await Clients.Group($"journey-{escortJourneyId}-observers").SendAsync("ReceiveVideoCall",
-                $"{currentSosAlert.Sender.FullName} hiện đang thực hiện cuộc gọi.", currentSosAlert.Id);
+                $"{currentSosAlert.Sender.FullName} hiện đang thực hiện cuộc gọi.", currentSosAlert.Id, watcherList);
         }
 
         public override async Task OnDisconnectedAsync(Exception? exception)
