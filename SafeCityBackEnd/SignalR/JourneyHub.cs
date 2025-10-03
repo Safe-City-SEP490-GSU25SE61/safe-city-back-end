@@ -122,7 +122,7 @@ namespace SafeCityBackEnd.SignalR
             await Clients.Group($"journey-{escortJourneyId}-leader").SendAsync("ReceiveToken", alertInfo.token, alertInfo.channelName, alertInfo.alertId, alertInfo.uid, watcherList);
         }
 
-        public async Task StartVideoCall()
+        public async Task StartVideoCall(List<dynamic> watcherList)
         {
             if (!(Context.Items.TryGetValue("journeyId", out var journeyObj) && journeyObj is int escortJourneyId) || journeyObj == null)
                 throw new HubException("No journey found for this connection");
@@ -131,7 +131,7 @@ namespace SafeCityBackEnd.SignalR
             var currentSosAlert = await _sosAlertService.GetLatestAlertBySenderIdAsync(senderId);
             if (currentSosAlert == null)
             {
-                _logger.LogWarning("Không tìm thấy SOS alert nào cho Sender {SenderId}", senderId);
+                _logger.LogWarning("Không tìm thấy SOS alert nào cho Sender {SenderId}", senderId, watcherList);
                 throw new HubException("No active SOS alert found.");
             }
 
