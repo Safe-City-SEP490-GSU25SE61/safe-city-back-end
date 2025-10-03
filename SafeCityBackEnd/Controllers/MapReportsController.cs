@@ -64,16 +64,16 @@ namespace SafeCityBackEnd.Controllers
             var userId = Guid.Parse(userIdClaim.Value);
             try
             {
-                //if (await _subscriptionService.IsSubscribed(userId))
-                //{
+                if (await _subscriptionService.IsSubscribed(userId))
+                {
                     var result = await _mapService.GetReportDetailsForMapAsync(
                     query.CommuneId,
                     query.Type?.ToString(),
                     query.Range
                     );
                     return Ok(result);
-                //}
-                //return Ok(new { IsPremium = false});
+                }
+                return Ok(new { IsPremium = false});
                 
             }
             catch (ArgumentException ex)
