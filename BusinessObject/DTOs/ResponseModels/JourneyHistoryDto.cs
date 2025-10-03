@@ -19,6 +19,7 @@ namespace BusinessObject.DTOs.ResponseModels
         public string EndLocation { get; set; }
         public DateTime? StartTime { get; set; }
         public DateTime? EndTime { get; set; }
+        public int DistanceInMeters { get; set; }
         public string Vehicle { get; set; }
         public string Status { get; set; }
 

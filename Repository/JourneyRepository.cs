@@ -61,6 +61,7 @@ namespace Repository
                     EndLocation = j.EndPoint,
                     StartTime = j.StartTime != null ? j.StartTime.Value : null,
                     EndTime = j.ArrivalTime != null ? j.ArrivalTime.Value : null,
+                    DistanceInMeters = j.DistanceInMeters,
                     Vehicle = j.Vehicle,
                     Status = j.Status,
                     Watchers = j.Watchers.Select(w => new WatcherDto
