@@ -21,13 +21,17 @@ namespace Service
         private static readonly string[] ValidStatuses = { "verified", "solved" };
         private static readonly string[] ValidRanges = { "week", "month", "quarter" };
         private static readonly string[] OfficerStatuses = { "pending", "verified", "solved" };
-
-
-        public MapService(IIncidentReportRepository reportRepo, ICommuneRepository communeRepo, IAccountRepository accountRepo)
+        private readonly IConfigurationRepository _configurationRepository;
+        private static readonly Dictionary<string, string?> _iconUrlCache = new(StringComparer.OrdinalIgnoreCase);
+        private static bool _iconCacheLoaded = false;
+        private static readonly object _iconCacheLock = new();
+        public MapService(IIncidentReportRepository reportRepo, ICommuneRepository communeRepo, IAccountRepository accountRepo, IConfigurationRepository configurationRepository)
         {
             _reportRepo = reportRepo;
             _communeRepo = communeRepo;
             _accountRepo = accountRepo;
+            _configurationRepository = configurationRepository;
+            EnsureIconCacheLoaded();
         }
 
         public async Task<IEnumerable<MapCommuneDTO>> GetAllCommunePolygonsAsync()
@@ -203,7 +207,8 @@ namespace Service
                 Lat = report.Lat,
                 Lng = report.Lng,
                 OccurredAt = DateTimeHelper.ToVietnamTime(report.OccurredAt),
-                Status = report.Status
+                Status = report.Status,
+                IconUrl = GetIconUrlForType(report.Type)
             }).ToList();
         }
 
@@ -354,7 +359,8 @@ namespace Service
                     Lat = report.Lat,
                     Lng = report.Lng,
                     OccurredAt = DateTimeHelper.ToVietnamTime(report.OccurredAt),
-                    Status = report.Status
+                    Status = report.Status,
+                    IconUrl = GetIconUrlForType(report.Type)
                 })
                 .ToList();
         }
@@ -502,7 +508,8 @@ namespace Service
                     Lat = report.Lat,
                     Lng = report.Lng,
                     OccurredAt = DateTimeHelper.ToVietnamTime(report.OccurredAt),
-                    Status = report.Status
+                    Status = report.Status,
+                    IconUrl = GetIconUrlForType(report.Type)
                 })
                 .ToList();
 
@@ -627,6 +634,28 @@ namespace Service
             {
                 return null;
             }
+        }
+
+        private void EnsureIconCacheLoaded()
+        {
+            if (_iconCacheLoaded) return;
+            lock (_iconCacheLock)
+            {
+                if (_iconCacheLoaded) return;
+                foreach (IncidentType it in Enum.GetValues(typeof(IncidentType)))
+                {
+                    var key = $"{it.ToString().ToLowerInvariant()}-icon";
+                    var cfg = _configurationRepository.GetByKeyNameAsync(key).GetAwaiter().GetResult();
+                    _iconUrlCache[it.ToString().ToLowerInvariant()] = cfg?.Value;
+                }
+
+                _iconCacheLoaded = true;
+            }
+        }
+        private static string? GetIconUrlForType(IncidentType type)
+        {
+            var key = type.ToString().ToLowerInvariant();
+            return _iconUrlCache.TryGetValue(key, out var url) ? url : null;
         }
 
 

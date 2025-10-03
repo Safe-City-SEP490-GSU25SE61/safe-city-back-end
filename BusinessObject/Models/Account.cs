@@ -49,7 +49,7 @@ namespace BusinessObject.Models
         public int TotalPoint { get; set; }
 
         [Column("reputation_point")]
-        public int ReputationPoint { get; set; } = 3;
+        public int ReputationPoint { get; set; } = 30;
 
         [Column("achievement_id")]
         public int? AchievementId { get; set; }

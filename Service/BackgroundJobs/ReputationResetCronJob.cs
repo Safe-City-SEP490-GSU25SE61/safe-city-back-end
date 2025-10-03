@@ -38,9 +38,9 @@ public class ReputationResetCronJob : BackgroundService
 
                     foreach (var acc in accounts)
                     {
-                        if (acc.ReputationPoint < 3)
+                        if (acc.ReputationPoint < 30)
                         {
-                            acc.ReputationPoint += 1;
+                            acc.ReputationPoint += 10;
                             await accountRepo.UpdateOfficerAsync(acc);
                             _logger.LogInformation($"User {acc.FullName}: tăng uy tín lên {acc.ReputationPoint}");
                         }
