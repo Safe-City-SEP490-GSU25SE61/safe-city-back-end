@@ -382,7 +382,7 @@ namespace Service
                 var account = await _accountRepo.GetByIdAsync(report.UserId);
                 if (account != null)
                 {
-                    var stepConfig = await _configurationRepository.GetByKeyNameAsync("reputation-increase-step");
+                    var stepConfig = await _configurationRepository.GetByKeyNameAsync("reputation-increase-per-report");
                     int repStep = stepConfig?.ValueAsNumber ?? 1;
                     int rewardPoint = _configuration.GetValue<int>("Reward:VerifiedReportPoint", (int)obtainedPoint);
                     account.TotalPoint += rewardPoint;
