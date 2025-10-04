@@ -382,8 +382,7 @@ namespace Service
                 var account = await _accountRepo.GetByIdAsync(report.UserId);
                 if (account != null)
                 {
-                    var stepConfig = await _configurationRepository.GetByKeyNameAsync("reputation-increase-step");
-                    int repStep = stepConfig?.ValueAsNumber ?? 1;
+
                     int rewardPoint = _configuration.GetValue<int>("Reward:VerifiedReportPoint", (int)obtainedPoint);
                     account.TotalPoint += rewardPoint;
                     await _accountRepo.UpdateOfficerAsync(account);
@@ -395,7 +394,7 @@ namespace Service
                         sourceId: report.Id.ToString(),
                         action: "report_verified",
                         pointsDelta: rewardPoint,
-                        reputationDelta: repStep,
+                        reputationDelta: 0,
                         note: model.Message
                     );
                     await AddReputationPointAsync(account, officerId, report.Id, model.Message);
@@ -1169,18 +1168,19 @@ namespace Service
         {
 
             var stepConfig = await _configurationRepository.GetByKeyNameAsync("reputation-increase-per-report");
-            double step = stepConfig?.ValueAsNumber ?? 1;
+            int step = stepConfig?.ValueAsNumber ?? 1;
 
 
             var maxConfig = await _configurationRepository.GetByKeyNameAsync("reputation-max-point");
-            int max = maxConfig?.ValueAsNumber != null ? (int)maxConfig.ValueAsNumber : 30;
+            int max = maxConfig?.ValueAsNumber ?? 30;
 
-            double newValue = account.ReputationPoint + step;
-            if (newValue > max) newValue = max;
+            int oldValue = account.ReputationPoint;
+            int newValue = Math.Min(max, oldValue + step);
 
-            int delta = (int)Math.Round(newValue - account.ReputationPoint, 1, MidpointRounding.AwayFromZero);
-            account.ReputationPoint = (int)newValue;
+            int delta = newValue - oldValue;
+            if (delta <= 0) return; 
 
+            account.ReputationPoint = newValue;
             await _accountRepo.UpdateOfficerAsync(account);
 
             await _pointHistory.LogAsync(
